@@ -110,11 +110,11 @@ export default async function SuperAdminOverview() {
     <div className="p-8 max-w-[1400px] w-full mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-[13px] text-[#9ca3af] mb-1">Super Admin / Overview</p>
+        <p className="text-[13px] text-slate-500 font-medium mb-1">Super Admin / Overview</p>
         <h1 className="text-[34px] font-bold text-[#111827] tracking-tight">
           Platform Command Centre
         </h1>
-        <p className="text-[14px] text-[#6b7280] mt-1">
+        <p className="text-[14px] text-slate-600 mt-1">
           Real-time overview of the entire PropertiesNexus platform.
         </p>
       </div>
@@ -123,19 +123,19 @@ export default async function SuperAdminOverview() {
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <div className="bg-white rounded-2xl border border-[#e5e9ee] p-6 shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-xl mb-3">👥</div>
-          <p className="text-[13px] text-[#6b7280] font-medium">Total Users</p>
+          <p className="text-[13px] text-slate-600 font-medium">Total Users</p>
           <p className="text-[32px] font-bold text-[#111827] leading-none mt-1">{stats.totalUsers}</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#e5e9ee] p-6 shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-xl mb-3">🏠</div>
-          <p className="text-[13px] text-[#6b7280] font-medium">Total Listings</p>
+          <p className="text-[13px] text-slate-600 font-medium">Total Listings</p>
           <p className="text-[32px] font-bold text-[#111827] leading-none mt-1">{stats.totalListings}</p>
         </div>
-        <div className="bg-amber-500 rounded-2xl p-6 shadow-sm text-white">
+        <div className="bg-[#d49a38] rounded-2xl p-6 shadow-sm text-white">
           <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl mb-3">⏳</div>
-          <p className="text-[13px] font-medium opacity-80">Pending Approvals</p>
-          <p className="text-[32px] font-bold leading-none mt-1">{stats.pendingApprovals}</p>
-          <Link href="/super-admin/approvals" className="text-[11px] font-bold mt-2 block underline opacity-90">
+          <p className="text-[13px] font-semibold text-white/90">Pending Approvals</p>
+          <p className="text-[32px] font-bold leading-none mt-1 text-white">{stats.pendingApprovals}</p>
+          <Link href="/super-admin/approvals" className="text-[12px] font-bold mt-3 inline-block bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg transition-colors">
             Review now →
           </Link>
         </div>

@@ -115,7 +115,7 @@ export default function SuperAdminSidebar({
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 px-3 flex-1">
-        <p className="text-[10px] font-bold tracking-[1.5px] text-[#4a5568] uppercase px-3 mb-1">
+        <p className="text-[11px] font-bold tracking-[1.5px] text-slate-400 uppercase px-3 mb-2">
           Control Panel
         </p>
         {NAV.map((item) => (
@@ -126,10 +126,10 @@ export default function SuperAdminSidebar({
             className={`flex items-center gap-3 px-3 py-[10px] rounded-lg text-[13px] font-semibold transition-all duration-150 ${
               isActive(item.href, item.exact)
                 ? "bg-[#d49a38] text-[#0a0f1c] shadow-[0_2px_12px_rgba(212,154,56,0.4)]"
-                : "text-[#8899aa] hover:bg-white/8 hover:text-white"
+                : "text-slate-300 hover:bg-white/10 hover:text-white"
             }`}
           >
-            <span className={isActive(item.href, item.exact) ? "text-[#0a0f1c]" : "text-[#8899aa]"}>
+            <span className={isActive(item.href, item.exact) ? "text-[#0a0f1c]" : "text-slate-400 group-hover:text-white"}>
               {item.icon}
             </span>
             {item.label}
@@ -140,7 +140,7 @@ export default function SuperAdminSidebar({
           <Link
             href="/dashboard"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-3 px-3 py-[10px] rounded-lg text-[13px] font-semibold text-[#8899aa] hover:bg-white/8 hover:text-white transition-all"
+            className="flex items-center gap-3 px-3 py-[10px] rounded-lg text-[13px] font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all"
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
@@ -159,7 +159,7 @@ export default function SuperAdminSidebar({
           </div>
           <div className="min-w-0">
             <p className="text-white text-[13px] font-semibold truncate">{userName}</p>
-            <p className="text-[#8899aa] text-[11px] truncate">{userEmail}</p>
+            <p className="text-slate-400 text-[11px] truncate">{userEmail}</p>
           </div>
         </div>
         <form action="/auth/signout" method="post" className="mt-3">
