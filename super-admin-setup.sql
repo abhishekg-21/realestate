@@ -16,14 +16,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text,
   phone text,
-  role text NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'agent', 'builder', 'lister', 'admin', 'super_admin')),
+  role text NOT NULL DEFAULT 'buyer' CHECK (role IN ('buyer', 'seller', 'agent', 'builder', 'developer', 'investor', 'user', 'lister', 'admin', 'super_admin')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Ensure the check constraint includes 'super_admin' if the table already existed previously
+-- Ensure the check constraint includes all 6 roles
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
-ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check CHECK (role IN ('user', 'agent', 'builder', 'lister', 'admin', 'super_admin'));
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check CHECK (role IN ('buyer', 'seller', 'agent', 'builder', 'developer', 'investor', 'user', 'lister', 'admin', 'super_admin'));
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 

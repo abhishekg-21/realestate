@@ -65,12 +65,13 @@ const statusColor: Record<string, string> = {
 };
 
 const roleColor: Record<string, string> = {
-  user: "bg-gray-100 text-gray-600",
+  user: "bg-slate-100 text-slate-700",
   buyer: "bg-blue-100 text-blue-700",
   seller: "bg-purple-100 text-purple-700",
   agent: "bg-indigo-100 text-indigo-700",
   builder: "bg-teal-100 text-teal-700",
-  lister: "bg-cyan-100 text-cyan-700",
+  developer: "bg-amber-100 text-amber-800",
+  investor: "bg-emerald-100 text-emerald-800",
   admin: "bg-orange-100 text-orange-700",
   super_admin: "bg-red-100 text-red-700",
 };

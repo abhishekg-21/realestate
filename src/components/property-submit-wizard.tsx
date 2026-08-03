@@ -99,7 +99,7 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
     const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
 
     for (const f of incoming) {
-      if (photos.length + valid.length >= 12) break;
+      if (photos.length + valid.length >= 20) break;
       if (f.size > MAX_SIZE) {
         setMsg(`${f.name} is larger than 50 MB.`);
         setMsgType("error");
@@ -438,7 +438,7 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
                 Add photos & videos
               </h2>
               <p className="text-[12px] leading-[1.6] text-muted m-0 mb-[20px]">
-                Use well-lit photographs or walkthrough videos. Add up to 12 files (JPG, PNG, WebP, MP4, WebM), each up to <strong>50 MB</strong>.
+                Use well-lit photographs or walkthrough videos. Add up to 20 files (JPG, PNG, WebP, MP4, WebM), each up to <strong>50 MB</strong>.
               </p>
 
               <label className="block border border-dashed border-[#aebcc3] p-[22px] text-center bg-[#fafcfc] rounded cursor-pointer hover:bg-gray-50 transition-colors">
@@ -492,47 +492,102 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
             </div>
           )}
 
-          {/* STEP 3: Documents & contact */}
+          {/* STEP 3: Property Documents & Contact Details */}
           {step === 3 && (
             <div>
               <h2 className="font-serif text-[27px] font-medium m-0 mb-[6px] text-ink">
-                Documents & contact
+                Property Documents & Verification
               </h2>
               <p className="text-[12px] leading-[1.6] text-muted m-0 mb-[20px]">
-                Upload ownership or floor plan documents (up to 50 MB each).
+                Upload mandatory property verification documents (PDF, JPG, PNG up to 50 MB each).
               </p>
 
-              <label className="block border border-dashed border-[#aebcc3] p-[22px] text-center bg-[#fafcfc] rounded cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="file"
-                  accept="application/pdf,image/jpeg,image/png"
-                  multiple
-                  onChange={handleDocChange}
-                  className="hidden"
-                />
-                <b className="text-[12px] text-ink font-bold">Choose documents / floor plans</b>
-                <p className="text-[10px] text-muted m-0 mt-[6px]">
-                  PDF, JPG or PNG · up to 5 files · maximum 50 MB each
-                </p>
-              </label>
-
-              <div className="grid gap-[7px] mt-[13px]">
-                {documents.map((f, i) => (
-                  <div
-                    key={i}
-                    className="text-[11px] p-[9px] border border-[#e2e7e8] rounded flex justify-between items-center bg-white"
+              {/* Ownership Proof Section */}
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-5 space-y-3">
+                <label className="block">
+                  <span className="block text-[12px] font-bold text-slate-900 mb-1">
+                    Ownership Proof <small className="text-red-500 font-bold">(Upload any ONE)</small>
+                  </span>
+                  <select
+                    className="w-full border border-slate-300 rounded-lg p-2.5 text-[12px] bg-white text-slate-900 outline-none focus:border-[#d49a38] mb-2"
                   >
-                    <span className="truncate pr-2 font-semibold text-ink">{f.name} ({Math.round(f.size / (1024 * 1024))} MB)</span>
-                    <button
-                      type="button"
-                      onClick={() => removeDoc(i)}
-                      className="border-0 bg-transparent text-[#a44743] font-bold cursor-pointer hover:underline shrink-0"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+                    <option>Registered Sale Deed</option>
+                    <option>Title Deed</option>
+                    <option>Conveyance Deed</option>
+                    <option>Allotment Letter</option>
+                  </select>
+                </label>
+
+                <label className="block border border-dashed border-[#aebcc3] p-4 text-center bg-white rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                  <input
+                    type="file"
+                    accept="application/pdf,image/jpeg,image/png"
+                    onChange={handleDocChange}
+                    className="hidden"
+                  />
+                  <b className="text-[12px] text-slate-800 font-bold">📄 Upload Selected Ownership Proof</b>
+                  <p className="text-[10px] text-slate-500 m-0 mt-1">PDF, JPG, PNG up to 50 MB</p>
+                </label>
               </div>
+
+              {/* Additional Optional Documents Section */}
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-5 space-y-3">
+                <h3 className="font-bold text-[13px] text-slate-900 m-0">
+                  Additional Documents (Optional / As Applicable)
+                </h3>
+
+                <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-3 text-[12px]">
+                  <label className="block col-span-full">
+                    <span className="block font-semibold text-slate-700 mb-1">RERA Registration Number (if applicable)</span>
+                    <input
+                      type="text"
+                      placeholder="e.g. P51900001234"
+                      className="w-full border border-slate-300 rounded-lg p-2 text-[12px] bg-white outline-none focus:border-[#d49a38]"
+                    />
+                  </label>
+
+                  <label className="block border border-dashed border-slate-300 p-3 text-center bg-white rounded-lg cursor-pointer hover:bg-slate-100">
+                    <input type="file" accept="application/pdf,image/*" onChange={handleDocChange} className="hidden" />
+                    <span className="block font-bold text-slate-800 text-[11px]">Tax Receipt</span>
+                    <span className="text-[10px] text-slate-500">Property Tax Receipt</span>
+                  </label>
+
+                  <label className="block border border-dashed border-slate-300 p-3 text-center bg-white rounded-lg cursor-pointer hover:bg-slate-100">
+                    <input type="file" accept="application/pdf,image/*" onChange={handleDocChange} className="hidden" />
+                    <span className="block font-bold text-slate-800 text-[11px]">Occupancy Cert</span>
+                    <span className="text-[10px] text-slate-500">OC Document</span>
+                  </label>
+
+                  <label className="block border border-dashed border-slate-300 p-3 text-center bg-white rounded-lg cursor-pointer hover:bg-slate-100">
+                    <input type="file" accept="application/pdf,image/*" onChange={handleDocChange} className="hidden" />
+                    <span className="block font-bold text-slate-800 text-[11px]">Building Plan</span>
+                    <span className="text-[10px] text-slate-500">Approval Plan</span>
+                  </label>
+
+                  <label className="block border border-dashed border-slate-300 p-3 text-center bg-white rounded-lg cursor-pointer hover:bg-slate-100">
+                    <input type="file" accept="application/pdf,image/*" onChange={handleDocChange} className="hidden" />
+                    <span className="block font-bold text-slate-800 text-[11px]">Floor Plan</span>
+                    <span className="text-[10px] text-slate-500">Blueprint / Floor Plan</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Uploaded files summary list */}
+              {documents.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="font-bold text-[12px] text-slate-900 mb-2">Selected Files ({documents.length}):</h4>
+                  <div className="grid gap-2">
+                    {documents.map((f, i) => (
+                      <div key={i} className="text-[11px] p-2.5 border border-slate-200 rounded-lg flex justify-between items-center bg-white">
+                        <span className="truncate font-semibold text-slate-800">{f.name} ({Math.round(f.size / (1024 * 1024))} MB)</span>
+                        <button type="button" onClick={() => removeDoc(i)} className="text-red-600 font-bold text-[11px] hover:underline">
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[14px] mt-[18px]">
                 <label className="block">

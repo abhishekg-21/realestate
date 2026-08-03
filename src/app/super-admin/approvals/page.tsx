@@ -72,15 +72,88 @@ export default function ApprovalsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const [editingImages, setEditingImages] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [uploadingImg, setUploadingImg] = useState(false);
+
   const openDetail = async (sub: Submission) => {
     setSelected(sub);
     setNote("");
+    setEditingImages(false);
     const { data } = await supabase
       .from("property_submission_media")
       .select("*")
       .eq("submission_id", sub.id)
       .order("sort_order");
-    setMedia(data ?? []);
+    
+    const mediaList = data ?? [];
+    setMedia(mediaList);
+    setImageUrls(mediaList.map((m) => m.storage_path));
+  };
+
+  const handleAddImageUrl = () => {
+    if (!newImageUrl.trim()) return;
+    setImageUrls([...imageUrls, newImageUrl.trim()]);
+    setNewImageUrl("");
+  };
+
+  const handleRemoveImageUrl = (idx: number) => {
+    setImageUrls(imageUrls.filter((_, i) => i !== idx));
+  };
+
+  const handleAdminFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !selected) return;
+    setUploadingImg(true);
+    const files = Array.from(e.target.files);
+
+    try {
+      for (const file of files) {
+        const path = `properties/${selected.id}/${Date.now()}_${file.name}`;
+        const { error } = await supabase.storage
+          .from("user-verification-docs")
+          .upload(path, file);
+
+        if (!error) {
+          const { data: publicUrlData } = supabase.storage
+            .from("user-verification-docs")
+            .getPublicUrl(path);
+          
+          if (publicUrlData?.publicUrl) {
+            setImageUrls((prev) => [...prev, publicUrlData.publicUrl]);
+          }
+        }
+      }
+      showToast("Files uploaded successfully.");
+    } catch (err: any) {
+      showToast("Upload failed: " + err.message);
+    } finally {
+      setUploadingImg(false);
+    }
+  };
+
+  const saveUpdatedImages = async () => {
+    if (!selected) return;
+    setWorking(true);
+    try {
+      const res = await fetch("/api/admin/update-property-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: selected.id, images: imageUrls }),
+      });
+      const json = await res.json();
+      if (json.error) {
+        showToast("Error updating images: " + json.error);
+      } else {
+        showToast("Property images updated successfully!");
+        setEditingImages(false);
+        openDetail(selected);
+      }
+    } catch (err: any) {
+      showToast("Failed to save images: " + err.message);
+    } finally {
+      setWorking(false);
+    }
   };
 
   const takeAction = async (action: "approved" | "rejected" | "under_review" | "changes_requested") => {
@@ -106,11 +179,20 @@ export default function ApprovalsPage() {
     v === "sale" ? "🏷️ For Sale" : v === "rent" ? "🔑 For Rent" : "🏢 Commercial";
 
   return (
-    <div className="p-8 max-w-[1400px] w-full mx-auto">
+    <div className="p-8 max-w-[1400px] w-full mx-auto text-slate-900">
+      {/* Toast alert */}
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border border-slate-700 animate-bounce">
+          {toast}
+        </div>
+      )}
+
       <div className="mb-6">
-        <p className="text-[13px] text-[#9ca3af] mb-1">Super Admin / Property Approvals</p>
-        <h1 className="text-[30px] font-bold text-[#111827]">Property Approvals</h1>
-        <p className="text-[14px] text-[#6b7280] mt-1">Review, approve, reject or request changes on submitted listings.</p>
+        <p className="text-[13px] text-slate-500 font-bold mb-1">Super Admin / Property Management</p>
+        <h1 className="text-[32px] font-bold text-slate-900 tracking-tight">Property Control & Image Editor</h1>
+        <p className="text-[14px] text-slate-600 mt-1">
+          View all properties, edit property photos & walkthrough videos, approve listings, or request changes.
+        </p>
       </div>
 
       {/* Tabs */}
@@ -119,10 +201,10 @@ export default function ApprovalsPage() {
           <button
             key={t.value}
             onClick={() => setTab(t.value)}
-            className={`px-4 py-2 rounded-xl text-[13px] font-semibold border transition-all ${
+            className={`px-4 py-2.5 rounded-xl text-[13px] font-bold border transition-all ${
               tab === t.value
-                ? "bg-[#111827] text-white border-[#111827]"
-                : "bg-white text-[#6b7280] border-[#e5e9ee] hover:border-[#111827]"
+                ? "bg-[#0f172a] text-amber-400 border-[#0f172a] shadow-sm"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-400"
             }`}
           >
             {t.label}
@@ -131,56 +213,56 @@ export default function ApprovalsPage() {
       </div>
 
       {loading && (
-        <div className="bg-white rounded-2xl border border-[#e5e9ee] p-12 text-center text-[#9ca3af] text-[14px]">
-          Loading submissions…
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500 text-[14px] animate-pulse">
+          Loading properties…
         </div>
       )}
 
       {!loading && submissions.length === 0 && (
-        <div className="bg-white rounded-2xl border border-[#e5e9ee] p-12 text-center">
-          <p className="text-[32px] mb-3">🎉</p>
-          <p className="font-semibold text-[#374151] text-[15px]">Nothing here</p>
-          <p className="text-[13px] text-[#9ca3af] mt-1">No submissions match this filter.</p>
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <p className="text-[36px] mb-3">🏡</p>
+          <p className="font-bold text-slate-900 text-[16px]">No listings found</p>
+          <p className="text-[13px] text-slate-500 mt-1">No property submissions match this tab filter.</p>
         </div>
       )}
 
       {!loading && submissions.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#e5e9ee] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <table className="w-full text-[13px]">
-            <thead className="bg-[#f9fafb] border-b border-[#f3f4f6]">
+            <thead className="bg-slate-100/80 border-b border-slate-200">
               <tr>
-                <th className="text-left px-5 py-3 font-semibold text-[#6b7280]">Property</th>
-                <th className="text-left px-5 py-3 font-semibold text-[#6b7280] hidden md:table-cell">Location</th>
-                <th className="text-left px-5 py-3 font-semibold text-[#6b7280] hidden lg:table-cell">Intent</th>
-                <th className="text-left px-5 py-3 font-semibold text-[#6b7280] hidden lg:table-cell">Submitted</th>
-                <th className="text-left px-5 py-3 font-semibold text-[#6b7280]">Status</th>
-                <th className="px-5 py-3"></th>
+                <th className="text-left px-5 py-3.5 font-bold text-slate-700">Property</th>
+                <th className="text-left px-5 py-3.5 font-bold text-slate-700 hidden md:table-cell">Location</th>
+                <th className="text-left px-5 py-3.5 font-bold text-slate-700 hidden lg:table-cell">Intent</th>
+                <th className="text-left px-5 py-3.5 font-bold text-slate-700 hidden lg:table-cell">Submitted</th>
+                <th className="text-left px-5 py-3.5 font-bold text-slate-700">Status</th>
+                <th className="px-5 py-3.5 text-right font-bold text-slate-700">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f9fafb]">
+            <tbody className="divide-y divide-slate-100">
               {submissions.map((s) => (
-                <tr key={s.id} className="hover:bg-[#fafafa] transition-colors">
-                  <td className="px-5 py-4 font-semibold text-[#111827] max-w-[200px] truncate">
+                <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-5 py-4 font-bold text-slate-900 max-w-[220px] truncate">
                     {s.title}
                   </td>
-                  <td className="px-5 py-4 text-[#6b7280] hidden md:table-cell">
+                  <td className="px-5 py-4 text-slate-600 hidden md:table-cell">
                     {s.city}, {s.state}
                   </td>
-                  <td className="px-5 py-4 hidden lg:table-cell text-[#6b7280] capitalize">{s.intent}</td>
-                  <td className="px-5 py-4 hidden lg:table-cell text-[#9ca3af]">
+                  <td className="px-5 py-4 hidden lg:table-cell text-slate-700 capitalize font-medium">{s.intent}</td>
+                  <td className="px-5 py-4 hidden lg:table-cell text-slate-500">
                     {new Date(s.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full capitalize ${statusStyle[s.status]}`}>
+                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full capitalize ${statusStyle[s.status]}`}>
                       {s.status.replace(/_/g, " ")}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-right">
+                  <td className="px-5 py-4 text-right space-x-2">
                     <button
                       onClick={() => openDetail(s)}
-                      className="bg-[#111827] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg hover:bg-[#1f2937] transition-colors"
+                      className="bg-navy text-white text-[12px] font-bold px-3.5 py-1.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm"
                     >
-                      Review
+                      Manage & Edit Images 📷
                     </button>
                   </td>
                 </tr>
@@ -190,26 +272,111 @@ export default function ApprovalsPage() {
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Property Detail & Image Management Modal */}
       {selected && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-end p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-[560px] shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-[720px] shadow-2xl border border-slate-200 overflow-hidden my-8">
             {/* Modal Header */}
-            <div className="flex items-start justify-between p-6 border-b border-[#f3f4f6]">
+            <div className="flex items-start justify-between p-6 bg-slate-900 text-white">
               <div>
-                <h2 className="font-bold text-[17px] text-[#111827]">{selected.title}</h2>
-                <p className="text-[12px] text-[#9ca3af] mt-0.5">{selected.city}, {selected.state}</p>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                  Super Admin Management
+                </span>
+                <h2 className="font-serif text-[22px] font-medium mt-1 text-white">{selected.title}</h2>
+                <p className="text-[12px] text-slate-300 mt-0.5">{selected.city}, {selected.state} · Owner ID: {selected.owner_id}</p>
               </div>
               <button
                 onClick={() => setSelected(null)}
-                className="text-[#9ca3af] hover:text-[#374151] text-xl ml-4 shrink-0"
+                className="text-slate-400 hover:text-white text-2xl font-bold ml-4"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
-              {/* Details grid */}
+            <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
+              {/* IMAGE EDITOR SECTION */}
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-bold text-[15px] text-slate-900 flex items-center gap-2">
+                    📷 Property Photos & Gallery ({imageUrls.length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingImages(!editingImages)}
+                    className="text-[12px] font-bold text-blue-600 hover:underline"
+                  >
+                    {editingImages ? "Close Image Editor" : "✏️ Edit Images"}
+                  </button>
+                </div>
+
+                {/* Display Current Images */}
+                <div className="grid grid-cols-4 max-sm:grid-cols-2 gap-3 mb-4">
+                  {imageUrls.map((url, idx) => (
+                    <div key={idx} className="relative h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-200 group">
+                      <img src={url} alt={`Property image ${idx + 1}`} className="w-full h-full object-cover" />
+                      {editingImages && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImageUrl(idx)}
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs shadow hover:scale-110"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Image Edit Controls */}
+                {editingImages && (
+                  <div className="space-y-3 pt-3 border-t border-slate-200">
+                    <p className="text-[12px] font-bold text-slate-800 m-0">Add New Images as Super Admin:</p>
+                    
+                    {/* Add Image URL */}
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={newImageUrl}
+                        onChange={(e) => setNewImageUrl(e.target.value)}
+                        placeholder="Paste image or video URL (https://...)"
+                        className="flex-1 border border-slate-300 rounded-xl px-3 py-2 text-[12px] bg-white outline-none focus:border-[#d49a38]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddImageUrl}
+                        className="bg-slate-900 text-white px-4 py-2 rounded-xl font-bold text-[12px] hover:bg-slate-800"
+                      >
+                        Add URL
+                      </button>
+                    </div>
+
+                    {/* Direct Upload File */}
+                    <label className="block border-2 border-dashed border-slate-300 p-4 text-center bg-white rounded-xl cursor-pointer hover:bg-slate-100">
+                      <input
+                        type="file"
+                        accept="image/*,video/*"
+                        multiple
+                        onChange={handleAdminFileUpload}
+                        className="hidden"
+                      />
+                      <span className="text-[12px] font-bold text-slate-800">
+                        {uploadingImg ? "Uploading files..." : "📁 Upload New Photos from Computer"}
+                      </span>
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={saveUpdatedImages}
+                      disabled={working}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-[13px] transition-colors shadow-sm disabled:opacity-60"
+                    >
+                      {working ? "Saving..." : "Save Image Changes to Database"}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Property Details Info Grid */}
               <div className="grid grid-cols-2 gap-3 text-[13px]">
                 {[
                   ["Intent", intentBadge(selected.intent)],
@@ -218,12 +385,12 @@ export default function ApprovalsPage() {
                   ["Bedrooms", selected.bedrooms ?? "—"],
                   ["Bathrooms", selected.bathrooms ?? "—"],
                   ["Area", selected.area_sqft ? `${selected.area_sqft} sqft` : "—"],
-                  ["Contact", selected.contact_name],
-                  ["Phone", selected.contact_phone],
+                  ["Contact Person", selected.contact_name],
+                  ["Contact Phone", selected.contact_phone],
                 ].map(([k, v]) => (
-                  <div key={String(k)} className="bg-[#f9fafb] rounded-xl p-3">
-                    <p className="text-[11px] text-[#9ca3af] font-medium">{k}</p>
-                    <p className="text-[#111827] font-semibold mt-0.5 truncate">{String(v)}</p>
+                  <div key={String(k)} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
+                    <p className="text-[11px] text-slate-500 font-medium">{k}</p>
+                    <p className="text-slate-900 font-bold mt-0.5 truncate">{String(v)}</p>
                   </div>
                 ))}
               </div>
@@ -231,85 +398,54 @@ export default function ApprovalsPage() {
               {/* Description */}
               {selected.description && (
                 <div>
-                  <p className="text-[12px] font-bold text-[#374151] mb-1">Description</p>
-                  <p className="text-[13px] text-[#6b7280] leading-relaxed bg-[#f9fafb] rounded-xl p-3">
+                  <p className="text-[12px] font-bold text-slate-900 mb-1">Description</p>
+                  <p className="text-[13px] text-slate-600 leading-relaxed bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
                     {selected.description}
                   </p>
                 </div>
               )}
 
-              {/* Media */}
-              {media.length > 0 && (
-                <div>
-                  <p className="text-[12px] font-bold text-[#374151] mb-2">Media ({media.length} files)</p>
-                  <div className="flex flex-wrap gap-2">
-                    {media.map((m) => (
-                      <span
-                        key={m.id}
-                        className="bg-[#f3f4f6] text-[#374151] text-[11px] font-medium px-2 py-1 rounded-lg truncate max-w-[150px]"
-                        title={m.file_name}
-                      >
-                        📎 {m.file_name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Admin note */}
-              <div>
-                <label className="text-[12px] font-bold text-[#374151] block mb-1">
-                  Admin note (optional — shown to owner)
+              {/* Decision Note & Actions */}
+              <div className="border-t border-slate-200 pt-4 space-y-3">
+                <label className="block">
+                  <span className="block text-[12px] font-bold text-slate-900 mb-1">
+                    Admin Review Note (optional)
+                  </span>
+                  <input
+                    type="text"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="e.g. Approved with updated high-res photos"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 text-[12px] bg-white outline-none focus:border-[#d49a38]"
+                  />
                 </label>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Add a note for the submitter…"
-                  className="w-full border border-[#e5e9ee] rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#d49a38] focus:ring-2 focus:ring-[#d49a38]/20 resize-none"
-                  rows={3}
-                />
-              </div>
 
-              {/* Action buttons */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button
-                  onClick={() => takeAction("approved")}
-                  disabled={working}
-                  className="bg-green-600 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
-                >
-                  ✅ Approve
-                </button>
-                <button
-                  onClick={() => takeAction("under_review")}
-                  disabled={working}
-                  className="bg-yellow-500 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl hover:bg-yellow-600 disabled:opacity-50 transition-colors"
-                >
-                  🔍 Mark Under Review
-                </button>
-                <button
-                  onClick={() => takeAction("changes_requested")}
-                  disabled={working}
-                  className="bg-orange-500 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl hover:bg-orange-600 disabled:opacity-50 transition-colors"
-                >
-                  📝 Request Changes
-                </button>
-                <button
-                  onClick={() => takeAction("rejected")}
-                  disabled={working}
-                  className="bg-red-600 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors"
-                >
-                  ❌ Reject
-                </button>
+                <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-2">
+                  <button
+                    onClick={() => takeAction("approved")}
+                    disabled={working}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60"
+                  >
+                    ✓ Approve Listing
+                  </button>
+                  <button
+                    onClick={() => takeAction("rejected")}
+                    disabled={working}
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60"
+                  >
+                    ✕ Reject Listing
+                  </button>
+                  <button
+                    onClick={() => takeAction("changes_requested")}
+                    disabled={working}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60 col-span-full"
+                  >
+                    ⚠️ Request Changes from Owner
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 bg-[#111827] text-white px-5 py-3 rounded-xl text-[13px] font-medium shadow-xl z-[60] animate-bounce">
-          {toast}
         </div>
       )}
     </div>

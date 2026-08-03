@@ -9,35 +9,53 @@ import AuthLayout from "@/components/auth-layout";
 
 const ROLES = [
   {
-    value: "user",
-    label: "Property Buyer",
+    value: "buyer",
+    label: "Buyer",
     icon: "🏠",
-    desc: "I'm looking to buy or rent a property",
+    desc: "Looking to buy or rent a property",
+    docsRequired: "No documents required",
+  },
+  {
+    value: "seller",
+    label: "Property Owner / Seller",
+    icon: "🔑",
+    desc: "Owner listing properties for sale or lease",
+    docsRequired: "Ownership Proof + Identity Proof",
   },
   {
     value: "agent",
-    label: "Real Estate Agent",
+    label: "Broker / Real Estate Agent",
     icon: "🤝",
-    desc: "I help clients buy, sell or rent properties",
+    desc: "Licensed agent or brokerage firm",
+    docsRequired: "Identity Proof + RERA Certificate",
   },
   {
     value: "builder",
-    label: "Builder / Developer",
+    label: "Builder",
     icon: "🏗️",
-    desc: "I develop and sell new construction projects",
+    desc: "Building housing projects & townships",
+    docsRequired: "Certificate of Incorporation (COI) + RERA",
   },
   {
-    value: "lister",
-    label: "Property Owner",
-    icon: "🔑",
-    desc: "I want to list my property for sale or rent",
+    value: "developer",
+    label: "Developer",
+    icon: "🏢",
+    desc: "Real estate development enterprise",
+    docsRequired: "COI + RERA Certificate",
+  },
+  {
+    value: "investor",
+    label: "Investor",
+    icon: "💼",
+    desc: "Institutional or individual real estate investor",
+    docsRequired: "Identity Proof (+ COI if company)",
   },
 ];
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [selectedRole, setSelectedRole] = useState("");
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [selectedRole, setSelectedRole] = useState("buyer");
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
   const [email, setEmail] = useState("");
@@ -49,15 +67,42 @@ export default function RegisterPage() {
   const [msgType, setMsgType] = useState<"error" | "success">("error");
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Role Document Upload State
+  const [ownershipDocType, setOwnershipDocType] = useState("Registered Sale Deed");
+  const [identityDocType, setIdentityDocType] = useState("Aadhaar Card");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    setUploadedFiles((prev) => [...prev, ...files]);
+  };
+
+  const removeFile = (idx: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleNextStep1 = () => {
     if (!selectedRole) {
-      setMsg("Please select your account type.");
+      setMsg("Please select an account type.");
       setMsgType("error");
       return;
     }
+    setStep(2);
+  };
+
+  const handleNextStep2 = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedRole === "buyer") {
+      handleRegister();
+    } else {
+      setStep(3);
+    }
+  };
+
+  const handleRegister = async () => {
     setLoading(true);
-    setMsg("Creating account…");
+    setMsg("Creating account & storing credentials…");
     setMsgType("success");
 
     const fullName = `${first} ${last}`.trim() || email.split("@")[0];
@@ -83,66 +128,48 @@ export default function RegisterPage() {
         return;
       }
 
-      // Update profile role immediately after signup
-      if (data?.user?.id) {
-        const profileSupabase = createClient();
-        await profileSupabase.from("profiles").upsert({
-          id: data.user.id,
+      // Upsert user profile
+      const userId = data?.user?.id;
+      if (userId) {
+        await supabase.from("profiles").upsert({
+          id: userId,
           full_name: fullName,
           phone,
           role: selectedRole,
         });
+
+        // Store verification documents in Supabase Storage if files uploaded
+        if (uploadedFiles.length > 0) {
+          for (const file of uploadedFiles) {
+            const path = `${userId}/${Date.now()}_${file.name}`;
+            await supabase.storage
+              .from("user-verification-docs")
+              .upload(path, file);
+
+            await supabase.from("user_verification_documents").insert({
+              user_id: userId,
+              role: selectedRole,
+              doc_category: selectedRole === "seller" ? "ownership_proof" : "identity_proof",
+              doc_type: selectedRole === "seller" ? ownershipDocType : identityDocType,
+              storage_path: path,
+              file_name: file.name,
+              verification_status: "pending",
+            });
+          }
+        }
       }
 
-      if (data?.session) {
-        setCachedUser({
-          name: fullName,
-          email: data.user?.email || email,
-          role: selectedRole,
-        });
-        setMsg("Account created! Redirecting to dashboard…");
-        setMsgType("success");
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 800);
-        return;
-      }
-
-      // Try auto sign in
-      const { data: signInData } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      setCachedUser({
+        name: fullName,
+        email: data.user?.email || email,
+        role: selectedRole,
       });
 
-      if (signInData?.session) {
-        // Update profile role after sign in
-        if (signInData.user?.id) {
-          await supabase.from("profiles").upsert({
-            id: signInData.user.id,
-            full_name: fullName,
-            phone,
-            role: selectedRole,
-          });
-        }
-        setCachedUser({
-          name: fullName,
-          email: signInData.user?.email || email,
-          role: selectedRole,
-        });
-        setMsg("Account created! Redirecting to dashboard…");
-        setMsgType("success");
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 800);
-      } else {
-        setMsg("Account created! Please sign in.");
-        setMsgType("success");
-        setTimeout(() => {
-          router.push(
-            "/login?message=" + encodeURIComponent("Account created! Please sign in.")
-          );
-        }, 800);
-      }
+      setMsg("Account created successfully! Redirecting…");
+      setMsgType("success");
+      setTimeout(() => {
+        router.push("/user-dashboard");
+      }, 800);
     } catch (err: any) {
       setMsg(err.message || "An unexpected error occurred.");
       setMsgType("error");
@@ -152,205 +179,176 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout
-      eyebrow="India's considered property network"
-      title="Your next chapter starts here."
-      highlightedWord="here."
-      description="Create a secure account to save properties, create match alerts and manage every enquiry in one place."
-      fact1Value="28"
-      fact1Label="States covered"
-      fact2Value="350+"
-      fact2Label="Neighbourhoods"
+      eyebrow="PropertiesNexus Verification Network"
+      title="Create your account"
+      highlightedWord="account"
+      description="Select your role and submit verification documents for immediate access to listing and investment tools."
+      fact1Value="100%"
+      fact1Label="Verified platform"
+      fact2Value="6"
+      fact2Label="User Role Types"
     >
-      <h2 className="font-serif text-[39px] max-md:text-[34px] font-medium tracking-[-1.4px] m-0 mb-[6px] text-ink">
-        Create your account
+      <h2 className="font-serif text-[34px] max-md:text-[28px] font-medium tracking-[-1px] m-0 mb-[6px] text-ink">
+        Join PropertiesNexus
       </h2>
-      <p className="text-[13px] leading-[1.6] text-muted m-0 mb-[22px]">
-        Instant access upon registration. No email confirmation required.
+      <p className="text-[13px] leading-[1.6] text-muted m-0 mb-[20px]">
+        Official registration for Buyers, Sellers, Agents, Builders, Developers & Investors.
       </p>
 
-      {/* Step indicator */}
-      <div className="flex items-center gap-[10px] mb-[28px]">
-        <div
-          className={`flex items-center justify-center w-[26px] h-[26px] rounded-full text-[11px] font-bold transition-all ${
-            step === 1
-              ? "bg-[#1c2b39] text-white"
-              : "bg-[#d1e8c0] text-[#2a7a3a]"
-          }`}
-        >
-          {step === 1 ? "1" : "✓"}
+      {/* Step Indicator */}
+      <div className="flex items-center gap-[8px] mb-[24px]">
+        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 1 ? "bg-navy text-white" : "bg-slate-200 text-slate-600"}`}>
+          1
         </div>
-        <span className={`text-[11px] font-semibold ${step === 1 ? "text-ink" : "text-[#5a9e6a]"}`}>
-          Account type
-        </span>
-        <div className="flex-1 h-[1px] bg-line" />
-        <div
-          className={`flex items-center justify-center w-[26px] h-[26px] rounded-full text-[11px] font-bold transition-all ${
-            step === 2
-              ? "bg-[#1c2b39] text-white"
-              : "bg-[#eef0f2] text-[#8b9aa5]"
-          }`}
-        >
+        <span className="text-[11px] font-bold text-slate-700">Role</span>
+        <div className="flex-1 h-[1px] bg-slate-200" />
+        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 2 ? "bg-navy text-white" : "bg-slate-200 text-slate-600"}`}>
           2
         </div>
-        <span className={`text-[11px] font-semibold ${step === 2 ? "text-ink" : "text-muted"}`}>
-          Your details
-        </span>
+        <span className="text-[11px] font-bold text-slate-700">Details</span>
+        {selectedRole !== "buyer" && (
+          <>
+            <div className="flex-1 h-[1px] bg-slate-200" />
+            <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step === 3 ? "bg-navy text-white" : "bg-slate-200 text-slate-600"}`}>
+              3
+            </div>
+            <span className="text-[11px] font-bold text-slate-700">Docs</span>
+          </>
+        )}
       </div>
 
-      {/* STEP 1 — Role selection */}
+      {/* STEP 1: Select Role */}
       {step === 1 && (
         <div>
-          <p className="text-[12px] font-bold text-ink mb-[14px] uppercase tracking-[0.06em]">
-            What best describes you?
+          <p className="text-[12px] font-bold text-ink mb-[12px] uppercase tracking-wider">
+            Select your account type:
           </p>
-          <div className="grid grid-cols-1 gap-[10px] mb-[24px]">
+          <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[10px] mb-[24px]">
             {ROLES.map((r) => (
               <button
                 key={r.value}
                 type="button"
                 onClick={() => setSelectedRole(r.value)}
-                className={`flex items-center gap-[14px] text-left p-[14px] rounded-[10px] border-2 transition-all cursor-pointer w-full ${
+                className={`flex flex-col text-left p-[14px] rounded-xl border-2 transition-all cursor-pointer ${
                   selectedRole === r.value
-                    ? "border-[#1c2b39] bg-[#f3f6f8] shadow-[0_0_0_2px_rgba(28,43,57,0.10)]"
-                    : "border-line bg-white hover:border-[#a9b5bf] hover:bg-[#fafbfb]"
+                    ? "border-[#d49a38] bg-amber-50/40 shadow-sm"
+                    : "border-slate-200 bg-white hover:border-slate-300"
                 }`}
               >
-                <span className="text-[28px] leading-none shrink-0">{r.icon}</span>
-                <span className="flex flex-col">
-                  <span
-                    className={`text-[13px] font-bold leading-snug ${
-                      selectedRole === r.value ? "text-[#1c2b39]" : "text-ink"
-                    }`}
-                  >
-                    {r.label}
-                  </span>
-                  <span className="text-[11px] text-muted leading-snug mt-[2px]">
-                    {r.desc}
-                  </span>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[22px]">{r.icon}</span>
+                  <span className="text-[13px] font-bold text-slate-900">{r.label}</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mb-2 line-clamp-2 leading-tight">
+                  {r.desc}
+                </p>
+                <span className="mt-auto text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded w-max">
+                  📋 {r.docsRequired}
                 </span>
-                {selectedRole === r.value && (
-                  <span className="ml-auto shrink-0 w-[20px] h-[20px] rounded-full bg-[#1c2b39] flex items-center justify-center">
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                      <path d="M1 4L3.8 7L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
-                )}
               </button>
             ))}
           </div>
+
           <button
             type="button"
-            disabled={!selectedRole}
-            onClick={() => setStep(2)}
-            className="h-[49px] border-0 rounded-[8px] bg-navy hover:bg-navy2 text-white w-full text-[13px] font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={handleNextStep1}
+            className="h-[48px] border-0 rounded-xl bg-navy hover:bg-navy2 text-white w-full text-[13px] font-bold cursor-pointer transition-colors shadow-sm"
           >
             Continue →
           </button>
         </div>
       )}
 
-      {/* STEP 2 — Details form */}
+      {/* STEP 2: Basic User Details */}
       {step === 2 && (
-        <form onSubmit={handleRegister} className="flex flex-col">
-          {/* Selected role pill */}
-          <div className="flex items-center gap-[8px] mb-[18px]">
-            <span className="text-[18px]">
-              {ROLES.find((r) => r.value === selectedRole)?.icon}
-            </span>
-            <span className="text-[12px] font-semibold text-[#1c2b39]">
-              {ROLES.find((r) => r.value === selectedRole)?.label}
-            </span>
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="ml-auto text-[11px] text-[#9a6419] font-bold border-0 bg-transparent cursor-pointer hover:underline p-0"
-            >
+        <form onSubmit={handleNextStep2} className="flex flex-col">
+          <div className="flex items-center gap-2 mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <span className="text-[20px]">{ROLES.find(r => r.value === selectedRole)?.icon}</span>
+            <div>
+              <span className="block text-[12px] font-bold text-slate-900">{ROLES.find(r => r.value === selectedRole)?.label}</span>
+              <span className="text-[10px] text-slate-500">{ROLES.find(r => r.value === selectedRole)?.docsRequired}</span>
+            </div>
+            <button type="button" onClick={() => setStep(1)} className="ml-auto text-[11px] text-[#d49a38] font-bold hover:underline">
               Change
             </button>
           </div>
 
-          <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[12px] my-[10px]">
+          <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[12px] my-[6px]">
             <label className="block">
-              <span className="block text-[11px] font-bold text-ink mb-[7px]">First name</span>
+              <span className="block text-[11px] font-bold text-ink mb-[5px]">First name</span>
               <input
                 type="text"
                 required
-                autoComplete="given-name"
                 value={first}
                 onChange={(e) => setFirst(e.target.value)}
                 placeholder="First name"
-                className="w-full h-[47px] border border-line rounded-[8px] px-[12px] text-[13px] outline-0 bg-white text-ink focus:border-[#a9772b] focus:shadow-[0_0_0_3px_rgba(203,141,49,0.14)] transition-all"
+                className="w-full h-[45px] border border-slate-300 rounded-xl px-[12px] text-[13px] outline-none bg-white focus:border-[#d49a38]"
               />
             </label>
             <label className="block">
-              <span className="block text-[11px] font-bold text-ink mb-[7px]">Last name</span>
+              <span className="block text-[11px] font-bold text-ink mb-[5px]">Last name</span>
               <input
                 type="text"
                 required
-                autoComplete="family-name"
                 value={last}
                 onChange={(e) => setLast(e.target.value)}
                 placeholder="Last name"
-                className="w-full h-[47px] border border-line rounded-[8px] px-[12px] text-[13px] outline-0 bg-white text-ink focus:border-[#a9772b] focus:shadow-[0_0_0_3px_rgba(203,141,49,0.14)] transition-all"
+                className="w-full h-[45px] border border-slate-300 rounded-xl px-[12px] text-[13px] outline-none bg-white focus:border-[#d49a38]"
               />
             </label>
           </div>
 
-          <label className="block my-[10px]">
-            <span className="block text-[11px] font-bold text-ink mb-[7px]">Email address</span>
+          <label className="block my-[6px]">
+            <span className="block text-[11px] font-bold text-ink mb-[5px]">Email address</span>
             <input
               type="email"
               required
-              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full h-[47px] border border-line rounded-[8px] px-[12px] text-[13px] outline-0 bg-white text-ink focus:border-[#a9772b] focus:shadow-[0_0_0_3px_rgba(203,141,49,0.14)] transition-all"
+              className="w-full h-[45px] border border-slate-300 rounded-xl px-[12px] text-[13px] outline-none bg-white focus:border-[#d49a38]"
             />
           </label>
 
-          <label className="block my-[10px]">
-            <span className="block text-[11px] font-bold text-ink mb-[7px]">
-              Phone number <small className="font-normal text-muted">(optional)</small>
-            </span>
+          <label className="block my-[6px]">
+            <span className="block text-[11px] font-bold text-ink mb-[5px]">Phone number</span>
             <input
               type="tel"
-              autoComplete="tel"
+              required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+91 00000 00000"
-              className="w-full h-[47px] border border-line rounded-[8px] px-[12px] text-[13px] outline-0 bg-white text-ink focus:border-[#a9772b] focus:shadow-[0_0_0_3px_rgba(203,141,49,0.14)] transition-all"
+              placeholder="+91 98765 43210"
+              className="w-full h-[45px] border border-slate-300 rounded-xl px-[12px] text-[13px] outline-none bg-white focus:border-[#d49a38]"
             />
           </label>
 
-          <label className="block my-[10px] relative">
-            <span className="block text-[11px] font-bold text-ink mb-[7px]">Create password</span>
+          <label className="block my-[6px] relative">
+            <span className="block text-[11px] font-bold text-ink mb-[5px]">Password</span>
             <input
               type={showPassword ? "text" : "password"}
               required
               minLength={8}
-              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 8 characters"
-              className="w-full h-[47px] border border-line rounded-[8px] px-[12px] text-[13px] outline-0 bg-white text-ink focus:border-[#a9772b] focus:shadow-[0_0_0_3px_rgba(203,141,49,0.14)] transition-all pr-[50px]"
+              className="w-full h-[45px] border border-slate-300 rounded-xl px-[12px] text-[13px] outline-none bg-white focus:border-[#d49a38] pr-[50px]"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-[9px] bottom-[15px] border-0 bg-white text-[#62717c] text-[11px] cursor-pointer font-bold hover:text-ink"
+              className="absolute right-[12px] bottom-[13px] text-[11px] font-bold text-slate-500 hover:text-slate-900"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </label>
 
-          <label className="flex items-center gap-[8px] text-[11px] my-[10px] text-[#687783] cursor-pointer font-normal">
+          <label className="flex items-center gap-[8px] text-[11px] my-[10px] text-slate-600 font-normal">
             <input
               type="checkbox"
               required
               checked={terms}
               onChange={(e) => setTerms(e.target.checked)}
-              className="rounded border-line shrink-0"
+              className="rounded border-slate-300"
             />
             I agree to the Terms and Privacy Policy.
           </label>
@@ -358,27 +356,175 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="h-[49px] border-0 rounded-[8px] bg-navy hover:bg-navy2 text-white w-full text-[13px] font-bold cursor-pointer mt-[9px] transition-colors disabled:opacity-65"
+            className="h-[48px] border-0 rounded-xl bg-navy hover:bg-navy2 text-white w-full text-[13px] font-bold cursor-pointer mt-[6px] transition-colors shadow-sm disabled:opacity-60"
           >
-            {loading ? "Creating account…" : "Create account"}
+            {selectedRole === "buyer" ? (loading ? "Creating account…" : "Complete Registration") : "Continue to Verification Docs →"}
           </button>
-
-          {msg && (
-            <p
-              className={`text-[11px] leading-[1.5] min-h-[18px] text-center my-[12px] font-semibold ${
-                msgType === "success" ? "text-green" : "text-red"
-              }`}
-              aria-live="polite"
-            >
-              {msg}
-            </p>
-          )}
         </form>
+      )}
+
+      {/* STEP 3: Role-Specific Verification Documents */}
+      {step === 3 && (
+        <div className="flex flex-col gap-4">
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-[12px] text-amber-900">
+            <h3 className="font-bold text-[14px] mb-1">
+              Verification Documents for {ROLES.find(r => r.value === selectedRole)?.label}
+            </h3>
+            <p className="m-0 leading-relaxed">
+              To verify your role in Supabase, please select and upload your required documents below.
+            </p>
+          </div>
+
+          {/* Seller Document Options */}
+          {selectedRole === "seller" && (
+            <div className="space-y-3">
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">A. Property Ownership Proof (Upload any ONE)</span>
+                <select
+                  value={ownershipDocType}
+                  onChange={(e) => setOwnershipDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>Registered Sale Deed</option>
+                  <option>Title Deed</option>
+                  <option>Conveyance Deed</option>
+                  <option>Allotment Letter (for new properties)</option>
+                  <option>Inheritance/Probate Documents</option>
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">B. Identity Proof (Upload any ONE)</span>
+                <select
+                  value={identityDocType}
+                  onChange={(e) => setIdentityDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>Aadhaar Card</option>
+                  <option>PAN Card</option>
+                  <option>Passport</option>
+                  <option>Driving Licence</option>
+                  <option>Voter ID</option>
+                </select>
+              </label>
+            </div>
+          )}
+
+          {/* Broker / Agent Document Options */}
+          {selectedRole === "agent" && (
+            <div className="space-y-3">
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">A. Identity Proof (Upload any ONE)</span>
+                <select
+                  value={identityDocType}
+                  onChange={(e) => setIdentityDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>Aadhaar Card</option>
+                  <option>PAN Card</option>
+                  <option>Passport</option>
+                  <option>Driving Licence</option>
+                </select>
+              </label>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 font-medium">
+                Mandatory Professional Document: <strong>RERA Registration Certificate</strong> (or GST / Shop & Establishment Cert).
+              </div>
+            </div>
+          )}
+
+          {/* Builder & Developer Document Options */}
+          {(selectedRole === "builder" || selectedRole === "developer") && (
+            <div className="space-y-3">
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-[11px] text-indigo-900 font-medium">
+                Mandatory Company Documents: <strong>Certificate of Incorporation (COI)</strong> & <strong>RERA Registration Certificate</strong>.
+                <br />Optional: GST Certificate, Company PAN Card, MSME / Udyam Certificate.
+              </div>
+            </div>
+          )}
+
+          {/* Investor Document Options */}
+          {selectedRole === "investor" && (
+            <div className="space-y-3">
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">Identity Proof (Upload any ONE)</span>
+                <select
+                  value={identityDocType}
+                  onChange={(e) => setIdentityDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>Aadhaar Card</option>
+                  <option>PAN Card</option>
+                  <option>Passport</option>
+                </select>
+              </label>
+              <p className="text-[11px] text-slate-500 m-0">
+                Company Investors: Upload Certificate of Incorporation or GST Certificate.
+              </p>
+            </div>
+          )}
+
+          {/* Upload Dropzone */}
+          <label className="block border-2 border-dashed border-slate-300 p-6 text-center bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+            <input
+              type="file"
+              accept="application/pdf,image/jpeg,image/png,image/webp"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <span className="block text-2xl mb-1">📁</span>
+            <b className="text-[12px] text-slate-900 font-bold block mb-0.5">Click to upload verification files</b>
+            <span className="text-[11px] text-slate-500">PDF, JPG, PNG or WebP up to 50 MB each</span>
+          </label>
+
+          {uploadedFiles.length > 0 && (
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold text-slate-800">Uploaded Files ({uploadedFiles.length}):</span>
+              {uploadedFiles.map((file, idx) => (
+                <div key={idx} className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200 text-[11px]">
+                  <span className="font-semibold text-slate-900 truncate">{file.name}</span>
+                  <button type="button" onClick={() => removeFile(idx)} className="text-red-600 font-bold hover:underline ml-2">
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-3 mt-3">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="h-[48px] border border-slate-300 rounded-xl bg-white text-slate-700 px-5 text-[13px] font-bold hover:bg-slate-50 transition-colors"
+            >
+              ← Back
+            </button>
+            <button
+              type="button"
+              onClick={handleRegister}
+              disabled={loading}
+              className="flex-1 h-[48px] border-0 rounded-xl bg-navy hover:bg-navy2 text-white text-[13px] font-bold transition-colors shadow-sm disabled:opacity-60"
+            >
+              {loading ? "Registering & Uploading…" : "Complete Registration & Submit Docs"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {msg && (
+        <p
+          className={`text-[12px] leading-[1.5] text-center my-[14px] font-semibold ${
+            msgType === "success" ? "text-emerald-600" : "text-red-600"
+          }`}
+          aria-live="polite"
+        >
+          {msg}
+        </p>
       )}
 
       <p className="text-center text-[12px] text-[#687783] mt-[22px] mb-0">
         Already have an account?{" "}
-        <Link href="/login" className="text-[#9a6419] font-bold hover:underline">
+        <Link href="/login" className="text-[#d49a38] font-bold hover:underline">
           Sign in
         </Link>
       </p>

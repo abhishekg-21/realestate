@@ -108,24 +108,34 @@ export default function Home() {
         </section>
 
         {/* Listings Section */}
-        <section className="bg-[#ecf0f1] py-[84px] max-md:py-[66px]" id="properties">
+        <section className="bg-[#f8fafc] py-[84px] max-md:py-[66px]" id="properties">
           <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto">
             <p className="text-[#b57b22] font-bold uppercase tracking-[1.6px] text-[10px] m-0 mb-[13px]">
               Properties selected for you
             </p>
-            <h2 className="font-serif font-medium text-[clamp(34px,4vw,49px)] tracking-[-1.8px] leading-[1.1] m-0 text-ink">
-              Explore remarkable addresses
-            </h2>
+            <div className="flex justify-between items-end max-md:flex-col max-md:items-start gap-4">
+              <div>
+                <h2 className="font-serif font-medium text-[clamp(34px,4vw,49px)] tracking-[-1.8px] leading-[1.1] m-0 text-ink">
+                  Explore remarkable addresses
+                </h2>
+              </div>
+              <button
+                onClick={() => setActiveTab("ALL_EXPANDED")}
+                className="bg-navy text-white text-[12px] font-bold px-5 py-2.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm"
+              >
+                View all properties ({properties.length}) →
+              </button>
+            </div>
             
             <div className="flex flex-wrap gap-[8px] mt-[25px]">
               {["All homes", "Apartments", "Villas", "New launches"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`border border-[#cbd3d7] rounded-[20px] px-[14px] py-[8px] text-[12px] cursor-pointer transition-colors ${
+                  className={`border border-[#cbd3d7] rounded-[20px] px-[16px] py-[8px] text-[12px] font-semibold cursor-pointer transition-colors ${
                     activeTab === tab
-                      ? "text-white bg-navy border-navy font-bold shadow-sm"
-                      : "bg-transparent text-ink hover:bg-white"
+                      ? "text-white bg-navy border-navy shadow-sm"
+                      : "bg-white text-ink hover:bg-slate-100"
                   }`}
                 >
                   {tab}
@@ -136,8 +146,8 @@ export default function Home() {
             {loading ? (
               <div className="grid grid-cols-3 max-md:grid-cols-1 gap-[19px] mt-[27px]">
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-[380px] bg-white border border-line rounded animate-pulse p-4 flex flex-col justify-between">
-                    <div className="h-[200px] bg-gray-200 rounded" />
+                  <div key={n} className="h-[380px] bg-white border border-line rounded-2xl animate-pulse p-4 flex flex-col justify-between">
+                    <div className="h-[200px] bg-gray-200 rounded-xl" />
                     <div className="space-y-2 mt-4">
                       <div className="h-4 bg-gray-200 rounded w-1/3" />
                       <div className="h-6 bg-gray-200 rounded w-3/4" />
@@ -147,8 +157,8 @@ export default function Home() {
                 ))}
               </div>
             ) : filteredProperties.length > 0 ? (
-              <div className="grid grid-cols-3 max-md:grid-cols-1 gap-[19px] mt-[27px]">
-                {filteredProperties.map((property) => (
+              <div className="grid grid-cols-3 max-md:grid-cols-1 gap-[24px] mt-[27px]">
+                {(activeTab === "ALL_EXPANDED" ? properties : filteredProperties).map((property) => (
                   <PropertyCard key={property.id} property={property} />
                 ))}
               </div>
@@ -164,14 +174,97 @@ export default function Home() {
               </div>
             )}
 
-            <p className="text-center mt-[35px]">
+            <div className="text-center mt-[40px]">
               <Link
                 href="/properties"
-                className="font-bold text-[13px] border-b border-[#1b2b38] pb-[5px] text-ink hover:text-gold hover:border-gold transition-colors"
+                className="font-bold text-[14px] inline-flex items-center gap-2 border-b-2 border-[#1b2b38] pb-[4px] text-ink hover:text-gold hover:border-gold transition-colors"
               >
-                Browse all properties & filters →
+                <span>Browse all properties & filters</span>
+                <span>→</span>
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Why PropertiesNexus Section (Matching Image 3) */}
+        <section className="py-[88px] max-md:py-[60px] bg-white border-y border-slate-100" id="why-us">
+          <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto text-center">
+            <p className="text-[#b57b22] font-bold uppercase tracking-[1.6px] text-[11px] mb-2">
+              Built for modern real estate buyers & investors
             </p>
+            <h2 className="font-serif text-[38px] max-md:text-[30px] font-medium text-slate-900 mb-12">
+              Why PropertiesNexus
+            </h2>
+
+            <div className="grid grid-cols-3 max-md:grid-cols-1 gap-8 text-left">
+              {/* Feature 1 */}
+              <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl mb-5 shadow-sm">
+                  🛡️
+                </div>
+                <h3 className="font-bold text-slate-900 text-[18px] mb-3">
+                  Verified Realtors & Developers
+                </h3>
+                <p className="text-slate-600 text-[13px] leading-relaxed">
+                  Every realtor and builder on PropertiesNexus holds a valid license, undergoes identity verification, and adheres to strict standard compliance.
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl mb-5 shadow-sm">
+                  ⚖️
+                </div>
+                <h3 className="font-bold text-slate-900 text-[18px] mb-3">
+                  Transparent Pricing
+                </h3>
+                <p className="text-slate-600 text-[13px] leading-relaxed">
+                  No hidden fees. All prices, maintenance charges, taxes, and deposit costs are fully disclosed upfront for complete peace of mind.
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl mb-5 shadow-sm">
+                  🧭
+                </div>
+                <h3 className="font-bold text-slate-900 text-[18px] mb-3">
+                  Guided Process
+                </h3>
+                <p className="text-slate-600 text-[13px] leading-relaxed">
+                  From first viewing to key handover — our certified realtors and property advisors guide you through every step in your preferred language.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Get Notified / Alert Section (Matching Image 4) */}
+        <section className="py-[88px] max-md:py-[60px] bg-[#f1f5f9]">
+          <div className="max-w-[1000px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto text-center bg-white p-12 max-md:p-8 rounded-3xl border border-slate-200/80 shadow-sm">
+            <p className="text-[#b57b22] font-bold uppercase tracking-[1.6px] text-[11px] mb-2">
+              Stay ahead of the market
+            </p>
+            <h2 className="font-serif text-[36px] max-md:text-[28px] font-medium text-slate-900 mb-3">
+              Get notified when new listings go live
+            </h2>
+            <p className="text-slate-600 text-[14px] max-w-[550px] mx-auto mb-8">
+              Enter your email and we’ll alert you when properties matching your exact search criteria are added.
+            </p>
+            <form onSubmit={(e) => { e.preventDefault(); alert("Subscribed! We will notify you of new listings."); }} className="flex max-md:flex-col gap-3 max-w-[520px] mx-auto">
+              <input
+                type="email"
+                required
+                placeholder="your@email.com"
+                className="flex-1 h-12 border border-slate-300 rounded-xl px-4 text-[14px] outline-none focus:border-[#d49a38] focus:ring-2 focus:ring-[#d49a38]/20 bg-slate-50"
+              />
+              <button
+                type="submit"
+                className="h-12 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold text-[14px] px-7 rounded-xl transition-colors shrink-0 shadow-sm"
+              >
+                Notify Me
+              </button>
+            </form>
           </div>
         </section>
 
@@ -253,6 +346,26 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {/* Floating Bottom Bar (Matching Image 4) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#0f172a]/95 text-white backdrop-blur-md px-5 py-2.5 rounded-full shadow-2xl border border-slate-700/60 flex items-center gap-4 text-[13px] font-semibold">
+        <span className="flex items-center gap-1.5 text-amber-400">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span>📌 {properties.length} Active Listings</span>
+        </span>
+        <span className="w-[1px] h-4 bg-slate-700" />
+        <Link href="/properties?view=map" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+          🗺️ Map View
+        </Link>
+        <span className="w-[1px] h-4 bg-slate-700" />
+        <Link href="/properties" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+          🔍 All Properties
+        </Link>
+        <span className="w-[1px] h-4 bg-slate-700" />
+        <Link href="/properties" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+          ⚙️ Filters
+        </Link>
+      </div>
 
       <Footer />
     </div>
