@@ -426,19 +426,58 @@ export default function RegisterPage() {
                   <option>Driving Licence</option>
                 </select>
               </label>
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 font-medium">
-                Mandatory Professional Document: <strong>RERA Registration Certificate</strong> (or GST / Shop & Establishment Cert).
-              </div>
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">B. Professional Document (Mandatory if RERA applicable)</span>
+                <select
+                  value={ownershipDocType}
+                  onChange={(e) => setOwnershipDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>RERA Registration Certificate</option>
+                  <option>GST Registration Certificate (Optional)</option>
+                  <option>Shop & Establishment Certificate (Optional)</option>
+                </select>
+              </label>
             </div>
           )}
 
-          {/* Builder & Developer Document Options */}
-          {(selectedRole === "builder" || selectedRole === "developer") && (
+          {/* Builder Document Options */}
+          {selectedRole === "builder" && (
             <div className="space-y-3">
-              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-[11px] text-indigo-900 font-medium">
-                Mandatory Company Documents: <strong>Certificate of Incorporation (COI)</strong> & <strong>RERA Registration Certificate</strong>.
-                <br />Optional: GST Certificate, Company PAN Card, MSME / Udyam Certificate.
-              </div>
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">Mandatory & Optional Company Documents</span>
+                <select
+                  value={ownershipDocType}
+                  onChange={(e) => setOwnershipDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>Certificate of Incorporation (COI) / Company Registration</option>
+                  <option>RERA Registration Certificate</option>
+                  <option>GST Registration Certificate</option>
+                  <option>PAN Card of Company</option>
+                  <option>MSME / Udyam Registration Certificate</option>
+                </select>
+              </label>
+            </div>
+          )}
+
+          {/* Developer Document Options */}
+          {selectedRole === "developer" && (
+            <div className="space-y-3">
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">Company Documents (Mandatory & Optional)</span>
+                <select
+                  value={ownershipDocType}
+                  onChange={(e) => setOwnershipDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>Certificate of Incorporation (COI)</option>
+                  <option>RERA Registration Certificate</option>
+                  <option>GST Registration Certificate</option>
+                  <option>Company PAN Card</option>
+                  <option>MSME / Udyam Registration Certificate</option>
+                </select>
+              </label>
             </div>
           )}
 
@@ -446,7 +485,7 @@ export default function RegisterPage() {
           {selectedRole === "investor" && (
             <div className="space-y-3">
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">Identity Proof (Upload any ONE)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">A. Identity Proof (Upload any ONE)</span>
                 <select
                   value={identityDocType}
                   onChange={(e) => setIdentityDocType(e.target.value)}
@@ -457,9 +496,17 @@ export default function RegisterPage() {
                   <option>Passport</option>
                 </select>
               </label>
-              <p className="text-[11px] text-slate-500 m-0">
-                Company Investors: Upload Certificate of Incorporation or GST Certificate.
-              </p>
+              <label className="block">
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">B. Company / Tax Documents (If applicable)</span>
+                <select
+                  value={ownershipDocType}
+                  onChange={(e) => setOwnershipDocType(e.target.value)}
+                  className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
+                >
+                  <option>Certificate of Incorporation (Company Investors)</option>
+                  <option>GST Registration Certificate</option>
+                </select>
+              </label>
             </div>
           )}
 

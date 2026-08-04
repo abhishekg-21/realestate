@@ -5,26 +5,44 @@ import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import PropertyCard from "@/components/property-card";
+import { Property } from "@/lib/properties-data";
 import { useProperties } from "@/lib/supabase-properties";
+
+const CITIES = ["All Cities", "Mumbai", "Pune", "Delhi NCR", "Bengaluru", "Hyderabad", "Goa", "Nashik", "Chennai"];
+
+const PROPERTY_TYPES = ["Apartment", "Villa", "Office", "Plot", "Builder floor", "Penthouse", "Commercial"];
+
+const PRICE_PRESETS = [
+  { label: "All Prices", min: "", max: "" },
+  { label: "Under ₹ 1 Cr", min: "0", max: "10000000" },
+  { label: "₹ 1 Cr - ₹ 5 Cr", min: "10000000", max: "50000000" },
+  { label: "₹ 5 Cr - ₹ 20 Cr", min: "50000000", max: "200000000" },
+  { label: "Above ₹ 20 Cr", min: "200000000", max: "" },
+];
 
 function PropertiesExplorerContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("query") || "";
   const initialPurpose = searchParams.get("purpose") || "";
   const initialType = searchParams.get("type") || "";
+  const initialTag = searchParams.get("tag") || "";
+  const initialCity = searchParams.get("city") || "";
 
   const { properties, loading } = useProperties();
 
   const [queryInput, setQueryInput] = useState(initialQuery);
+  const [selectedCity, setSelectedCity] = useState(initialCity || "All Cities");
   const [purposes, setPurposes] = useState<string[]>(
     initialPurpose && initialPurpose !== "Buy or rent" ? [initialPurpose] : []
   );
   const [types, setTypes] = useState<string[]>(
     initialType && initialType !== "Any type" ? [initialType] : []
   );
+  const [selectedTag, setSelectedTag] = useState(initialTag);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [beds, setBeds] = useState("");
+  const [baths, setBaths] = useState("");
   const [sort, setSort] = useState("new");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -33,7 +51,9 @@ function PropertiesExplorerContent() {
     if (initialQuery) setQueryInput(initialQuery);
     if (initialPurpose && initialPurpose !== "Buy or rent") setPurposes([initialPurpose]);
     if (initialType && initialType !== "Any type") setTypes([initialType]);
-  }, [initialQuery, initialPurpose, initialType]);
+    if (initialTag) setSelectedTag(initialTag);
+    if (initialCity) setSelectedCity(initialCity);
+  }, [initialQuery, initialPurpose, initialType, initialTag, initialCity]);
 
   const togglePurpose = (val: string) => {
     setPurposes((prev) =>
@@ -47,53 +67,105 @@ function PropertiesExplorerContent() {
     );
   };
 
+  const applyPricePreset = (min: string, max: string) => {
+    setMinPrice(min);
+    setMaxPrice(max);
+  };
+
   const resetFilters = () => {
     setQueryInput("");
+    setSelectedCity("All Cities");
     setPurposes([]);
     setTypes([]);
+    setSelectedTag("");
     setMinPrice("");
     setMaxPrice("");
     setBeds("");
+    setBaths("");
     setSort("new");
   };
 
-  const filteredProperties = properties.filter((p) => {
-    if (queryInput.trim()) {
-      const q = queryInput.toLowerCase();
-      const match =
-        p.title.toLowerCase().includes(q) ||
-        p.area.toLowerCase().includes(q) ||
-        p.city.toLowerCase().includes(q) ||
-        p.type.toLowerCase().includes(q) ||
-        p.description?.toLowerCase().includes(q);
-      if (!match) return false;
-    }
-    if (purposes.length > 0) {
-      const matchPurpose = purposes.some(purp => {
-        if (purp === "Buy") return p.purpose === "Buy" || p.purpose === "Sale";
-        if (purp === "Rent") return p.purpose === "Rent" || p.purpose === "Lease" || p.purpose === "PG";
-        return p.purpose.toLowerCase() === purp.toLowerCase();
-      });
-      if (!matchPurpose) return false;
-    }
-    if (types.length > 0) {
-      const matchType = types.some(t => {
-        if (t === "Villa") return p.type.toLowerCase().includes("villa") || p.type.toLowerCase().includes("house");
-        if (t === "Apartment") return p.type.toLowerCase().includes("apartment") || p.type.toLowerCase().includes("flat");
-        if (t === "Office") return p.type.toLowerCase().includes("office") || p.type.toLowerCase().includes("commercial");
-        return p.type.toLowerCase() === t.toLowerCase();
-      });
-      if (!matchType) return false;
-    }
-    if (minPrice && p.price < Number(minPrice)) return false;
-    if (maxPrice && p.price > Number(maxPrice)) return false;
-    if (beds && p.beds < Number(beds)) return false;
-    return true;
-  }).sort((a, b) => {
-    if (sort === "low") return a.price - b.price;
-    if (sort === "high") return b.price - a.price;
-    return 0; // default new (already sorted newest first in fetch)
-  });
+  // Calculate active filter count
+  const activeCount =
+    (queryInput ? 1 : 0) +
+    (selectedCity !== "All Cities" ? 1 : 0) +
+    purposes.length +
+    types.length +
+    (selectedTag ? 1 : 0) +
+    (minPrice || maxPrice ? 1 : 0) +
+    (beds ? 1 : 0) +
+    (baths ? 1 : 0);
+
+  const filteredProperties = properties
+    .filter((p) => {
+      // 1. Search Query
+      if (queryInput.trim()) {
+        const q = queryInput.toLowerCase();
+        const match =
+          p.title.toLowerCase().includes(q) ||
+          p.area.toLowerCase().includes(q) ||
+          p.city.toLowerCase().includes(q) ||
+          p.type.toLowerCase().includes(q) ||
+          p.tag?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q);
+        if (!match) return false;
+      }
+
+      // 2. City Filter
+      if (selectedCity && selectedCity !== "All Cities") {
+        if (p.city.toLowerCase() !== selectedCity.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 3. Purpose Filter
+      if (purposes.length > 0) {
+        const matchPurpose = purposes.some((purp) => {
+          if (purp === "Buy") return p.purpose === "Buy" || p.purpose === "Sale";
+          if (purp === "Rent") return p.purpose === "Rent" || p.purpose === "Lease" || p.purpose === "PG";
+          return p.purpose.toLowerCase() === purp.toLowerCase();
+        });
+        if (!matchPurpose) return false;
+      }
+
+      // 4. Property Type Filter
+      if (types.length > 0) {
+        const matchType = types.some((t) => {
+          const pType = p.type.toLowerCase();
+          const target = t.toLowerCase();
+          if (target === "villa") return pType.includes("villa") || pType.includes("house");
+          if (target === "apartment") return pType.includes("apartment") || pType.includes("flat");
+          if (target === "office") return pType.includes("office") || pType.includes("commercial");
+          return pType.includes(target);
+        });
+        if (!matchType) return false;
+      }
+
+      // 5. Tag / Highlight Filter
+      if (selectedTag) {
+        const t = selectedTag.toLowerCase();
+        const pTag = (p.tag || "").toLowerCase();
+        if (!pTag.includes(t)) return false;
+      }
+
+      // 6. Price Range
+      if (minPrice && p.price < Number(minPrice)) return false;
+      if (maxPrice && p.price > Number(maxPrice)) return false;
+
+      // 7. Bedrooms
+      if (beds && p.beds < Number(beds)) return false;
+
+      // 8. Bathrooms
+      if (baths && p.baths < Number(baths)) return false;
+
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === "low") return a.price - b.price;
+      if (sort === "high") return b.price - a.price;
+      if (sort === "beds") return b.beds - a.beds;
+      return 0; // default newest first
+    });
 
   return (
     <div className="min-h-screen bg-paper text-ink font-sans">
@@ -104,63 +176,63 @@ function PropertiesExplorerContent() {
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto flex justify-between items-end">
           <div>
             <p className="text-[#b57b22] font-bold uppercase tracking-[1.6px] text-[10px] m-0 mb-[13px]">
-              All listings
+              Verified Real Estate Catalog
             </p>
             <h1 className="font-serif font-medium text-[clamp(34px,4vw,49px)] tracking-[-1.8px] leading-[1.1] m-0 text-ink">
               Explore properties
             </h1>
           </div>
-          <button
-            onClick={resetFilters}
-            className="border border-line bg-white rounded-[20px] px-[14px] py-[8px] text-[12px] font-bold cursor-pointer hover:bg-gray-50 transition-colors max-md:hidden shadow-sm"
-          >
-            Reset all filters ✕
-          </button>
+
+          {activeCount > 0 && (
+            <button
+              onClick={resetFilters}
+              className="border border-amber-600/40 bg-amber-50 text-amber-900 rounded-[20px] px-[16px] py-[8px] text-[12px] font-bold cursor-pointer hover:bg-amber-100 transition-colors max-md:hidden shadow-sm flex items-center gap-1.5"
+            >
+              Reset filters ({activeCount}) ✕
+            </button>
+          )}
         </div>
 
         {/* Mobile Filter Tools */}
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto hidden max-md:flex gap-[10px] mt-[20px]">
           <button
             onClick={() => setMobileFiltersOpen(true)}
-            className="flex-1 border border-line bg-white py-[10px] rounded-[8px] text-[13px] font-bold shadow-sm"
+            className="flex-1 border border-line bg-white py-[10px] rounded-[8px] text-[13px] font-bold shadow-sm flex items-center justify-center gap-2"
           >
-            ⚙ Filters {purposes.length + types.length > 0 ? `(${purposes.length + types.length})` : ""}
+            ⚙ Filters {activeCount > 0 ? `(${activeCount})` : ""}
           </button>
-          <button
-            onClick={resetFilters}
-            className="border border-line bg-white px-[14px] py-[10px] rounded-[8px] text-[13px] font-bold shadow-sm"
-          >
-            Reset
-          </button>
+          {activeCount > 0 && (
+            <button
+              onClick={resetFilters}
+              className="border border-line bg-white px-[14px] py-[10px] rounded-[8px] text-[13px] font-bold shadow-sm"
+            >
+              Reset
+            </button>
+          )}
         </div>
       </section>
 
       {/* Main Grid */}
-      <main className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto grid grid-cols-[280px_1fr] max-md:grid-cols-1 gap-[35px] py-[35px] pb-[80px]">
+      <main className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto grid grid-cols-[290px_1fr] max-md:grid-cols-1 gap-[35px] py-[35px] pb-[80px]">
         {/* Sidebar Filters */}
         <aside
-          className={`bg-white border border-line p-[24px] rounded-[12px] self-start sticky top-[95px] max-md:fixed max-md:inset-0 max-md:z-50 max-md:overflow-y-auto max-md:rounded-none max-md:top-0 shadow-sm ${
+          className={`bg-white border border-line p-[24px] rounded-[14px] self-start sticky top-[95px] max-md:fixed max-md:inset-0 max-md:z-50 max-md:overflow-y-auto max-md:rounded-none max-md:top-0 shadow-sm ${
             mobileFiltersOpen ? "max-md:block" : "max-md:hidden"
           }`}
         >
           <div className="hidden max-md:flex justify-between items-center mb-6 pb-4 border-b border-line">
             <h2 className="font-serif text-xl font-bold m-0">Filters</h2>
             <div className="flex gap-4 items-center">
-              <button
-                onClick={resetFilters}
-                className="text-sm text-gold font-bold"
-              >
-                Clear
+              <button onClick={resetFilters} className="text-sm text-gold font-bold">
+                Clear all
               </button>
-              <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="text-xl font-bold p-1 cursor-pointer"
-              >
+              <button onClick={() => setMobileFiltersOpen(false)} className="text-xl font-bold p-1 cursor-pointer">
                 ✕
               </button>
             </div>
           </div>
 
+          {/* Search Box */}
           <div className="mb-[22px] flex flex-col gap-[8px] text-[13px]">
             <label htmlFor="queryInput" className="font-bold text-ink">
               Search location or keyword
@@ -174,6 +246,26 @@ function PropertiesExplorerContent() {
             />
           </div>
 
+          {/* City Selector */}
+          <div className="mb-[22px] flex flex-col gap-[8px] text-[13px]">
+            <label htmlFor="citySelect" className="font-bold text-ink">
+              City / Region
+            </label>
+            <select
+              id="citySelect"
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] w-full bg-white text-ink cursor-pointer focus:border-gold font-medium"
+            >
+              {CITIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Purpose */}
           <div className="mb-[22px] flex flex-col gap-[8px] text-[13px]">
             <span className="font-bold text-ink">Purpose</span>
             <label className="flex items-center gap-[8px] text-muted cursor-pointer font-normal hover:text-ink">
@@ -183,7 +275,7 @@ function PropertiesExplorerContent() {
                 onChange={() => togglePurpose("Buy")}
                 className="rounded border-line accent-gold w-4 h-4"
               />{" "}
-              For sale
+              For Sale
             </label>
             <label className="flex items-center gap-[8px] text-muted cursor-pointer font-normal hover:text-ink">
               <input
@@ -192,17 +284,15 @@ function PropertiesExplorerContent() {
                 onChange={() => togglePurpose("Rent")}
                 className="rounded border-line accent-gold w-4 h-4"
               />{" "}
-              For rent / lease
+              For Rent / Lease
             </label>
           </div>
 
+          {/* Property Type */}
           <div className="mb-[22px] flex flex-col gap-[8px] text-[13px]">
             <span className="font-bold text-ink">Property type</span>
-            {["Apartment", "Villa", "Office", "Plot", "Builder floor"].map((t) => (
-              <label
-                key={t}
-                className="flex items-center gap-[8px] text-muted cursor-pointer font-normal hover:text-ink"
-              >
+            {PROPERTY_TYPES.map((t) => (
+              <label key={t} className="flex items-center gap-[8px] text-muted cursor-pointer font-normal hover:text-ink">
                 <input
                   type="checkbox"
                   checked={types.includes(t)}
@@ -214,41 +304,98 @@ function PropertiesExplorerContent() {
             ))}
           </div>
 
+          {/* Price Range */}
           <div className="mb-[22px] flex flex-col gap-[8px] text-[13px]">
             <span className="font-bold text-ink">Price range (₹)</span>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {PRICE_PRESETS.map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => applyPricePreset(p.min, p.max)}
+                  className={`text-[10px] font-semibold px-2 py-1 rounded border transition-colors ${
+                    minPrice === p.min && maxPrice === p.max
+                      ? "bg-navy text-white border-navy"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
             <div className="grid grid-cols-2 gap-[8px]">
               <input
                 type="number"
                 placeholder="Min ₹"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
-                className="border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] w-full bg-white text-ink focus:border-gold"
+                className="border border-line p-[9px_11px] rounded-[8px] outline-0 text-[12px] w-full bg-white text-ink focus:border-gold"
               />
               <input
                 type="number"
                 placeholder="Max ₹"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                className="border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] w-full bg-white text-ink focus:border-gold"
+                className="border border-line p-[9px_11px] rounded-[8px] outline-0 text-[12px] w-full bg-white text-ink focus:border-gold"
               />
             </div>
           </div>
 
+          {/* Bedrooms & Bathrooms */}
+          <div className="grid grid-cols-2 gap-3 mb-[22px] text-[13px]">
+            <div>
+              <label htmlFor="bedSelect" className="font-bold text-ink block mb-1.5">
+                Bedrooms
+              </label>
+              <select
+                id="bedSelect"
+                value={beds}
+                onChange={(e) => setBeds(e.target.value)}
+                className="border border-line p-[8px_10px] rounded-[8px] outline-0 text-[12px] w-full bg-white text-ink cursor-pointer focus:border-gold"
+              >
+                <option value="">Any</option>
+                <option value="1">1+ Bed</option>
+                <option value="2">2+ Beds</option>
+                <option value="3">3+ Beds</option>
+                <option value="4">4+ Beds</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="bathSelect" className="font-bold text-ink block mb-1.5">
+                Bathrooms
+              </label>
+              <select
+                id="bathSelect"
+                value={baths}
+                onChange={(e) => setBaths(e.target.value)}
+                className="border border-line p-[8px_10px] rounded-[8px] outline-0 text-[12px] w-full bg-white text-ink cursor-pointer focus:border-gold"
+              >
+                <option value="">Any</option>
+                <option value="1">1+ Bath</option>
+                <option value="2">2+ Baths</option>
+                <option value="3">3+ Baths</option>
+                <option value="4">4+ Baths</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Highlights / Tag Filter */}
           <div className="mb-[22px] flex flex-col gap-[8px] text-[13px]">
-            <label htmlFor="bedSelect" className="font-bold text-ink">
-              Bedrooms
+            <label htmlFor="tagSelect" className="font-bold text-ink">
+              Highlights & Tags
             </label>
             <select
-              id="bedSelect"
-              value={beds}
-              onChange={(e) => setBeds(e.target.value)}
+              id="tagSelect"
+              value={selectedTag}
+              onChange={(e) => setSelectedTag(e.target.value)}
               className="border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] w-full bg-white text-ink cursor-pointer focus:border-gold"
             >
-              <option value="">Any number</option>
-              <option value="1">1+ Bedroom</option>
-              <option value="2">2+ Bedrooms</option>
-              <option value="3">3+ Bedrooms</option>
-              <option value="4">4+ Bedrooms</option>
+              <option value="">All Properties</option>
+              <option value="Prime">Prime / Signature</option>
+              <option value="New launch">New Launch</option>
+              <option value="Featured">Featured</option>
+              <option value="Pool villa">Pool Villa</option>
+              <option value="Commercial">Commercial</option>
             </select>
           </div>
 
@@ -256,24 +403,27 @@ function PropertiesExplorerContent() {
             onClick={() => setMobileFiltersOpen(false)}
             className="hidden max-md:block w-full bg-navy text-white font-bold py-[12px] rounded-[8px] mt-4 shadow-md"
           >
-            Apply filters
+            Apply Filters ({filteredProperties.length})
           </button>
         </aside>
 
         {/* Listings Content */}
         <section>
-          <div className="flex justify-between items-center mb-[20px] text-[13px] text-muted">
-            <span>Showing <strong className="text-ink">{filteredProperties.length}</strong> properties</span>
-            <label className="flex items-center gap-2">
+          <div className="flex justify-between items-center mb-[20px] text-[13px] text-muted flex-wrap gap-3">
+            <span>
+              Showing <strong className="text-ink">{filteredProperties.length}</strong> verified properties
+            </span>
+            <label className="flex items-center gap-2 font-medium">
               Sort by:{" "}
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="border border-line p-[6px_10px] rounded-[6px] text-[12px] bg-white text-ink cursor-pointer focus:border-gold"
+                className="border border-line p-[6px_10px] rounded-[6px] text-[12px] bg-white text-ink cursor-pointer focus:border-gold font-semibold"
               >
                 <option value="new">Newest first</option>
                 <option value="low">Price: low to high</option>
                 <option value="high">Price: high to low</option>
+                <option value="beds">Most bedrooms</option>
               </select>
             </label>
           </div>
@@ -299,9 +449,9 @@ function PropertiesExplorerContent() {
             </div>
           ) : (
             <div className="bg-white border border-dashed border-line p-[60px_20px] text-center rounded-[12px] mt-[10px] shadow-sm">
-              <p className="text-[16px] font-serif font-medium text-ink mb-2">No matching properties</p>
+              <p className="text-[16px] font-serif font-medium text-ink mb-2">No matching properties found</p>
               <p className="text-[14px] text-muted mb-6 max-w-md mx-auto">
-                We couldn't find any properties matching your current search criteria or filters.
+                We couldn't find any properties matching your selected filters. Try broadening your criteria.
               </p>
               <button
                 onClick={resetFilters}

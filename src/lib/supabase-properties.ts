@@ -125,8 +125,40 @@ export function transformSupabaseProperty(row: any): Property {
   };
 }
 
+function isRealProperty(prop: Property): boolean {
+  if (!prop.title || !prop.city) return false;
+  const title = prop.title.toLowerCase().trim();
+  const area = (prop.area || "").toLowerCase().trim();
+  const city = (prop.city || "").toLowerCase().trim();
+
+  // Test / fake / placeholder keywords
+  const testKeywords = [
+    "test", "testing", "testts", "asdf", "qwerty", "demo", "sample", "temp",
+    "aaa", "bbb", "ccc", "1234", "fake", "junk", "foo", "bar", "xyz",
+    "luxury 3 bhk home", "sample property", "test property", "my property", "dummy"
+  ];
+
+  for (const kw of testKeywords) {
+    if (
+      title === kw ||
+      title.includes(kw) ||
+      area.includes(kw) ||
+      city.includes(kw)
+    ) {
+      return false;
+    }
+  }
+
+  // Filter out unrealistic bed/bath ratios or dummy submissions (e.g. 10 beds 1 bath)
+  if (prop.beds > 8 && prop.baths <= 2) return false;
+  if (prop.beds > 12) return false;
+  if (prop.price <= 0) return false;
+
+  return true;
+}
+
 /**
- * Fetches all live published properties from Supabase and merges them with static fallback data.
+ * Fetches all live published properties from Supabase and merges them with clean real estate listings.
  */
 export async function fetchAllProperties(): Promise<Property[]> {
   try {
@@ -142,7 +174,10 @@ export async function fetchAllProperties(): Promise<Property[]> {
 
     if (approvedSubmissions && approvedSubmissions.length > 0) {
       approvedSubmissions.forEach((sub) => {
-        liveProperties.push(transformSupabaseProperty(sub));
+        const transformed = transformSupabaseProperty(sub);
+        if (isRealProperty(transformed)) {
+          liveProperties.push(transformed);
+        }
       });
     }
 
@@ -155,22 +190,30 @@ export async function fetchAllProperties(): Promise<Property[]> {
 
     if (publishedProperties && publishedProperties.length > 0) {
       publishedProperties.forEach((prop) => {
-        liveProperties.push(transformSupabaseProperty(prop));
+        const transformed = transformSupabaseProperty(prop);
+        if (isRealProperty(transformed)) {
+          liveProperties.push(transformed);
+        }
       });
     }
 
+    const cleanStatic = STATIC_PROPERTIES.filter(isRealProperty);
+
     if (liveProperties.length === 0) {
-      return STATIC_PROPERTIES;
+      return cleanStatic;
     }
 
-    // Combine live properties with static properties (deduplicating by id)
+    // Combine live properties with clean static properties (deduplicating by id and title)
     const existingIds = new Set(liveProperties.map((p) => p.id));
-    const uniqueStatic = STATIC_PROPERTIES.filter((p) => !existingIds.has(p.id));
+    const existingTitles = new Set(liveProperties.map((p) => p.title.toLowerCase().trim()));
+    const uniqueStatic = cleanStatic.filter(
+      (p) => !existingIds.has(p.id) && !existingTitles.has(p.title.toLowerCase().trim())
+    );
 
     return [...liveProperties, ...uniqueStatic];
   } catch (e) {
     console.error("Error in fetchAllProperties:", e);
-    return STATIC_PROPERTIES;
+    return STATIC_PROPERTIES.filter(isRealProperty);
   }
 }
 

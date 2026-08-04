@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { createClient } from "@/utils/supabase/client";
+import { setCachedUser } from "@/lib/auth-cache";
+
 const INFO: Record<string, { title: string; desc: string; docs: string }> = {
   agency: {
     title: "Real estate agency",
@@ -24,17 +27,94 @@ export default function BusinessSignupPage() {
   const [contactName, setContactName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [state, setState] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [agree, setAgree] = useState(false);
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setNotice("Your business account will be submitted for verification when secure authentication is connected in Phase 5.");
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1800);
+    if (!selectedType) return;
+    setLoading(true);
+    setNotice("");
+
+    const supabase = createClient();
+    const role = selectedType === "agency" ? "agent" : "developer";
+
+    // 1. SignUp user with Supabase Auth
+    const pwd = password || "PartnerPass@123";
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password: pwd,
+      options: {
+        data: {
+          full_name: contactName,
+          phone,
+          role,
+        },
+      },
+    });
+
+    if (authError) {
+      setNotice("Error creating account: " + authError.message);
+      setLoading(false);
+      return;
+    }
+
+    const userId = authData.user?.id;
+    if (userId) {
+      // 2. Insert or update profile
+      await supabase.from("profiles").upsert({
+        id: userId,
+        full_name: contactName,
+        phone,
+        role,
+        updated_at: new Date().toISOString(),
+      });
+
+      // 3. Upload document if provided
+      if (file) {
+        try {
+          const fileExt = file.name.split(".").pop();
+          const filePath = `${userId}/${Date.now()}.${fileExt}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("user-verification-docs")
+            .upload(filePath, file);
+
+          if (!uploadError) {
+            const { data: publicUrlData } = supabase.storage
+              .from("user-verification-docs")
+              .getPublicUrl(filePath);
+
+            await supabase.from("user_verification_documents").insert({
+              user_id: userId,
+              document_type: selectedType === "agency" ? "Business Registration / RERA" : "Ownership / Developer Proof",
+              storage_path: publicUrlData?.publicUrl || filePath,
+              verification_status: "pending",
+            });
+          }
+        } catch (docErr) {
+          console.error("Doc upload error:", docErr);
+        }
+      }
+
+      setCachedUser({
+        email,
+        name: contactName,
+        role,
+      });
+
+      setNotice("✅ Account created successfully! Redirecting to your dashboard...");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1200);
+    } else {
+      setNotice("Account created. Please check your email to confirm registration.");
+    }
+    setLoading(false);
   };
 
   return (
@@ -206,6 +286,18 @@ export default function BusinessSignupPage() {
               </label>
 
               <label className="block mb-[17px]">
+                <span className="block text-[12px] font-bold mb-[8px]">Account Password</span>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create password (min 6 characters)"
+                  className="w-full border border-[#dbe1e5] rounded-[10px] h-[47px] px-[13px] outline-none bg-white text-[#344556] focus:border-[#7aa4d4] focus:shadow-[0_0_0_3px_rgba(40,98,232,0.11)] transition-all"
+                />
+              </label>
+
+              <label className="block mb-[17px]">
                 <span className="block text-[12px] font-bold mb-[8px]">State of registration</span>
                 <select
                   required
@@ -251,13 +343,14 @@ export default function BusinessSignupPage() {
 
               <button
                 type="submit"
-                className="w-full h-[49px] border-0 rounded-[9px] bg-[#07182d] hover:bg-[#112a4c] text-white font-bold cursor-pointer transition-colors"
+                disabled={loading}
+                className="w-full h-[49px] border-0 rounded-[9px] bg-[#07182d] hover:bg-[#112a4c] disabled:opacity-50 text-white font-bold cursor-pointer transition-colors"
               >
-                Create business account
+                {loading ? "Creating business account..." : "Create business account"}
               </button>
 
               {notice && (
-                <p className="min-h-[19px] text-[11px] text-green text-center mt-[11px] mb-0 font-semibold">
+                <p className="min-h-[19px] text-[11px] text-green-600 text-center mt-[11px] mb-0 font-semibold">
                   {notice}
                 </p>
               )}

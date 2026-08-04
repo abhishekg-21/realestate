@@ -119,26 +119,37 @@ export default function Home() {
                   Explore remarkable addresses
                 </h2>
               </div>
-              <button
-                onClick={() => setActiveTab("ALL_EXPANDED")}
-                className="bg-navy text-white text-[12px] font-bold px-5 py-2.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm"
+              <Link
+                href="/properties"
+                className="bg-navy text-white text-[12px] font-bold px-5 py-2.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm inline-flex items-center gap-1"
               >
                 View all properties ({properties.length}) →
-              </button>
+              </Link>
             </div>
             
             <div className="flex flex-wrap gap-[8px] mt-[25px]">
-              {["All homes", "Apartments", "Villas", "New launches"].map((tab) => (
+              {[
+                { name: "All homes", link: "/properties" },
+                { name: "Apartments", link: "/properties?type=Apartment" },
+                { name: "Villas", link: "/properties?type=Villa" },
+                { name: "New launches", link: "/properties?tag=New+launch" },
+              ].map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  key={tab.name}
+                  onClick={() => {
+                    if (tab.name === "All homes") {
+                      setActiveTab("All homes");
+                    } else {
+                      setActiveTab(tab.name);
+                    }
+                  }}
                   className={`border border-[#cbd3d7] rounded-[20px] px-[16px] py-[8px] text-[12px] font-semibold cursor-pointer transition-colors ${
-                    activeTab === tab
+                    activeTab === tab.name
                       ? "text-white bg-navy border-navy shadow-sm"
                       : "bg-white text-ink hover:bg-slate-100"
                   }`}
                 >
-                  {tab}
+                  {tab.name}
                 </button>
               ))}
             </div>
