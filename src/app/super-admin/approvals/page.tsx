@@ -17,6 +17,9 @@ type Submission = {
   description: string;
   bedrooms: number;
   bathrooms: number;
+  price_period: string;
+  locality: string;
+  address: string;
   area_sqft: number;
   created_at: string;
   owner_id: string;
@@ -260,7 +263,7 @@ export default function ApprovalsPage() {
                   <td className="px-5 py-4 text-right space-x-2">
                     <button
                       onClick={() => openDetail(s)}
-                      className="bg-navy text-white text-[12px] font-bold px-3.5 py-1.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm"
+                      className="bg-navy !text-white text-[12px] font-bold px-3.5 py-1.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm"
                     >
                       Manage & Edit Images 📷
                     </button>
@@ -283,7 +286,7 @@ export default function ApprovalsPage() {
                   Super Admin Management
                 </span>
                 <h2 className="font-serif text-[22px] font-medium mt-1 text-white">{selected.title}</h2>
-                <p className="text-[12px] text-slate-300 mt-0.5">{selected.city}, {selected.state} · Owner ID: {selected.owner_id}</p>
+                <p className="text-[12px] text-slate-300 mt-0.5">{selected.city}, {selected.state} · Owner ID: {selected.owner_id} · Submitted: {new Date(selected.created_at).toLocaleString("en-IN")}</p>
               </div>
               <button
                 onClick={() => setSelected(null)}
@@ -382,9 +385,12 @@ export default function ApprovalsPage() {
                   ["Intent", intentBadge(selected.intent)],
                   ["Type", selected.property_type],
                   ["Price", selected.price ? `₹${Number(selected.price).toLocaleString("en-IN")}` : "—"],
+                  ["Price Period", selected.price_period || "—"],
                   ["Bedrooms", selected.bedrooms ?? "—"],
                   ["Bathrooms", selected.bathrooms ?? "—"],
                   ["Area", selected.area_sqft ? `${selected.area_sqft} sqft` : "—"],
+                  ["Locality", selected.locality || "—"],
+                  ["Address", selected.address || "—"],
                   ["Contact Person", selected.contact_name],
                   ["Contact Phone", selected.contact_phone],
                 ].map(([k, v]) => (

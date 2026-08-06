@@ -121,7 +121,7 @@ export default function Home() {
               </div>
               <Link
                 href="/properties"
-                className="bg-navy text-white text-[12px] font-bold px-5 py-2.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm inline-flex items-center gap-1"
+                className="bg-navy !text-white text-[12px] font-bold px-5 py-2.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm inline-flex items-center gap-1"
               >
                 View all properties ({properties.length}) →
               </Link>
@@ -178,7 +178,7 @@ export default function Home() {
                 <p className="text-muted text-[15px] mb-4">No properties available under "{activeTab}" at the moment.</p>
                 <button
                   onClick={() => setActiveTab("All homes")}
-                  className="bg-navy text-white px-6 py-2.5 rounded-lg text-xs font-bold hover:bg-navy2 transition-colors"
+                  className="bg-navy !text-white px-6 py-2.5 rounded-lg text-xs font-bold hover:bg-navy2 transition-colors"
                 >
                   View All Homes
                 </button>

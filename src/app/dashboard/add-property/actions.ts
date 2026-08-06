@@ -59,19 +59,23 @@ export async function addProperty(formData: FormData) {
   const contactName = getString(formData, "contactName");
   const contactPhone = getString(formData, "contactPhone");
 
-  // Extract all media files (supporting multiple input names: photos, videos, images, media, documents)
+  const uploadedMediaStr = formData.get("uploaded_media_json");
+  const clientUploadedMedia = typeof uploadedMediaStr === "string" && uploadedMediaStr ? JSON.parse(uploadedMediaStr) : [];
+  
   const fileKeys = ["photos", "videos", "images", "media", "documents", "file"];
   const allFiles: File[] = [];
-  for (const key of fileKeys) {
-    const files = formData.getAll(key) as File[];
-    for (const f of files) {
-      if (f && typeof f === "object" && "size" in f && f.size > 0) {
-        allFiles.push(f);
+  if (clientUploadedMedia.length === 0) {
+    for (const key of fileKeys) {
+      const files = formData.getAll(key) as File[];
+      for (const f of files) {
+        if (f && typeof f === "object" && "size" in f && f.size > 0) {
+          allFiles.push(f);
+        }
       }
     }
   }
 
-  const uploadedMedia: { url: string; type: string }[] = [];
+  const uploadedMedia: { url: string; type: string }[] = [...clientUploadedMedia];
   const MAX_FILE_SIZE = 52428800; // 50 MB in bytes
 
   // Upload files to Supabase Storage
@@ -131,55 +135,11 @@ export async function addProperty(formData: FormData) {
     }
   }
 
-  // Insert property record into Supabase
-  const { data: propertyData, error: propertyError } = await supabase
-    .from("properties")
-    .insert({
-      owner_id: user.id,
-      title,
-      description: `${description}${contactName ? `\n\nContact: ${contactName} (${contactPhone})` : ""}`,
-      property_type,
-      purpose,
-      price,
-      location: locality,
-      city,
-      state,
-      bedrooms,
-      bathrooms,
-      area_sqft,
-      furnishing: ["unfurnished", "semi-furnished", "fully-furnished"].includes(furnishing) ? furnishing : "semi-furnished",
-      status: "published",
-    })
-    .select()
-    .single();
-
-  if (propertyError) {
-    console.error("Database insert error for property:", propertyError);
-    return redirect(`/dashboard/add-property?error=${encodeURIComponent("Could not save property: " + propertyError.message)}`);
-  }
-
-  // Insert media records if property was inserted successfully
-  if (uploadedMedia.length > 0 && propertyData) {
-    const mediaRecords = uploadedMedia.map((m) => ({
-      property_id: propertyData.id,
-      media_url: m.url,
-      media_type: m.type,
-    }));
-
-    const { error: mediaError } = await supabase
-      .from("property_media")
-      .insert(mediaRecords);
-
-    if (mediaError) {
-      console.error("Error linking media to property:", mediaError);
-    }
-  }
-
-  // Also insert into property_submissions table if it exists (for compatibility with existing scripts)
+  // Insert into property_submissions table
   try {
-    await supabase.from("property_submissions").insert({
+    const { data: subData, error: subErr } = await supabase.from("property_submissions").insert({
       owner_id: user.id,
-      status: "approved",
+      status: "submitted",
       intent: rawIntent.toLowerCase() === "rent" ? "rent" : rawIntent.toLowerCase() === "commercial" ? "commercial" : "sale",
       property_type: rawType,
       title,
@@ -195,9 +155,44 @@ export async function addProperty(formData: FormData) {
       area_sqft,
       contact_name: contactName || "Owner",
       contact_phone: contactPhone || "N/A"
-    });
+    }).select().single();
+
+    if (subErr) throw subErr;
+
+    // Insert media records if submission was inserted successfully
+    if (uploadedMedia.length > 0 && subData) {
+      const mediaRecords = [];
+      const docRecords = [];
+      
+      for (let i = 0; i < uploadedMedia.length; i++) {
+        const m = uploadedMedia[i];
+        if (m.type === "floorplan") {
+          docRecords.push({
+            submission_id: subData.id,
+            storage_path: m.url,
+            file_name: m.url.split("/").pop() || "document",
+            document_type: "document"
+          });
+        } else {
+          mediaRecords.push({
+            submission_id: subData.id,
+            storage_path: m.url,
+            file_name: m.url.split("/").pop() || "media",
+            sort_order: i
+          });
+        }
+      }
+
+      if (mediaRecords.length > 0) {
+        await supabase.from("property_submission_media").insert(mediaRecords);
+      }
+      if (docRecords.length > 0) {
+        await supabase.from("property_submission_documents").insert(docRecords);
+      }
+    }
   } catch (subErr) {
-    console.log("Notice: property_submissions table optional insert skipped:", subErr);
+    console.error("Database insert error for property submission:", subErr);
+    return redirect(`/dashboard/add-property?error=${encodeURIComponent("Could not save property: " + (subErr as any)?.message)}`);
   }
 
   return redirect("/user-dashboard?message=" + encodeURIComponent("Property and media listed successfully!"));

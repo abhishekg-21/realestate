@@ -7,6 +7,9 @@ import Footer from "@/components/footer";
 import PropertyCard from "@/components/property-card";
 import { Property } from "@/lib/properties-data";
 import { useProperties } from "@/lib/supabase-properties";
+import dynamic from "next/dynamic";
+
+const PropertiesMapView = dynamic(() => import("@/components/properties-map-view"), { ssr: false });
 
 const CITIES = ["All Cities", "Mumbai", "Pune", "Delhi NCR", "Bengaluru", "Hyderabad", "Goa", "Nashik", "Chennai"];
 
@@ -45,6 +48,7 @@ function PropertiesExplorerContent() {
   const [baths, setBaths] = useState("");
   const [sort, setSort] = useState("new");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   // Sync state if url params change
   useEffect(() => {
@@ -315,7 +319,7 @@ function PropertiesExplorerContent() {
                   onClick={() => applyPricePreset(p.min, p.max)}
                   className={`text-[10px] font-semibold px-2 py-1 rounded border transition-colors ${
                     minPrice === p.min && maxPrice === p.max
-                      ? "bg-navy text-white border-navy"
+                      ? "bg-navy !text-white border-navy"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
@@ -401,7 +405,7 @@ function PropertiesExplorerContent() {
 
           <button
             onClick={() => setMobileFiltersOpen(false)}
-            className="hidden max-md:block w-full bg-navy text-white font-bold py-[12px] rounded-[8px] mt-4 shadow-md"
+            className="hidden max-md:block w-full bg-navy !text-white font-bold py-[12px] rounded-[8px] mt-4 shadow-md"
           >
             Apply Filters ({filteredProperties.length})
           </button>
@@ -413,8 +417,23 @@ function PropertiesExplorerContent() {
             <span>
               Showing <strong className="text-ink">{filteredProperties.length}</strong> verified properties
             </span>
-            <label className="flex items-center gap-2 font-medium">
-              Sort by:{" "}
+            <div className="flex items-center gap-4">
+              <div className="flex bg-slate-100 rounded-lg p-1 border border-line">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`px-3 py-1 text-[12px] font-bold rounded-md transition-colors ${viewMode === "grid" ? "bg-white shadow-sm text-navy" : "text-muted hover:text-ink"}`}
+                >
+                  ▤ Grid
+                </button>
+                <button
+                  onClick={() => setViewMode("map")}
+                  className={`px-3 py-1 text-[12px] font-bold rounded-md transition-colors ${viewMode === "map" ? "bg-white shadow-sm text-navy" : "text-muted hover:text-ink"}`}
+                >
+                  📍 Map
+                </button>
+              </div>
+              <label className="flex items-center gap-2 font-medium">
+                Sort by:{" "}
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
@@ -426,6 +445,7 @@ function PropertiesExplorerContent() {
                 <option value="beds">Most bedrooms</option>
               </select>
             </label>
+            </div>
           </div>
 
           {loading ? (
@@ -441,6 +461,8 @@ function PropertiesExplorerContent() {
                 </div>
               ))}
             </div>
+          ) : viewMode === "map" && filteredProperties.length > 0 ? (
+            <PropertiesMapView properties={filteredProperties} />
           ) : filteredProperties.length > 0 ? (
             <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-[19px]">
               {filteredProperties.map((property) => (
@@ -455,7 +477,7 @@ function PropertiesExplorerContent() {
               </p>
               <button
                 onClick={resetFilters}
-                className="border border-line bg-navy text-white rounded-[20px] px-[22px] py-[10px] text-[13px] font-bold hover:bg-navy2 transition-colors shadow-sm"
+                className="border border-line bg-navy !text-white rounded-[20px] px-[22px] py-[10px] text-[13px] font-bold hover:bg-navy2 transition-colors shadow-sm"
               >
                 Reset all filters
               </button>

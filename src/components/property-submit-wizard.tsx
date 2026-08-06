@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { addProperty } from "@/app/dashboard/add-property/actions";
+import { createClient } from "@/utils/supabase/client";
 
 export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { backUrl?: string }) {
   const router = useRouter();
@@ -174,13 +175,63 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
     formData.append("contactName", contactName);
     formData.append("contactPhone", contactPhone);
 
-    // Append all media files
-    photos.forEach((file) => {
-      formData.append("photos", file);
-    });
-    documents.forEach((file) => {
-      formData.append("documents", file);
-    });
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setMsg("Please login to submit.");
+      setMsgType("error");
+      setSubmitting(false);
+      return;
+    }
+
+    const uploadedMediaData: { url: string; type: string }[] = [];
+    const MAX_FILE_SIZE = 52428800; // 50 MB
+    
+    const allFiles = [...photos, ...documents];
+    
+    for (let i = 0; i < allFiles.length; i++) {
+      const file = allFiles[i];
+      if (file.size > MAX_FILE_SIZE) continue;
+      
+      const fileExt = file.name.split(".").pop() || "bin";
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      const isVideo = file.type.startsWith("video/");
+      const isDoc = file.type === "application/pdf";
+      
+      let bucketName = "property-images";
+      if (isVideo) bucketName = "property-videos";
+      else if (isDoc) bucketName = "property-media";
+      
+      setMsg(`Uploading ${file.name} (${i + 1}/${allFiles.length})...`);
+      
+      let { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
+        
+      if (uploadError) {
+         console.warn(`Upload to ${bucketName} failed, retrying on property-media...`, uploadError.message);
+         const fallbackRes = await supabase.storage
+           .from("property-media")
+           .upload(filePath, file, { cacheControl: "3600", upsert: false });
+         uploadError = fallbackRes.error;
+         if (!uploadError) bucketName = "property-media";
+      }
+      
+      if (!uploadError) {
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
+          
+        uploadedMediaData.push({
+          url: publicUrl,
+          type: isVideo ? "video" : isDoc ? "floorplan" : "image",
+        });
+      }
+    }
+
+    formData.append("uploaded_media_json", JSON.stringify(uploadedMediaData));
 
     try {
       await addProperty(formData);

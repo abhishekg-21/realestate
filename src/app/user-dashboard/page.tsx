@@ -245,7 +245,7 @@ function UserDashboardContent() {
               </p>
               <button
                 onClick={() => switchView("saved")}
-                className="border-0 rounded-[7px] bg-navy hover:bg-navy2 text-white p-[11px_14px] text-[12px] font-bold cursor-pointer transition-colors"
+                className="border-0 rounded-[7px] bg-navy hover:bg-navy2 !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer transition-colors"
               >
                 Continue your search
               </button>
@@ -404,7 +404,7 @@ function UserDashboardContent() {
               </div>
               <Link
                 href="/properties"
-                className="border-0 rounded-[7px] bg-navy text-white p-[11px_14px] text-[12px] font-bold hover:bg-navy2 transition-colors"
+                className="border-0 rounded-[7px] bg-navy !text-white p-[11px_14px] text-[12px] font-bold hover:bg-navy2 transition-colors"
               >
                 Browse properties
               </Link>
@@ -447,7 +447,7 @@ function UserDashboardContent() {
               ) : (
                 <div className="border border-dashed border-[#bdc8cc] p-[38px] text-center text-[12px] text-muted rounded bg-white">
                   No saved spaces yet.<br /><br />
-                  <Link href="/properties" className="inline-block bg-navy text-white font-bold px-4 py-2 rounded">
+                  <Link href="/properties" className="inline-block bg-navy !text-white font-bold px-4 py-2 rounded">
                     Explore properties
                   </Link>
                 </div>
@@ -470,7 +470,7 @@ function UserDashboardContent() {
               </div>
               <button
                 onClick={() => setModalType("alert")}
-                className="border-0 rounded-[7px] bg-navy text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors"
+                className="border-0 rounded-[7px] bg-navy !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors"
               >
                 + Create alert
               </button>
@@ -505,7 +505,7 @@ function UserDashboardContent() {
                   No match alerts yet.<br /><br />
                   <button
                     onClick={() => setModalType("alert")}
-                    className="bg-navy text-white font-bold px-4 py-2 rounded border-0 cursor-pointer"
+                    className="bg-navy !text-white font-bold px-4 py-2 rounded border-0 cursor-pointer"
                   >
                     Create your first alert
                   </button>
@@ -587,7 +587,7 @@ function UserDashboardContent() {
                   />
                   <button
                     type="submit"
-                    className="border-0 bg-navy hover:bg-navy2 text-white rounded-[7px] px-[14px] text-[12px] font-bold cursor-pointer transition-colors"
+                    className="border-0 bg-navy hover:bg-navy2 !text-white rounded-[7px] px-[14px] text-[12px] font-bold cursor-pointer transition-colors"
                   >
                     Send
                   </button>
@@ -611,7 +611,7 @@ function UserDashboardContent() {
               </div>
               <button
                 onClick={() => setModalType("listing")}
-                className="border-0 rounded-[7px] bg-navy text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors"
+                className="border-0 rounded-[7px] bg-navy !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors"
               >
                 + Add property
               </button>
@@ -668,7 +668,7 @@ function UserDashboardContent() {
                   No property drafts or live listings yet.<br /><br />
                   <button
                     onClick={() => setModalType("listing")}
-                    className="bg-navy text-white font-bold px-4 py-2 rounded border-0 cursor-pointer"
+                    className="bg-navy !text-white font-bold px-4 py-2 rounded border-0 cursor-pointer"
                   >
                     Add your first property
                   </button>
@@ -708,7 +708,7 @@ function UserDashboardContent() {
                   </label>
                   <button
                     onClick={handleSaveName}
-                    className="border-0 rounded-[7px] bg-navy text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors max-sm:w-full"
+                    className="border-0 rounded-[7px] bg-navy !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors max-sm:w-full"
                   >
                     Save changes
                   </button>
@@ -844,7 +844,7 @@ function UserDashboardContent() {
                     />
                   </label>
                 </div>
-                <button type="submit" className="w-full bg-navy text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
+                <button type="submit" className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
                   Save alert
                 </button>
               </form>
@@ -924,7 +924,7 @@ function UserDashboardContent() {
                     />
                   </label>
                 </div>
-                <button type="submit" className="w-full bg-navy text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
+                <button type="submit" className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
                   Save as draft
                 </button>
               </form>
@@ -959,7 +959,7 @@ function UserDashboardContent() {
                     />
                   </label>
                 </div>
-                <button type="submit" className="w-full bg-navy text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
+                <button type="submit" className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
                   Send enquiry
                 </button>
               </form>

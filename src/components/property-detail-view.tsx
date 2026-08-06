@@ -7,6 +7,11 @@ import Footer from "@/components/footer";
 import { PROPERTIES as STATIC_PROPERTIES, Property } from "@/lib/properties-data";
 import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT } from "@/lib/auth-cache";
 import { useProperties } from "@/lib/supabase-properties";
+import { createClient } from "@/utils/supabase/client";
+import dynamic from "next/dynamic";
+import PropertyCard from "@/components/property-card";
+
+const PropertyMap = dynamic(() => import("@/components/property-map"), { ssr: false });
 
 function isVideoUrl(url?: string): boolean {
   if (!url) return false;
@@ -31,6 +36,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
     STATIC_PROPERTIES[0];
 
   const [isSaved, setIsSaved] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
   const [name, setName] = useState("");
@@ -44,10 +50,19 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       setIsSaved(isPropertySaved(property.id));
       setMsg(`I would like more information about ${property.title}.`);
     }
+
     const handleSavedChange = () => {
       if (property) setIsSaved(isPropertySaved(property.id));
     };
     window.addEventListener(SAVED_CHANGE_EVENT, handleSavedChange);
+
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+    };
+    checkUser();
+
     return () => {
       window.removeEventListener(SAVED_CHANGE_EVENT, handleSavedChange);
     };
@@ -71,21 +86,33 @@ export default function PropertyDetailView({ id }: { id?: string }) {
     );
   }
 
-  const images =
+  let images =
     property.images && property.images.length > 0
       ? property.images
       : [property.image, property.image, property.image];
 
+  const totalImages = images.length;
+  if (!isLoggedIn && images.length > 3) {
+    images = images.slice(0, 3);
+  }
+
   const openLightbox = (idx: number) => {
+    if (!isLoggedIn && idx >= 3) {
+      setCurrentImgIdx(2);
+      setModalOpen(true);
+      return;
+    }
     setCurrentImgIdx(idx);
     setModalOpen(true);
   };
 
   const nextImg = () => {
+    if (!isLoggedIn && currentImgIdx === images.length - 1) return;
     setCurrentImgIdx((prev) => (prev + 1) % images.length);
   };
 
   const prevImg = () => {
+    if (!isLoggedIn && currentImgIdx === 0) return;
     setCurrentImgIdx((prev) => (prev - 1 + images.length) % images.length);
   };
 
@@ -198,9 +225,10 @@ export default function PropertyDetailView({ id }: { id?: string }) {
                 style={{ backgroundImage: `url('${images[2 % images.length]}')` }}
               />
             )}
-            {images.length > 3 && (
-              <div className="absolute inset-0 bg-black/50 rounded-[14px] flex items-center justify-center text-white font-bold text-lg backdrop-blur-[2px]">
-                +{images.length - 3} more
+            {totalImages > 3 && (
+              <div className="absolute inset-0 bg-black/50 rounded-[14px] flex flex-col items-center justify-center text-white font-bold backdrop-blur-[2px]">
+                <span className="text-lg">+{totalImages - 3} more</span>
+                {!isLoggedIn && <span className="text-[10px] mt-1 bg-[#dc2626] px-2 py-1 rounded">Login to view</span>}
               </div>
             )}
           </div>
@@ -311,9 +339,21 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             <h2 className="font-serif text-[24px] font-medium m-0 mb-[14px] text-slate-900">
               Location & Neighborhood
             </h2>
-            <p className="text-[15px] leading-[1.8] text-slate-600 m-0">
+            <p className="text-[15px] leading-[1.8] text-slate-600 m-0 mb-4">
               Located at {property.area}, {property.city}. This address is situated close to major business centers, transport links, top educational institutes, and premium lifestyle hubs.
             </p>
+            <div className="mb-4">
+               <PropertyMap address={property.area} city={property.city} title={property.title} />
+            </div>
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.area + ", " + property.city)}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-[13px] shadow hover:bg-slate-800 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+              Navigate via Google Maps
+            </a>
           </div>
         </article>
 
@@ -416,6 +456,21 @@ export default function PropertyDetailView({ id }: { id?: string }) {
         </aside>
       </main>
 
+      {/* Recommendations Section */}
+      <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto py-[40px] border-t border-line">
+        <h2 className="font-serif text-[28px] font-medium m-0 mb-[24px] text-slate-900">
+          Similar Properties
+        </h2>
+        <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-[19px]">
+          {properties
+            .filter((p) => p.id !== property.id && p.city === property.city)
+            .slice(0, 3)
+            .map((p) => (
+              <PropertyCard key={p.id} property={p} />
+            ))}
+        </div>
+      </section>
+
       {/* Lightbox Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-[rgba(2,15,30,0.92)] z-50 flex items-center justify-center p-[20px] backdrop-blur-sm">
@@ -443,7 +498,8 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             <div className="flex justify-center items-center gap-[20px] mt-[18px] text-white font-bold text-[14px]">
               <button
                 onClick={prevImg}
-                className="bg-white/20 hover:bg-white/30 border-0 text-white px-[18px] py-[8px] rounded-[20px] cursor-pointer transition-colors shadow"
+                className={`bg-white/20 hover:bg-white/30 border-0 text-white px-[18px] py-[8px] rounded-[20px] cursor-pointer transition-colors shadow ${(!isLoggedIn && currentImgIdx === 0) ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={!isLoggedIn && currentImgIdx === 0}
               >
                 ← Prev
               </button>
@@ -452,11 +508,21 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               </span>
               <button
                 onClick={nextImg}
-                className="bg-white/20 hover:bg-white/30 border-0 text-white px-[18px] py-[8px] rounded-[20px] cursor-pointer transition-colors shadow"
+                className={`bg-white/20 hover:bg-white/30 border-0 text-white px-[18px] py-[8px] rounded-[20px] cursor-pointer transition-colors shadow ${(!isLoggedIn && currentImgIdx === images.length - 1) ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={!isLoggedIn && currentImgIdx === images.length - 1}
               >
                 Next →
               </button>
             </div>
+            {!isLoggedIn && totalImages > 3 && (
+              <div className="mt-4 p-4 bg-slate-900/90 text-white rounded-xl inline-block shadow-lg border border-slate-700 backdrop-blur-md">
+                <p className="font-bold text-[14px] m-0">Want to see all {totalImages} photos?</p>
+                <p className="text-[12px] text-slate-300 mt-1 mb-3">Please log in or sign up to view the complete media gallery.</p>
+                <Link href="/login" className="bg-[#dc2626] hover:bg-[#b91c1c] px-6 py-2 rounded-lg font-bold text-sm shadow transition-colors inline-block text-white no-underline">
+                  Log In / Sign Up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

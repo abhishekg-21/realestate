@@ -197,19 +197,19 @@ export default function RegisterPage() {
 
       {/* Step Indicator */}
       <div className="flex items-center gap-[8px] mb-[24px]">
-        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 1 ? "bg-navy text-white" : "bg-slate-200 text-slate-600"}`}>
+        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 1 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}>
           1
         </div>
         <span className="text-[11px] font-bold text-slate-700">Role</span>
         <div className="flex-1 h-[1px] bg-slate-200" />
-        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 2 ? "bg-navy text-white" : "bg-slate-200 text-slate-600"}`}>
+        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 2 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}>
           2
         </div>
         <span className="text-[11px] font-bold text-slate-700">Details</span>
         {selectedRole !== "buyer" && (
           <>
             <div className="flex-1 h-[1px] bg-slate-200" />
-            <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step === 3 ? "bg-navy text-white" : "bg-slate-200 text-slate-600"}`}>
+            <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step === 3 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}>
               3
             </div>
             <span className="text-[11px] font-bold text-slate-700">Docs</span>

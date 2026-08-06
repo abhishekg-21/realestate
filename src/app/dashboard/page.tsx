@@ -185,7 +185,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href={config.primaryAction.href}
-          className="inline-flex items-center border-0 bg-[#1c2b39] text-white rounded-[8px] px-[18px] h-[38px] text-[13px] font-bold hover:bg-[#2c3f52] transition-colors no-underline"
+          className="inline-flex items-center border-0 bg-[#1c2b39] !text-white rounded-[8px] px-[18px] h-[38px] text-[13px] font-bold hover:bg-[#2c3f52] transition-colors no-underline"
         >
           {config.primaryAction.label}
         </Link>
@@ -216,7 +216,7 @@ export default async function DashboardPage() {
               <h2 className="text-[15px] font-bold text-ink mb-[16px] m-0">Your saved properties</h2>
               <EmptyState icon="🔖" title="No saved properties yet" desc="Browse the marketplace and tap the heart icon to save properties you like." />
               <div className="flex justify-center mt-[8px]">
-                <Link href="/properties" className="inline-flex items-center bg-[#1c2b39] text-white rounded-[8px] px-[18px] h-[38px] text-[13px] font-bold hover:bg-[#2c3f52] transition-colors no-underline">
+                <Link href="/properties" className="inline-flex items-center bg-[#1c2b39] !text-white rounded-[8px] px-[18px] h-[38px] text-[13px] font-bold hover:bg-[#2c3f52] transition-colors no-underline">
                   Browse Properties
                 </Link>
               </div>
@@ -269,7 +269,7 @@ export default async function DashboardPage() {
                 <>
                   <EmptyState icon="📋" title="No submissions yet" desc="Submit your first property to get started. Once submitted, it will appear here with a live status." />
                   <div className="flex justify-center mt-[8px]">
-                    <Link href="/dashboard/add-property" className="inline-flex items-center bg-[#1c2b39] text-white rounded-[8px] px-[18px] h-[38px] text-[13px] font-bold hover:bg-[#2c3f52] transition-colors no-underline">
+                    <Link href="/dashboard/add-property" className="inline-flex items-center bg-[#1c2b39] !text-white rounded-[8px] px-[18px] h-[38px] text-[13px] font-bold hover:bg-[#2c3f52] transition-colors no-underline">
                       + Submit First Property
                     </Link>
                   </div>
@@ -299,7 +299,7 @@ export default async function DashboardPage() {
             <article className="bg-white border border-line rounded-[10px] p-[22px]">
               <h2 className="text-[15px] font-bold text-ink mb-[16px] m-0">Quick Actions</h2>
               <div className="flex flex-col gap-[10px]">
-                <Link href="/dashboard/add-property" className="flex items-center gap-[10px] p-[12px] bg-[#1c2b39] rounded-[8px] text-[13px] font-semibold text-white hover:bg-[#2c3f52] transition-colors no-underline">
+                <Link href="/dashboard/add-property" className="flex items-center gap-[10px] p-[12px] bg-[#1c2b39] rounded-[8px] text-[13px] font-semibold !text-white hover:bg-[#2c3f52] transition-colors no-underline">
                   <span className="text-[18px]">➕</span>
                   {role === "builder" ? "Add Project" : "Submit Property"}
                 </Link>
@@ -327,7 +327,7 @@ export default async function DashboardPage() {
                 <p className="text-[13px] font-bold text-red-700 m-0 mb-[2px]">Action required on {submissionCounts.changes_requested} submission{submissionCounts.changes_requested > 1 ? "s" : ""}</p>
                 <p className="text-[11px] text-red-600 m-0">The admin has requested changes. Review and update your submissions.</p>
               </div>
-              <Link href="/dashboard/properties" className="inline-flex items-center bg-red-600 text-white rounded-[8px] px-[14px] h-[34px] text-[12px] font-bold hover:bg-red-700 transition-colors no-underline shrink-0">
+              <Link href="/dashboard/properties" className="inline-flex items-center bg-red-600 !text-white rounded-[8px] px-[14px] h-[34px] text-[12px] font-bold hover:bg-red-700 transition-colors no-underline shrink-0">
                 Review Now
               </Link>
             </div>

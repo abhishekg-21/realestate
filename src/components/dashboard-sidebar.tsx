@@ -132,7 +132,7 @@ export default function DashboardSidebar({
         <div className="flex items-center gap-[10px] bg-white/8 rounded-[10px] px-[13px] py-[11px]">
           <span className="text-[22px] leading-none">{ROLE_EMOJI[role] || "👤"}</span>
           <div className="min-w-0">
-            <p className="text-[10px] text-[#8fa0ae] font-bold uppercase tracking-[0.08em] m-0">Account type</p>
+            <p className="text-[10px] text-white/70 font-bold uppercase tracking-[0.08em] m-0">Account type</p>
             <p className="text-[13px] text-white font-semibold m-0 truncate">{ROLE_LABELS[role] || role}</p>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function DashboardSidebar({
               className={`flex items-center gap-[11px] p-[11px_13px] rounded-[10px] text-[13px] font-semibold transition-colors ${
                 isActive(link.href)
                   ? "bg-white/12 text-white"
-                  : "text-[#c0cdd9] hover:bg-white/10 hover:text-white"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
             >
               <i
@@ -167,7 +167,7 @@ export default function DashboardSidebar({
             <Link
               href="/properties"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-[11px] p-[11px_13px] rounded-[10px] text-[13px] font-semibold text-[#c0cdd9] hover:bg-white/10 hover:text-white transition-colors"
+              className="flex items-center gap-[11px] p-[11px_13px] rounded-[10px] text-[13px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-colors"
             >
               <i className="w-[8px] h-[8px] rounded-full bg-white/25 inline-block shrink-0" />
               Browse Marketplace
@@ -185,7 +185,7 @@ export default function DashboardSidebar({
               <b className="block text-white text-[13px] truncate font-semibold">
                 {fullName || userEmail?.split("@")[0] || "User"}
               </b>
-              <span className="block truncate text-[#a8b6c4] text-[11px]">{userEmail}</span>
+              <span className="block truncate text-white/70 text-[11px]">{userEmail}</span>
             </div>
           </div>
           <form action="/auth/signout" method="post">

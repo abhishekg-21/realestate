@@ -187,7 +187,7 @@ export default function Navbar({ variant }: NavbarProps) {
 
                 <Link
                   href="/dashboard/add-property"
-                  className="hidden sm:inline-flex items-center px-4 py-2 rounded-[24px] bg-[#1c2b39] text-white font-bold text-[13px] hover:bg-[#2c3f52] transition-colors"
+                  className="hidden sm:inline-flex items-center px-4 py-2 rounded-[24px] bg-[#1c2b39] !text-white font-bold text-[13px] hover:bg-[#2c3f52] transition-colors"
                 >
                   List property
                 </Link>
@@ -358,7 +358,7 @@ export default function Navbar({ variant }: NavbarProps) {
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 max-md:py-[9px] max-md:px-[11px] rounded-[24px] bg-[#1c2b39] text-white font-bold text-[13px] hover:bg-[#2c3f52] transition-colors"
+                  className="px-4 py-2 max-md:py-[9px] max-md:px-[11px] rounded-[24px] bg-[#1c2b39] !text-white font-bold text-[13px] hover:bg-[#2c3f52] transition-colors"
                 >
                   Get started
                 </Link>
