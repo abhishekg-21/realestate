@@ -45,9 +45,9 @@ const statusStyle: Record<string, string> = {
   rejected: "bg-red-100 text-red-700",
 };
 
-export default function ApprovalsPage() {
+export default function PropertiesPage() {
   const supabase = createClient();
-  const [tab, setTab] = useState("submitted");
+  const [tab, setTab] = useState("all");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Submission | null>(null);
@@ -188,6 +188,21 @@ export default function ApprovalsPage() {
     setWorking(false);
   };
 
+  const deleteProperty = async () => {
+    if (!selected) return;
+    if (!confirm("Are you sure you want to permanently delete this property?")) return;
+    setWorking(true);
+    const { error } = await supabase.from("property_submissions").delete().eq("id", selected.id);
+    if (error) {
+      showToast("Error deleting property: " + error.message);
+    } else {
+      showToast("Property deleted successfully.");
+      setSelected(null);
+      load();
+    }
+    setWorking(false);
+  };
+
   const intentBadge = (v: string) =>
     v === "sale" ? "🏷️ For Sale" : v === "rent" ? "🔑 For Rent" : "🏢 Commercial";
 
@@ -202,7 +217,7 @@ export default function ApprovalsPage() {
 
       <div className="mb-6">
         <p className="text-[13px] text-slate-500 font-bold mb-1">Super Admin / Property Management</p>
-        <h1 className="text-[32px] font-bold text-slate-900 tracking-tight">Property Control & Image Editor</h1>
+        <h1 className="text-[32px] font-bold text-slate-900 tracking-tight">All Properties</h1>
         <p className="text-[14px] text-slate-600 mt-1">
           View all properties, edit property photos & walkthrough videos, approve listings, or request changes.
         </p>
@@ -522,16 +537,23 @@ export default function ApprovalsPage() {
                       <button
                         onClick={() => takeAction("rejected")}
                         disabled={working}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60"
+                        className="bg-slate-600 hover:bg-slate-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60"
                       >
                         ✕ Reject Listing
                       </button>
                       <button
                         onClick={() => setShowRequestChange(true)}
                         disabled={working}
-                        className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60 col-span-full"
+                        className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60"
                       >
-                        ⚠️ Request Changes from Owner
+                        ⚠️ Request Changes
+                      </button>
+                      <button
+                        onClick={deleteProperty}
+                        disabled={working}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold text-[13px] py-3 rounded-xl transition-colors shadow-sm disabled:opacity-60"
+                      >
+                        🗑️ Delete Listing
                       </button>
                     </div>
                   </>

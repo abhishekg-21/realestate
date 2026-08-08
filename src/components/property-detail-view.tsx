@@ -364,18 +364,18 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
               <img
                 src={(property as any).providerAvatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80"}
-                alt="Mindset Real Estate"
+                alt={(property as any).providerName || "PropertiesNexus User"}
                 className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0"
               />
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-bold text-[16px] text-slate-900 m-0">
-                    {(property as any).providerName || "Mindset Real Estate"}
+                    {(property as any).providerName || "PropertiesNexus User"}
                   </h3>
                   <span className="text-blue-500 font-bold text-sm" title="Verified Agency">✔</span>
                 </div>
                 <p className="text-[12px] text-slate-500 m-0 mt-0.5">
-                  {(property as any).providerRole || "Verified Realtor & Agency"}
+                  {(property as any).providerRole || "Property Owner"}
                 </p>
               </div>
             </div>
@@ -456,22 +456,23 @@ export default function PropertyDetailView({ id }: { id?: string }) {
         </aside>
       </main>
 
-      {/* Recommendations Section */}
-      <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto py-[40px] border-t border-line">
-        <h2 className="font-serif text-[28px] font-medium m-0 mb-[24px] text-slate-900">
-          Similar Properties
-        </h2>
-        <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-[19px]">
-          {properties
-            .filter((p) => p.id !== property.id && p.city === property.city)
-            .slice(0, 3)
-            .map((p) => (
-              <PropertyCard key={p.id} property={p} />
-            ))}
+      {/* Recommended Properties Section */}
+      <section className="bg-slate-50 py-16 border-t border-slate-200">
+        <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto">
+          <h2 className="font-serif text-[28px] font-medium text-slate-900 mb-8">
+            Recommended Properties
+          </h2>
+          <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-[19px]">
+            {properties
+              .filter((p) => p.id !== property.id && (p.city === property.city || p.type === property.type))
+              .slice(0, 3)
+              .map((p) => (
+                <PropertyCard key={p.id} property={p} />
+              ))}
+          </div>
         </div>
       </section>
-
-      {/* Lightbox Modal */}
+      {/* Lightbox / Media Viewer */}
       {modalOpen && (
         <div className="fixed inset-0 bg-[rgba(2,15,30,0.92)] z-50 flex items-center justify-center p-[20px] backdrop-blur-sm">
           <div className="relative max-w-[1000px] w-full text-center">

@@ -42,6 +42,8 @@ function UserDashboardContent() {
   const [userName, setUserName] = useState("Aarav Shah");
   const [userEmail, setUserEmail] = useState("aarav@example.com");
   const [nameInput, setNameInput] = useState("Aarav Shah");
+  const [userAvatar, setUserAvatar] = useState("");
+  const [avatarInput, setAvatarInput] = useState("");
   const [savedIds, setSavedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -51,6 +53,10 @@ function UserDashboardContent() {
         setUserName(u.name);
         setNameInput(u.name);
         if (u.email) setUserEmail(u.email);
+        if (u.avatar && u.avatar.startsWith("data:image")) {
+          setUserAvatar(u.avatar);
+          setAvatarInput(u.avatar);
+        }
       }
       setSavedIds(getSavedPropertyIds());
     };
@@ -137,13 +143,27 @@ function UserDashboardContent() {
     if (nameInput.trim()) {
       const updatedName = nameInput.trim();
       setUserName(updatedName);
+      if (avatarInput) setUserAvatar(avatarInput);
       setCachedUser({
         name: updatedName,
         email: userEmail,
         role: getCachedUser()?.role || "buyer",
+        avatar: avatarInput,
       });
       showToast("Profile updated.");
     }
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (ev.target?.result) {
+        setAvatarInput(ev.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleCreateAlert = (e: React.FormEvent) => {
@@ -219,9 +239,13 @@ function UserDashboardContent() {
             onClick={() => switchView("settings")}
             className="border border-line bg-white rounded-[21px] p-[5px_10px_5px_5px] flex items-center gap-[7px] text-[11px] font-bold cursor-pointer hover:bg-gray-50 transition-colors"
           >
-            <span className="h-[27px] w-[27px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[13px]">
-              {userName.charAt(0)}
-            </span>
+            {userAvatar ? (
+              <img src={userAvatar} alt="Profile" className="h-[27px] w-[27px] rounded-full object-cover" />
+            ) : (
+              <span className="h-[27px] w-[27px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[13px]">
+                {userName.charAt(0)}
+              </span>
+            )}
             <span className="max-sm:hidden">{userName.split(" ")[0]}</span>
           </button>
         </div>
@@ -696,7 +720,23 @@ function UserDashboardContent() {
               <section className="border border-line bg-white p-[22px] rounded">
                 <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">Profile</h2>
                 <p className="text-[11px] text-muted m-0 mb-[16px]">Your visible account details.</p>
-                <div className="grid grid-cols-[1fr_auto] max-sm:grid-cols-1 gap-[10px] items-end">
+                <div className="grid grid-cols-[auto_1fr_auto] max-sm:grid-cols-1 gap-[15px] items-end">
+                  <div className="flex flex-col gap-[7px]">
+                    <span className="block text-[11px] font-bold text-ink">Profile picture</span>
+                    <label className="cursor-pointer shrink-0 block relative group">
+                      <div className="h-[50px] w-[50px] rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center relative">
+                        {avatarInput ? (
+                          <img src={avatarInput} alt="Avatar Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-slate-400 text-2xl">👤</span>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-white text-xs font-bold">Edit</span>
+                        </div>
+                      </div>
+                      <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+                    </label>
+                  </div>
                   <label className="block">
                     <span className="block text-[11px] font-bold text-ink mb-[7px]">Display name</span>
                     <input
@@ -708,7 +748,7 @@ function UserDashboardContent() {
                   </label>
                   <button
                     onClick={handleSaveName}
-                    className="border-0 rounded-[7px] bg-navy !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors max-sm:w-full"
+                    className="border-0 rounded-[7px] bg-navy !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors max-sm:w-full h-[38px]"
                   >
                     Save changes
                   </button>

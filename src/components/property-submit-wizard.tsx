@@ -198,7 +198,7 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
       const filePath = `${user.id}/${fileName}`;
       
       const isVideo = file.type.startsWith("video/");
-      const isDoc = file.type === "application/pdf";
+      const isDoc = i >= photos.length;
       
       let bucketName = "property-images";
       if (isVideo) bucketName = "property-videos";

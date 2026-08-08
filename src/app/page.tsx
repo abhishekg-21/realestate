@@ -342,7 +342,7 @@ export default function Home() {
               </p>
               <Link
                 href="/business-signup"
-                className="inline-block mt-[13px] bg-white text-ink px-[17px] py-[14px] text-[12px] font-bold rounded hover:bg-gray-100 transition-colors"
+                className="inline-block mt-[13px] bg-white !text-slate-900 px-[17px] py-[14px] text-[12px] font-bold rounded hover:bg-gray-100 transition-colors"
               >
                 Become a PropertiesNexus partner →
               </Link>

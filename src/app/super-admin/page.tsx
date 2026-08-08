@@ -250,19 +250,23 @@ export default async function SuperAdminOverview() {
       {/* Quick Actions */}
       <div className="mt-6 bg-gradient-to-r from-[#0a0f1c] to-[#1a2540] rounded-2xl p-6 flex flex-wrap gap-3">
         <Link href="/super-admin/approvals"
-          className="bg-[#d49a38] text-[#0a0f1c] font-bold text-[13px] px-5 py-3 rounded-xl hover:bg-[#f0b844] transition-colors">
+          className="bg-[#d49a38] font-bold text-[13px] px-5 py-3 rounded-xl hover:bg-[#f0b844] transition-colors"
+          style={{ color: "#0a0f1c" }}>
           ⚡ Review Pending Properties
         </Link>
         <Link href="/super-admin/users"
-          className="bg-white/10 border border-white/20 text-white font-semibold text-[13px] px-5 py-3 rounded-xl hover:bg-white/20 transition-colors">
+          className="bg-white/10 border border-white/20 font-semibold text-[13px] px-5 py-3 rounded-xl hover:bg-white/20 transition-colors"
+          style={{ color: "#ffffff" }}>
           👥 Manage Users
         </Link>
         <Link href="/super-admin/notifications"
-          className="bg-white/10 border border-white/20 text-white font-semibold text-[13px] px-5 py-3 rounded-xl hover:bg-white/20 transition-colors">
+          className="bg-white/10 border border-white/20 font-semibold text-[13px] px-5 py-3 rounded-xl hover:bg-white/20 transition-colors"
+          style={{ color: "#ffffff" }}>
           📣 Broadcast Notification
         </Link>
         <Link href="/super-admin/settings"
-          className="bg-white/10 border border-white/20 text-white font-semibold text-[13px] px-5 py-3 rounded-xl hover:bg-white/20 transition-colors">
+          className="bg-white/10 border border-white/20 font-semibold text-[13px] px-5 py-3 rounded-xl hover:bg-white/20 transition-colors"
+          style={{ color: "#ffffff" }}>
           ⚙️ Platform Settings
         </Link>
       </div>

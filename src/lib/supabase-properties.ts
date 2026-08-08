@@ -121,7 +121,9 @@ export function transformSupabaseProperty(row: any): Property {
     image,
     images,
     description: row.description || "A well-positioned property offering modern conveniences, clean design, and immediate connection to local infrastructure.",
-    amenities
+    amenities,
+    providerName: row.contact_name || undefined,
+    providerRole: "Verified Owner",
   };
 }
 

@@ -37,6 +37,16 @@ const NAV = [
     ),
   },
   {
+    href: "/super-admin/properties",
+    label: "Properties",
+    icon: (
+      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    ),
+  },
+  {
     href: "/super-admin/analytics",
     label: "Analytics",
     icon: (
@@ -115,7 +125,7 @@ export default function SuperAdminSidebar({
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 px-3 flex-1">
-        <p className="text-[11px] font-bold tracking-[1.5px] text-[#94a3b8] uppercase px-3 mb-2">
+        <p className="text-[11px] font-bold tracking-[1.5px] uppercase px-3 mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
           Control Panel
         </p>
         {NAV.map((item) => (
@@ -125,11 +135,12 @@ export default function SuperAdminSidebar({
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-[10px] rounded-lg text-[13px] font-semibold transition-all duration-150 ${
               isActive(item.href, item.exact)
-                ? "bg-[#d49a38] text-[#0a0f1c] shadow-[0_2px_12px_rgba(212,154,56,0.4)]"
-                : "text-[#cbd5e1] hover:bg-white/10 hover:text-white"
+                ? "bg-[#d49a38] shadow-[0_2px_12px_rgba(212,154,56,0.4)]"
+                : "hover:bg-white/10"
             }`}
+            style={{ color: isActive(item.href, item.exact) ? "#0a0f1c" : "rgba(255,255,255,0.6)" }}
           >
-            <span className={isActive(item.href, item.exact) ? "text-[#0a0f1c]" : "text-[#94a3b8] group-hover:text-white"}>
+            <span style={{ color: isActive(item.href, item.exact) ? "#0a0f1c" : "rgba(255,255,255,0.5)" }}>
               {item.icon}
             </span>
             {item.label}
@@ -140,7 +151,8 @@ export default function SuperAdminSidebar({
           <Link
             href="/dashboard"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-3 px-3 py-[10px] rounded-lg text-[13px] font-semibold text-[#cbd5e1] hover:bg-white/10 hover:text-white transition-all"
+            className="flex items-center gap-3 px-3 py-[10px] rounded-lg text-[13px] font-semibold hover:bg-white/10 transition-all"
+            style={{ color: "rgba(255,255,255,0.6)" }}
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
@@ -152,22 +164,27 @@ export default function SuperAdminSidebar({
       </nav>
 
       {/* User chip */}
-      <div className="p-[18px_24px] border-t border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d49a38] to-[#f0c060] flex items-center justify-center text-[#0a0f1c] font-bold text-[14px] shrink-0">
+      <div className="p-[18px_24px] border-t border-white/10 bg-[#0a0f1c]">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d49a38] to-[#f0c060] flex items-center justify-center text-[#0a0f1c] font-bold text-[15px] shadow-sm shrink-0">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-white text-[13px] font-semibold truncate">{userName}</p>
-            <p className="text-[#94a3b8] text-[11px] truncate">{userEmail}</p>
+            <p className="text-white text-[13px] font-bold truncate">{userName}</p>
+            <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.5)" }}>{userEmail}</p>
           </div>
         </div>
-        <form action="/auth/signout" method="post" className="mt-3">
+        <form action="/auth/signout" method="post" className="w-full">
           <button
             type="submit"
-            className="text-[#d49a38] text-[11px] font-bold bg-transparent border-0 p-0 hover:underline cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-[#dc2626]/20 border border-white/10 hover:border-[#dc2626]/40 text-[#d49a38] hover:text-[#fca5a5] py-[10px] rounded-lg text-[12px] font-bold transition-all cursor-pointer"
           >
-            Sign out →
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign out
           </button>
         </form>
       </div>

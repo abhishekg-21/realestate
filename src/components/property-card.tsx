@@ -43,8 +43,8 @@ export default function PropertyCard({ property }: { property: Property }) {
     setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const providerName = (property as any).providerName || "Mindset Real Estate Agency";
-  const providerRole = (property as any).providerRole || "Realtor";
+  const providerName = (property as any).providerName || "PropertiesNexus User";
+  const providerRole = (property as any).providerRole || "Property Owner";
   const providerAvatar = (property as any).providerAvatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=100&q=80";
 
   return (

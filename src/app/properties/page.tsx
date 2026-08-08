@@ -30,6 +30,7 @@ function PropertiesExplorerContent() {
   const initialType = searchParams.get("type") || "";
   const initialTag = searchParams.get("tag") || "";
   const initialCity = searchParams.get("city") || "";
+  const initialView = (searchParams.get("view") as "grid" | "map") || "grid";
 
   const { properties, loading } = useProperties();
 
@@ -48,7 +49,7 @@ function PropertiesExplorerContent() {
   const [baths, setBaths] = useState("");
   const [sort, setSort] = useState("new");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "map">(initialView);
 
   // Sync state if url params change
   useEffect(() => {
@@ -57,7 +58,8 @@ function PropertiesExplorerContent() {
     if (initialType && initialType !== "Any type") setTypes([initialType]);
     if (initialTag) setSelectedTag(initialTag);
     if (initialCity) setSelectedCity(initialCity);
-  }, [initialQuery, initialPurpose, initialType, initialTag, initialCity]);
+    if (initialView) setViewMode(initialView);
+  }, [initialQuery, initialPurpose, initialType, initialTag, initialCity, initialView]);
 
   const togglePurpose = (val: string) => {
     setPurposes((prev) =>

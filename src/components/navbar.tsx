@@ -111,10 +111,10 @@ export default function Navbar({ variant }: NavbarProps) {
   return (
     <>
       <header
-        className={`w-full relative z-40 ${
+        className={`w-full sticky top-0 z-40 ${
           isDark
-            ? "border-b border-white/20 text-white"
-            : "border-b border-line text-ink bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
+            ? "border-b border-white/20 text-white bg-navy/90 backdrop-blur-md"
+            : "border-b border-line text-ink bg-white/90 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
         }`}
       >
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto h-[83px] max-md:h-[67px] flex items-center gap-6">
@@ -145,7 +145,7 @@ export default function Navbar({ variant }: NavbarProps) {
             }`}
           >
             <Link
-              href="/properties"
+              href="/properties?view=map"
               className="hover:opacity-100 transition-opacity"
             >
               Map
@@ -480,7 +480,7 @@ export default function Navbar({ variant }: NavbarProps) {
           ) : (
             <div className="flex flex-col gap-4 font-semibold text-sm">
               <Link
-                href="/properties"
+                href="/properties?view=map"
                 onClick={() => setMobileOpen(false)}
                 className="py-1"
               >

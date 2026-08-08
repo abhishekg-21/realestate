@@ -40,8 +40,13 @@ function MapBounds({ properties }: { properties: Property[] }) {
   const map = useMap();
   useEffect(() => {
     if (properties.length > 0) {
-      const lats = properties.map((p, i) => (CITY_COORDS[p.city] ? CITY_COORDS[p.city][0] + getOffset(i) : 19.076));
-      const lngs = properties.map((p, i) => (CITY_COORDS[p.city] ? CITY_COORDS[p.city][1] + getOffset(i + 1) : 72.8777));
+      const getCoords = (city: string) => {
+        const found = Object.entries(CITY_COORDS).find(([k]) => k.toLowerCase() === (city || "").toLowerCase());
+        return found ? found[1] : [19.076, 72.8777];
+      };
+      
+      const lats = properties.map((p, i) => getCoords(p.city)[0] + getOffset(i));
+      const lngs = properties.map((p, i) => getCoords(p.city)[1] + getOffset(i + 1));
       const minLat = Math.min(...lats);
       const maxLat = Math.max(...lats);
       const minLng = Math.min(...lngs);
@@ -70,7 +75,8 @@ export default function PropertiesMapView({ properties }: { properties: Property
         center={defaultCenter}
         zoom={10}
         scrollWheelZoom={true}
-        className="w-full h-full"
+        className="w-full h-full z-0"
+        style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -78,7 +84,8 @@ export default function PropertiesMapView({ properties }: { properties: Property
         />
         <MapBounds properties={properties} />
         {properties.map((p, i) => {
-          const coords = CITY_COORDS[p.city] || defaultCenter;
+          const found = Object.entries(CITY_COORDS).find(([k]) => k.toLowerCase() === (p.city || "").toLowerCase());
+          const coords = found ? found[1] : defaultCenter;
           const lat = coords[0] + getOffset(i);
           const lng = coords[1] + getOffset(i + 1);
           
@@ -92,9 +99,9 @@ export default function PropertiesMapView({ properties }: { properties: Property
                   <strong className="block text-[13px] leading-tight mb-1">{p.title}</strong>
                   <div className="text-gold font-bold mb-1">{p.displayPrice}</div>
                   <div className="text-[11px] text-slate-500 mb-2">{p.beds ? `${p.beds} Beds • ` : ""}{p.area}, {p.city}</div>
-                  <Link href={`/properties/${p.id}`} className="block w-full text-center bg-navy !text-white text-[12px] py-1.5 rounded-lg hover:bg-navy2">
+                  <a href={`/properties/${p.id}`} className="block w-full text-center bg-navy !text-white text-[12px] py-1.5 rounded-lg hover:bg-navy2">
                     View Details
-                  </Link>
+                  </a>
                 </div>
               </Popup>
             </Marker>

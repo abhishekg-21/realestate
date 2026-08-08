@@ -16,6 +16,9 @@ export interface Property {
   images: string[];
   description: string;
   amenities: string[];
+  providerName?: string;
+  providerRole?: string;
+  providerAvatar?: string;
 }
 
 export const PROPERTIES: Property[] = [
