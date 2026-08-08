@@ -350,6 +350,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-[13px] shadow hover:bg-slate-800 transition-colors"
+              style={{ color: "#ffffff" }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
               Navigate via Google Maps

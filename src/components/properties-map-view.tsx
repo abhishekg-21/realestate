@@ -99,7 +99,7 @@ export default function PropertiesMapView({ properties }: { properties: Property
                   <strong className="block text-[13px] leading-tight mb-1">{p.title}</strong>
                   <div className="text-gold font-bold mb-1">{p.displayPrice}</div>
                   <div className="text-[11px] text-slate-500 mb-2">{p.beds ? `${p.beds} Beds • ` : ""}{p.area}, {p.city}</div>
-                  <a href={`/properties/${p.id}`} className="block w-full text-center bg-navy !text-white text-[12px] py-1.5 rounded-lg hover:bg-navy2">
+                  <a href={`/properties/${p.id}`} className="block w-full text-center bg-navy !text-white text-[12px] py-1.5 rounded-lg hover:bg-navy2" style={{ color: "#ffffff" }}>
                     View Details
                   </a>
                 </div>
