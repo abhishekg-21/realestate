@@ -17,7 +17,9 @@ export default function Home() {
     if (activeTab === "Villas") return p.type.toLowerCase() === "villa" || p.type.toLowerCase().includes("house") || p.type.toLowerCase().includes("bungalow");
     if (activeTab === "New launches") return p.tag.toLowerCase().includes("new") || p.tag.toLowerCase().includes("launch") || p.tag.toLowerCase().includes("verified") || p.id === "aurelia-gurugram";
     return true;
-  }).slice(0, 3);
+  }).slice(0, 6);
+
+  const featuredVillas = properties.filter(p => p.type.toLowerCase() === "villa" || p.type.toLowerCase().includes("house")).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-paper text-ink font-sans">
@@ -196,6 +198,36 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Featured Villas Section */}
+        {featuredVillas.length > 0 && (
+          <section className="bg-white py-[84px] max-md:py-[66px] border-t border-slate-100" id="featured-villas">
+            <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto">
+              <p className="text-[#b57b22] font-bold uppercase tracking-[1.6px] text-[10px] m-0 mb-[13px]">
+                Premium Living
+              </p>
+              <div className="flex justify-between items-end max-md:flex-col max-md:items-start gap-4">
+                <div>
+                  <h2 className="font-serif font-medium text-[clamp(34px,4vw,49px)] tracking-[-1.8px] leading-[1.1] m-0 text-ink">
+                    Featured Villas & Estates
+                  </h2>
+                </div>
+                <Link
+                  href="/properties?type=Villa"
+                  className="bg-navy !text-white text-[12px] font-bold px-5 py-2.5 rounded-xl hover:bg-navy2 transition-colors shadow-sm inline-flex items-center gap-1"
+                >
+                  View all villas →
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-3 max-md:grid-cols-1 gap-[24px] mt-[40px]">
+                {featuredVillas.map((property) => (
+                  <PropertyCard key={property.id} property={property} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Why PropertiesNexus Section (Matching Image 3) */}
         <section className="py-[88px] max-md:py-[60px] bg-white border-y border-slate-100" id="why-us">

@@ -157,7 +157,7 @@ export default function Navbar({ variant }: NavbarProps) {
               Properties
             </Link>
             <Link
-              href={pathname === "/" ? "#guidance" : "/#guidance"}
+              href="/guidance"
               className="hover:opacity-100 transition-opacity"
             >
               Guidance
@@ -494,7 +494,7 @@ export default function Navbar({ variant }: NavbarProps) {
                 Properties
               </Link>
               <Link
-                href={pathname === "/" ? "#guidance" : "/#guidance"}
+                href="/guidance"
                 onClick={() => setMobileOpen(false)}
                 className="py-1"
               >

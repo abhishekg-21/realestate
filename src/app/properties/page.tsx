@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 
 const PropertiesMapView = dynamic(() => import("@/components/properties-map-view"), { ssr: false });
 
-const CITIES = ["All Cities", "Mumbai", "Pune", "Delhi NCR", "Bengaluru", "Hyderabad", "Goa", "Nashik", "Chennai"];
+const CITIES = ["All Cities", "Mumbai", "Pune", "Delhi NCR", "Bengaluru", "Hyderabad", "Goa", "Nashik", "Chennai", "Other"];
 
 const PROPERTY_TYPES = ["Apartment", "Villa", "Office", "Plot", "Builder floor", "Penthouse", "Commercial"];
 
@@ -34,8 +34,11 @@ function PropertiesExplorerContent() {
 
   const { properties, loading } = useProperties();
 
+  const initialSelectedCity = CITIES.includes(initialCity || "All Cities") ? (initialCity || "All Cities") : "Other";
+  
   const [queryInput, setQueryInput] = useState(initialQuery);
-  const [selectedCity, setSelectedCity] = useState(initialCity || "All Cities");
+  const [selectedCity, setSelectedCity] = useState(initialSelectedCity);
+  const [customCity, setCustomCity] = useState(initialSelectedCity === "Other" ? initialCity : "");
   const [purposes, setPurposes] = useState<string[]>(
     initialPurpose && initialPurpose !== "Buy or rent" ? [initialPurpose] : []
   );
@@ -57,7 +60,15 @@ function PropertiesExplorerContent() {
     if (initialPurpose && initialPurpose !== "Buy or rent") setPurposes([initialPurpose]);
     if (initialType && initialType !== "Any type") setTypes([initialType]);
     if (initialTag) setSelectedTag(initialTag);
-    if (initialCity) setSelectedCity(initialCity);
+    if (initialCity) {
+      if (CITIES.includes(initialCity)) {
+        setSelectedCity(initialCity);
+        setCustomCity("");
+      } else {
+        setSelectedCity("Other");
+        setCustomCity(initialCity);
+      }
+    }
     if (initialView) setViewMode(initialView);
   }, [initialQuery, initialPurpose, initialType, initialTag, initialCity, initialView]);
 
@@ -81,6 +92,7 @@ function PropertiesExplorerContent() {
   const resetFilters = () => {
     setQueryInput("");
     setSelectedCity("All Cities");
+    setCustomCity("");
     setPurposes([]);
     setTypes([]);
     setSelectedTag("");
@@ -118,8 +130,9 @@ function PropertiesExplorerContent() {
       }
 
       // 2. City Filter
-      if (selectedCity && selectedCity !== "All Cities") {
-        if (p.city.toLowerCase() !== selectedCity.toLowerCase()) {
+      const cityToMatch = selectedCity === "Other" ? customCity : selectedCity;
+      if (cityToMatch && cityToMatch !== "All Cities") {
+        if (p.city.toLowerCase() !== cityToMatch.toLowerCase()) {
           return false;
         }
       }
@@ -257,18 +270,31 @@ function PropertiesExplorerContent() {
             <label htmlFor="citySelect" className="font-bold text-ink">
               City / Region
             </label>
-            <select
-              id="citySelect"
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] w-full bg-white text-ink cursor-pointer focus:border-gold font-medium"
-            >
-              {CITIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            {selectedCity === "Other" ? (
+              <div className="flex gap-2">
+                <input
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder="Type city/region..."
+                  className="w-full border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] bg-white text-ink focus:border-gold"
+                  autoFocus
+                />
+                <button type="button" onClick={() => { setSelectedCity("All Cities"); setCustomCity(""); }} className="px-3 border border-line rounded-[8px] text-xs font-bold bg-slate-50 hover:bg-slate-100 text-slate-500">✕</button>
+              </div>
+            ) : (
+              <select
+                id="citySelect"
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] w-full bg-white text-ink cursor-pointer focus:border-gold font-medium"
+              >
+                {CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Purpose */}

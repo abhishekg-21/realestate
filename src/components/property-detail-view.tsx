@@ -10,8 +10,19 @@ import { useProperties } from "@/lib/supabase-properties";
 import { createClient } from "@/utils/supabase/client";
 import dynamic from "next/dynamic";
 import PropertyCard from "@/components/property-card";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const PropertyMap = dynamic(() => import("@/components/property-map"), { ssr: false });
+
+function TabPanel({ id, activeTab, title, children }: { id: string, activeTab: string, title: string, children: React.ReactNode }) {
+  if (id !== activeTab) return null;
+  return (
+    <div id={id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <h2 className="font-serif text-[24px] font-medium m-0 text-slate-900 mb-5">{title}</h2>
+      {children}
+    </div>
+  );
+}
 
 function isVideoUrl(url?: string): boolean {
   if (!url) return false;
@@ -39,6 +50,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
+  const [activeTab, setActiveTab] = useState("overview");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [msg, setMsg] = useState("");
@@ -237,46 +249,62 @@ export default function PropertyDetailView({ id }: { id?: string }) {
 
       {/* Navigation Tabs */}
       <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto mb-6 border-b border-slate-200">
-        <div className="flex gap-8 text-[15px] font-bold">
-          <a href="#overview" className="pb-3 border-b-2 border-[#dc2626] text-[#dc2626]">Overview</a>
-          <a href="#key-facts" className="pb-3 text-slate-600 hover:text-slate-900 transition-colors">Key Facts</a>
-          <a href="#amenities" className="pb-3 text-slate-600 hover:text-slate-900 transition-colors">Amenities</a>
-          <a href="#location" className="pb-3 text-slate-600 hover:text-slate-900 transition-colors">Location</a>
-          <a href="#costs" className="pb-3 text-slate-600 hover:text-slate-900 transition-colors">Costs</a>
+        <div className="flex gap-8 text-[15px] font-bold overflow-x-auto no-scrollbar">
+          {[
+            { id: "overview", label: "Overview" },
+            { id: "key-facts", label: "Key Facts" },
+            { id: "amenities", label: "Amenities" },
+            { id: "location", label: "Location" },
+            { id: "costs", label: "Costs" }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`pb-3 whitespace-nowrap transition-colors outline-none cursor-pointer ${
+                activeTab === tab.id
+                  ? "border-b-2 border-[#dc2626] text-[#dc2626]"
+                  : "border-b-2 border-transparent text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </section>
 
       {/* Layout Grid */}
       <main className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto grid grid-cols-[1fr_380px] max-md:grid-cols-1 gap-[50px] pb-[80px]">
         {/* Main Content */}
-        <article id="overview">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md uppercase tracking-wider">
-              {property.purpose === "Rent" ? "For Rent" : "For Sale"} · {property.type}
-            </span>
-            {property.tag && (
-              <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md uppercase tracking-wider">
-                {property.tag}
+        <article>
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                {property.purpose === "Rent" ? "For Rent" : "For Sale"} · {property.type}
               </span>
-            )}
+              {property.tag && (
+                <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                  {property.tag}
+                </span>
+              )}
+            </div>
+            <h1 className="font-serif font-medium text-[clamp(30px,3.5vw,40px)] my-[8px] leading-[1.15] text-slate-900">
+              {property.title}
+            </h1>
+            <p className="text-[15px] text-slate-500 m-0 mb-[18px] flex items-center gap-1">
+              📍 {property.area}, {property.city}
+            </p>
+            <div className="text-[32px] font-bold text-slate-900 mb-[10px]">
+              {property.displayPrice}
+            </div>
           </div>
 
-          <h1 className="font-serif font-medium text-[clamp(30px,3.5vw,40px)] my-[8px] leading-[1.15] text-slate-900">
-            {property.title}
-          </h1>
-          <p className="text-[15px] text-slate-500 m-0 mb-[18px] flex items-center gap-1">
-            📍 {property.area}, {property.city}
-          </p>
+          <TabPanel title="About This Property" id="overview" activeTab={activeTab}>
+            <p className="text-[15px] leading-[1.8] text-slate-600 m-0 whitespace-pre-line">
+              {property.description}
+            </p>
+          </TabPanel>
 
-          <div className="text-[32px] font-bold text-slate-900 mb-[25px]">
-            {property.displayPrice}
-          </div>
-
-          {/* Key Facts Table (Matching Image 5) */}
-          <div className="mb-[40px] bg-slate-50 border border-slate-200/90 rounded-2xl overflow-hidden p-6" id="key-facts">
-            <h2 className="font-serif text-[22px] font-medium m-0 mb-[16px] text-slate-900">
-              Key Facts
-            </h2>
+          <TabPanel title="Key Facts" id="key-facts" activeTab={activeTab}>
             <div className="grid grid-cols-2 max-md:grid-cols-1 gap-y-3 text-[14px]">
               <div className="flex justify-between py-2 border-b border-slate-200/80 pr-4">
                 <span className="text-slate-500 font-medium">Area</span>
@@ -311,21 +339,9 @@ export default function PropertyDetailView({ id }: { id?: string }) {
                 <span className="font-bold text-slate-900">Vacant / Ready</span>
               </div>
             </div>
-          </div>
+          </TabPanel>
 
-          <div className="mb-[40px]">
-            <h2 className="font-serif text-[24px] font-medium m-0 mb-[14px] text-slate-900">
-              About this property
-            </h2>
-            <p className="text-[15px] leading-[1.8] text-slate-600 m-0 whitespace-pre-line">
-              {property.description}
-            </p>
-          </div>
-
-          <div className="mb-[40px]" id="amenities">
-            <h2 className="font-serif text-[24px] font-medium m-0 mb-[16px] text-slate-900">
-              Amenities & Highlights
-            </h2>
+          <TabPanel title="Amenities & Highlights" id="amenities" activeTab={activeTab}>
             <ul className="m-0 p-0 list-none grid grid-cols-2 max-md:grid-cols-1 gap-[12px]">
               {property.amenities.map((amenity, idx) => (
                 <li key={idx} className="text-[14px] text-slate-800 font-medium flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -333,12 +349,9 @@ export default function PropertyDetailView({ id }: { id?: string }) {
                 </li>
               ))}
             </ul>
-          </div>
+          </TabPanel>
 
-          <div className="mb-[40px]" id="location">
-            <h2 className="font-serif text-[24px] font-medium m-0 mb-[14px] text-slate-900">
-              Location & Neighborhood
-            </h2>
+          <TabPanel title="Location & Neighborhood" id="location" activeTab={activeTab}>
             <p className="text-[15px] leading-[1.8] text-slate-600 m-0 mb-4">
               Located at {property.area}, {property.city}. This address is situated close to major business centers, transport links, top educational institutes, and premium lifestyle hubs.
             </p>
@@ -355,7 +368,28 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
               Navigate via Google Maps
             </a>
-          </div>
+          </TabPanel>
+
+          <TabPanel title="Costs & Fees" id="costs" activeTab={activeTab}>
+            <div className="text-[14px] text-slate-600 space-y-3">
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="font-medium">Base Price</span>
+                <span className="font-bold text-slate-900">{property.displayPrice}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="font-medium">Maintenance (Monthly)</span>
+                <span className="font-bold text-slate-900">₹ 8,500</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="font-medium">Registration / Stamp Duty</span>
+                <span className="font-bold text-slate-900">~6% of base price</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="font-medium">Brokerage</span>
+                <span className="font-bold text-slate-900">Standard 1% to 2% applicable</span>
+              </div>
+            </div>
+          </TabPanel>
         </article>
 
         {/* Agency / Provider Sidebar Card (Matching Image 5) */}
@@ -392,6 +426,19 @@ export default function PropertyDetailView({ id }: { id?: string }) {
                 <span className="text-[11px] text-slate-500">Market Experience</span>
               </div>
             </div>
+
+            {/* Provider Phone */}
+            {(property as any).providerPhone && (
+              <div className="mb-4 pb-4 border-b border-slate-100 flex items-center gap-2">
+                <span className="text-xl">📞</span>
+                <div>
+                  <span className="block text-[11px] text-slate-500 font-bold uppercase tracking-wider">Contact Number</span>
+                  <a href={`tel:${(property as any).providerPhone}`} className="text-[14px] font-bold text-slate-900 hover:text-[#d49a38] transition-colors">
+                    {(property as any).providerPhone}
+                  </a>
+                </div>
+              </div>
+            )}
 
             <p className="text-[12px] text-slate-600 leading-relaxed mb-4">
               Hello, we are representatives of verified real estate agency services in {property.city}. We specialize in luxury residential and commercial properties.
@@ -445,14 +492,25 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               )}
             </form>
 
-            <a
-              className="block text-center mt-4 text-[12px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
-              href="https://wa.me/919136331992"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              💬 Chat directly on WhatsApp →
-            </a>
+            {(property as any).providerPhone ? (
+              <a
+                className="block text-center mt-4 text-[12px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                href={`https://wa.me/${(property as any).providerPhone.replace(/[^0-9]/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                💬 Chat directly on WhatsApp →
+              </a>
+            ) : (
+              <a
+                className="block text-center mt-4 text-[12px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                href="https://wa.me/919136331992"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                💬 Chat directly on WhatsApp →
+              </a>
+            )}
           </div>
         </aside>
       </main>

@@ -20,6 +20,7 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
   const [description, setDescription] = useState("");
 
   const [state, setState] = useState("");
+  const [customState, setCustomState] = useState("");
   const [city, setCity] = useState("");
   const [locality, setLocality] = useState("");
   const [address, setAddress] = useState("");
@@ -52,6 +53,11 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
     } else if (step === 1) {
       if (!state) {
         setMsg("Choose a state.");
+        setMsgType("error");
+        return false;
+      }
+      if (state === "Other" && !customState.trim()) {
+        setMsg("Please enter your state/region.");
         setMsgType("error");
         return false;
       }
@@ -166,7 +172,7 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
     formData.append("bedrooms", bedrooms);
     formData.append("bathrooms", bathrooms);
     formData.append("description", description);
-    formData.append("state", state);
+    formData.append("state", state === "Other" ? customState : state);
     formData.append("city", city);
     formData.append("locality", locality);
     formData.append("address", address);
@@ -410,22 +416,35 @@ export default function PropertySubmitWizard({ backUrl = "/user-dashboard" }: { 
 
               <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[14px]">
                 <label className="block">
-                  <span className="block text-[11px] font-bold text-ink mb-[7px]">State</span>
-                  <select
-                    required
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    className="w-full border border-line rounded-[7px] p-[11px] text-[12px] bg-white text-ink outline-0"
-                  >
-                    <option value="">Select state</option>
-                    <option>Maharashtra</option>
-                    <option>Karnataka</option>
-                    <option>Delhi</option>
-                    <option>Haryana</option>
-                    <option>Telangana</option>
-                    <option>Goa</option>
-                    <option>Other</option>
-                  </select>
+                  <span className="block text-[11px] font-bold text-ink mb-[7px]">State / Region</span>
+                  {state === "Other" ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={customState}
+                        onChange={(e) => setCustomState(e.target.value)}
+                        placeholder="Type state/region..."
+                        className="w-full border border-line rounded-[7px] p-[11px] text-[12px] bg-white text-ink outline-0"
+                        autoFocus
+                      />
+                      <button type="button" onClick={() => { setState(""); setCustomState(""); }} className="px-3 border border-line rounded-[7px] text-xs font-bold bg-slate-50 hover:bg-slate-100 text-slate-500">✕</button>
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full border border-line rounded-[7px] p-[11px] text-[12px] bg-white text-ink outline-0"
+                    >
+                      <option value="">Select state/region</option>
+                      <option>Maharashtra</option>
+                      <option>Karnataka</option>
+                      <option>Delhi</option>
+                      <option>Haryana</option>
+                      <option>Telangana</option>
+                      <option>Goa</option>
+                      <option>Other</option>
+                    </select>
+                  )}
                 </label>
                 <label className="block">
                   <span className="block text-[11px] font-bold text-ink mb-[7px]">City</span>

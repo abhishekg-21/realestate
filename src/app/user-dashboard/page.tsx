@@ -42,6 +42,9 @@ function UserDashboardContent() {
   const [userName, setUserName] = useState("Aarav Shah");
   const [userEmail, setUserEmail] = useState("aarav@example.com");
   const [nameInput, setNameInput] = useState("Aarav Shah");
+  const [emailInput, setEmailInput] = useState("aarav@example.com");
+  const [phoneInput, setPhoneInput] = useState("+91 98765 43210");
+  const [locationInput, setLocationInput] = useState("Mumbai, India");
   const [userAvatar, setUserAvatar] = useState("");
   const [avatarInput, setAvatarInput] = useState("");
   const [savedIds, setSavedIds] = useState<string[]>([]);
@@ -143,14 +146,16 @@ function UserDashboardContent() {
     if (nameInput.trim()) {
       const updatedName = nameInput.trim();
       setUserName(updatedName);
+      setUserEmail(emailInput);
       if (avatarInput) setUserAvatar(avatarInput);
       setCachedUser({
         name: updatedName,
-        email: userEmail,
+        email: emailInput,
         role: getCachedUser()?.role || "buyer",
         avatar: avatarInput,
+        // In a real app we'd save phone and location here too
       });
-      showToast("Profile updated.");
+      showToast("Profile updated successfully.");
     }
   };
 
@@ -720,38 +725,69 @@ function UserDashboardContent() {
               <section className="border border-line bg-white p-[22px] rounded">
                 <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">Profile</h2>
                 <p className="text-[11px] text-muted m-0 mb-[16px]">Your visible account details.</p>
-                <div className="grid grid-cols-[auto_1fr_auto] max-sm:grid-cols-1 gap-[15px] items-end">
+                <div className="grid grid-cols-[auto_1fr] max-sm:grid-cols-1 gap-[15px] items-start">
                   <div className="flex flex-col gap-[7px]">
                     <span className="block text-[11px] font-bold text-ink">Profile picture</span>
                     <label className="cursor-pointer shrink-0 block relative group">
-                      <div className="h-[50px] w-[50px] rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center relative">
+                      <div className="h-[70px] w-[70px] rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center relative shadow-sm">
                         {avatarInput ? (
                           <img src={avatarInput} alt="Avatar Preview" className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-slate-400 text-2xl">👤</span>
+                          <span className="text-slate-400 text-3xl">👤</span>
                         )}
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <span className="text-white text-xs font-bold">Edit</span>
                         </div>
                       </div>
                       <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                     </label>
                   </div>
-                  <label className="block">
-                    <span className="block text-[11px] font-bold text-ink mb-[7px]">Display name</span>
-                    <input
-                      type="text"
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      className="border border-line rounded-[7px] w-full p-[10px] text-[12px] bg-white text-ink outline-0"
-                    />
-                  </label>
-                  <button
-                    onClick={handleSaveName}
-                    className="border-0 rounded-[7px] bg-navy !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors max-sm:w-full h-[38px]"
-                  >
-                    Save changes
-                  </button>
+                  <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[12px]">
+                    <label className="block">
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Display name</span>
+                      <input
+                        type="text"
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
+                        className="border border-line rounded-[7px] w-full p-[10px] text-[12px] bg-white text-ink outline-0 focus:border-[#d49a38] transition-colors"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Email address</span>
+                      <input
+                        type="email"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        className="border border-line rounded-[7px] w-full p-[10px] text-[12px] bg-white text-ink outline-0 focus:border-[#d49a38] transition-colors"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Phone number</span>
+                      <input
+                        type="tel"
+                        value={phoneInput}
+                        onChange={(e) => setPhoneInput(e.target.value)}
+                        className="border border-line rounded-[7px] w-full p-[10px] text-[12px] bg-white text-ink outline-0 focus:border-[#d49a38] transition-colors"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Location</span>
+                      <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                        className="border border-line rounded-[7px] w-full p-[10px] text-[12px] bg-white text-ink outline-0 focus:border-[#d49a38] transition-colors"
+                      />
+                    </label>
+                    <div className="col-span-full mt-2">
+                      <button
+                        onClick={handleSaveName}
+                        className="border-0 rounded-[7px] bg-navy !text-white p-[11px_24px] text-[12px] font-bold cursor-pointer hover:bg-navy2 transition-colors inline-block"
+                      >
+                        Save changes
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </section>
 

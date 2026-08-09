@@ -58,11 +58,14 @@ export default function AboutPage() {
             <h2 className="font-serif text-[clamp(32px,4vw,44px)] leading-tight text-ink mb-6">
               Our vision is to make finding your perfect home effortless and transparent.
             </h2>
-            <p className="text-[15px] text-slate-600 leading-[1.8] mb-6">
-              PropertiesNexus was founded with a single mission: to elevate the real estate journey. We realized that the traditional property search was fraught with misinformation, unverified listings, and unnecessary friction. 
+            <p className="text-[15px] text-slate-600 leading-[1.8] mb-4">
+              Since our inception in <strong>2020</strong>, PropertiesNexus has built a strong reputation as a trusted leader in the real estate sector. What started as a vision to simplify property transactions has grown into a comprehensive platform backed by integrity, market expertise, and an unwavering commitment to our clients.
+            </p>
+            <p className="text-[15px] text-slate-600 leading-[1.8] mb-4">
+              Over the years, we have successfully worked on a vast portfolio of projects—from luxury residential villas to expansive commercial developments. Our stellar reputation is built on delivering exceptional results and ensuring that every property listed meets our rigorous standards for quality and authenticity.
             </p>
             <p className="text-[15px] text-slate-600 leading-[1.8] mb-8">
-              By combining cutting-edge technology with rigorous verification processes and deep market expertise, we have built a platform where quality meets trust. Whether you are looking for a luxury villa in Goa or a premium commercial space in Mumbai, we ensure every listing is accurate, verified, and ready for you.
+              We offer a full spectrum of real estate functions tailored to your needs, including end-to-end buying and selling assistance, seamless rental management, personalized property advisory, and legal compliance support. Whether you are a first-time buyer or a seasoned investor, our dedicated team is here to guide you every step of the way.
             </p>
             <Link href="/properties" className="inline-flex items-center gap-2 bg-[#051426] hover:bg-[#112a46] text-white px-6 py-3 rounded-xl font-bold text-[14px] transition-colors">
               Explore Our Listings <ArrowRight size={18} />
