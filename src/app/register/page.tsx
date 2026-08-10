@@ -123,7 +123,11 @@ export default function RegisterPage() {
       });
 
       if (error) {
-        setMsg(error.message);
+        let errorText = error.message;
+        if (!errorText || errorText === "{}" || errorText === "[object Object]") {
+          errorText = "The server failed to send the verification email. Your email provider's SMTP settings may be incorrect or blocking the connection.";
+        }
+        setMsg(errorText);
         setMsgType("error");
         setLoading(false);
         return;

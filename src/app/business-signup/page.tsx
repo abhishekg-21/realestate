@@ -59,7 +59,11 @@ export default function BusinessSignupPage() {
     });
 
     if (authError) {
-      setNotice("Error creating account: " + authError.message);
+      let errorText = authError.message;
+      if (!errorText || errorText === "{}" || errorText === "[object Object]") {
+        errorText = "The server failed to send the verification email. Your email provider's SMTP settings may be incorrect or blocking the connection.";
+      }
+      setNotice("Error creating account: " + errorText);
       setLoading(false);
       return;
     }
