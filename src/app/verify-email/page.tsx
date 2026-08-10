@@ -1,150 +1,131 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { setCachedUser } from "@/lib/auth-cache";
-import AuthLayout from "@/components/auth-layout";
 
-export default function VerifyEmailPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [msg, setMsg] = useState("");
-  const [msgType, setMsgType] = useState<"error" | "success">("success");
-  const [loading, setLoading] = useState(false);
+function VerifyEmailContent() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "";
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
+  const [countdown, setCountdown] = useState(0);
 
+  // Countdown for resend button cooldown
   useEffect(() => {
-    router.replace("/dashboard");
-  }, [router]);
+    if (countdown > 0) {
+      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [countdown]);
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMsg("Verifying…");
-    setMsgType("success");
-
-    const savedName = sessionStorage.getItem("pn_verify_name") || email.split("@")[0] || "User";
-    const friendlyName = savedName.charAt(0).toUpperCase() + savedName.slice(1);
-
+  const handleResend = async () => {
+    if (!email || countdown > 0) return;
+    setResendLoading(true);
+    setResendMsg("");
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.verifyOtp({
+      const { error } = await supabase.auth.resend({
+        type: "signup",
         email,
-        token: code,
-        type: "email",
       });
-
       if (error) {
-        console.warn("Supabase OTP note (using local session fallback):", error.message);
+        setResendMsg("Could not resend. Please try again in a few minutes.");
+      } else {
+        setResendMsg("Verification email resent! Check your inbox.");
+        setCountdown(60); // 60 second cooldown
       }
-
-      setCachedUser({
-        name: friendlyName,
-        email: email,
-        role: "buyer",
-      });
-
-      sessionStorage.removeItem("pn_verify_email");
-      sessionStorage.removeItem("pn_verify_name");
-      setMsg("Email verified. Opening your account…");
-      setMsgType("success");
-      setTimeout(() => {
-        router.push("/user-dashboard");
-      }, 700);
-    } catch (err: any) {
-      // Fallback cache for instant gratification
-      setCachedUser({
-        name: friendlyName,
-        email: email,
-        role: "buyer",
-      });
-      sessionStorage.removeItem("pn_verify_email");
-      sessionStorage.removeItem("pn_verify_name");
-      setMsg("Email verified. Opening your account…");
-      setMsgType("success");
-      setTimeout(() => {
-        router.push("/user-dashboard");
-      }, 700);
+    } catch {
+      setResendMsg("An unexpected error occurred.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
   return (
-    <AuthLayout
-      eyebrow="One final secure step"
-      title="Make your account officially yours."
-      highlightedWord="yours."
-      description="Open the verification link in your email. If your email provider displays a six-digit code instead, enter it here."
-      fact1Value="12k+"
-      fact1Label="Active properties"
-      fact2Value="250+"
-      fact2Label="Verified partners"
-    >
-      <Link href="/login" className="text-[12px] text-[#667581] hover:underline inline-block mb-[40px] font-semibold">
-        ← Back to sign in
-      </Link>
-      <h2 className="font-serif text-[39px] max-md:text-[34px] font-medium tracking-[-1.4px] m-0 mb-[8px] text-ink">
-        Verify your email
-      </h2>
-      <p className="text-[13px] leading-[1.6] text-muted m-0 mb-[27px]">
-        Check your inbox. You can use either the secure link or the one-time code, depending on your email template.
-      </p>
+    <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4 font-sans">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#e4e8eb] max-w-[460px] w-full p-[48px_40px_40px] max-sm:p-[36px_24px_28px]">
+        {/* Icon */}
+        <div className="w-[68px] h-[68px] rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center text-[32px] mx-auto mb-[24px]">
+          📬
+        </div>
 
-      <form onSubmit={handleVerify} className="flex flex-col">
-        <label className="block my-[14px]">
-          <span className="block text-[11px] font-bold text-ink mb-[7px]">Email address</span>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full h-[47px] border border-line rounded-[8px] px-[12px] text-[13px] outline-0 bg-white text-ink focus:border-[#a9772b] focus:shadow-[0_0_0_3px_rgba(203,141,49,0.14)] transition-all"
-          />
-        </label>
+        <h1 className="font-serif text-[30px] font-medium tracking-[-1px] text-[#111827] text-center m-0 mb-[10px]">
+          Check your inbox
+        </h1>
+        <p className="text-[13px] text-[#6b7280] leading-[1.65] text-center m-0 mb-[28px]">
+          We&apos;ve sent a verification link to{" "}
+          {email ? (
+            <strong className="text-[#111827]">{email}</strong>
+          ) : (
+            "your email address"
+          )}
+          . Click the link in the email to activate your account.
+        </p>
 
-        <label className="block my-[14px]">
-          <span className="block text-[11px] font-bold text-ink mb-[7px]">Verification code</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            minLength={6}
-            maxLength={6}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="••••••"
-            className="w-full h-[47px] border border-line rounded-[8px] px-[12px] text-[22px] tracking-[8px] text-center outline-0 bg-white text-ink focus:border-[#a9772b] focus:shadow-[0_0_0_3px_rgba(203,141,49,0.14)] transition-all font-mono"
-          />
-        </label>
+        {/* Steps */}
+        <div className="bg-[#f9fafb] rounded-xl border border-[#e5e7eb] p-[18px_20px] mb-[24px] flex flex-col gap-[14px]">
+          {[
+            { step: "1", text: "Open the email from PropertiesNexus" },
+            { step: "2", text: 'Click the "Confirm your email" button' },
+            { step: "3", text: "You will be signed in automatically" },
+          ].map(({ step, text }) => (
+            <div key={step} className="flex items-start gap-[12px]">
+              <span className="w-[22px] h-[22px] rounded-full bg-[#1c2b39] text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-[1px]">
+                {step}
+              </span>
+              <span className="text-[13px] text-[#374151]">{text}</span>
+            </div>
+          ))}
+        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="h-[49px] border-0 rounded-[8px] bg-navy hover:bg-navy2 text-white w-full text-[13px] font-bold cursor-pointer mt-[9px] transition-colors disabled:opacity-65"
-        >
-          {loading ? "Verifying…" : "Verify email"}
-        </button>
-
-        {msg && (
-          <p
-            className={`text-[11px] leading-[1.5] min-h-[18px] text-center my-[12px] font-semibold ${
-              msgType === "success" ? "text-green" : "text-red"
-            }`}
-            aria-live="polite"
-          >
-            {msg}
-          </p>
+        {/* Resend */}
+        {email && (
+          <div className="text-center mb-[20px]">
+            <p className="text-[12px] text-[#6b7280] mb-[10px]">
+              Didn&apos;t receive it? Check your spam folder, or:
+            </p>
+            <button
+              onClick={handleResend}
+              disabled={resendLoading || countdown > 0}
+              className="border border-[#d4d8db] rounded-[8px] px-[18px] h-[38px] text-[12px] font-bold text-[#374151] bg-white hover:bg-[#f9fafb] disabled:opacity-50 cursor-pointer transition-colors"
+            >
+              {resendLoading
+                ? "Sending…"
+                : countdown > 0
+                ? `Resend in ${countdown}s`
+                : "Resend verification email"}
+            </button>
+            {resendMsg && (
+              <p
+                className={`text-[11px] mt-[8px] font-semibold ${
+                  resendMsg.includes("resent") ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {resendMsg}
+              </p>
+            )}
+          </div>
         )}
-      </form>
 
-      <p className="text-center text-[12px] text-[#687783] mt-[22px] mb-0">
-        Did not receive anything?{" "}
-        <Link href="/register" className="text-[#9a6419] font-bold hover:underline">
-          Create the account again
-        </Link>
-      </p>
-    </AuthLayout>
+        <div className="border-t border-[#e5e7eb] pt-[20px] text-center">
+          <Link
+            href="/login"
+            className="text-[12px] font-bold text-[#9a6419] hover:underline"
+          >
+            ← Back to sign in
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#6b7280]">Loading…</div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

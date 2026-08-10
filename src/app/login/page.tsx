@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { setCachedUser } from "@/lib/auth-cache";
 import AuthLayout from "@/components/auth-layout";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +17,15 @@ export default function LoginPage() {
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState<"error" | "success">("error");
   const [loading, setLoading] = useState(false);
+
+  // Show any message passed via URL query param (e.g. after email verification)
+  useEffect(() => {
+    const urlMsg = searchParams.get("message");
+    if (urlMsg) {
+      setMsg(urlMsg);
+      setMsgType("success");
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,5 +185,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </AuthLayout>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" />}>
+      <LoginContent />
+    </Suspense>
   );
 }

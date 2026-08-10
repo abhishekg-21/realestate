@@ -113,6 +113,7 @@ export default function RegisterPage() {
         email,
         password,
         options: {
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
           data: {
             full_name: fullName,
             phone,
@@ -172,8 +173,8 @@ export default function RegisterPage() {
         setMsgType("success");
         setLoading(false);
         setTimeout(() => {
-          router.push("/login?message=Please%20verify%20your%20email");
-        }, 4000);
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        }, 2000);
       } else {
         setCachedUser({
           name: fullName,

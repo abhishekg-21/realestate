@@ -49,6 +49,7 @@ export default function BusinessSignupPage() {
       email,
       password: pwd,
       options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
         data: {
           full_name: contactName,
           phone,
@@ -110,8 +111,8 @@ export default function BusinessSignupPage() {
       if (isEmailConfirmationRequired) {
         setNotice("✅ Registration successful! Please check your email to verify your account.");
         setTimeout(() => {
-          router.push("/login?message=Please%20verify%20your%20email");
-        }, 4000);
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        }, 2000);
       } else {
         setCachedUser({
           email,
