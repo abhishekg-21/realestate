@@ -66,8 +66,7 @@ export default function BusinessSignupPage() {
         return;
       }
 
-      // If a warning is returned, it means the API bypassed email confirmation for testing
-      const isEmailConfirmationRequired = !data.warning;
+      const isEmailConfirmationRequired = true;
       const userId = data?.user?.id;
 
     if (userId && !isEmailConfirmationRequired) {
