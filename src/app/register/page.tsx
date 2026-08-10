@@ -109,24 +109,23 @@ export default function RegisterPage() {
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
-          data: {
-            full_name: fullName,
-            phone,
-            role: selectedRole,
-          },
-        },
+      // Use custom API route to bypass Supabase SMTP and send via Resend directly using the verified domain
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          phone,
+          role: selectedRole,
+        }),
       });
 
-      if (error) {
-        let errorText = error.message;
-        if (!errorText || errorText === "{}" || errorText === "[object Object]") {
-          errorText = "The server failed to send the verification email. Your email provider's SMTP settings may be incorrect or blocking the connection.";
-        }
+      const data = await response.json();
+
+      if (!response.ok) {
+        let errorText = data.error || "An error occurred during registration.";
         setMsg(errorText);
         setMsgType("error");
         setLoading(false);
@@ -134,7 +133,7 @@ export default function RegisterPage() {
       }
 
       // We assume email confirmation is always required
-      const isEmailConfirmationRequired = data?.user && !data.session;
+      const isEmailConfirmationRequired = true;
 
       // Upsert user profile only if they are logged in (no email confirmation required)
       const userId = data?.user?.id;
