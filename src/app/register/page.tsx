@@ -109,31 +109,28 @@ export default function RegisterPage() {
 
     try {
       const supabase = createClient();
-      
-      // Use custom API route to bypass Supabase SMTP rate limits and send via Resend directly
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          fullName,
-          phone,
-          role: selectedRole,
-        }),
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
+          data: {
+            full_name: fullName,
+            phone,
+            role: selectedRole,
+          },
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setMsg(data.error || "An error occurred during registration.");
+      if (error) {
+        setMsg(error.message);
         setMsgType("error");
         setLoading(false);
         return;
       }
 
       // We assume email confirmation is always required
-      const isEmailConfirmationRequired = true;
+      const isEmailConfirmationRequired = data?.user && !data.session;
 
       // Upsert user profile only if they are logged in (no email confirmation required)
       const userId = data?.user?.id;
