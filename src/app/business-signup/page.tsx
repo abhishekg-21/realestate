@@ -43,29 +43,31 @@ export default function BusinessSignupPage() {
     const supabase = createClient();
     const role = selectedType === "agency" ? "agent" : "developer";
 
-    // 1. SignUp user with Supabase Auth
+    // Use custom API route to bypass Supabase SMTP rate limits and send via Resend directly
     const pwd = password || "PartnerPass@123";
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password: pwd,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
-        data: {
-          full_name: contactName,
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password: pwd,
+          fullName: contactName,
           phone,
           role,
-        },
-      },
-    });
+        }),
+      });
 
-    if (authError) {
-      setNotice("Error creating account: " + authError.message);
-      setLoading(false);
-      return;
-    }
+      const data = await response.json();
 
-    const isEmailConfirmationRequired = authData.user && !authData.session;
-    const userId = authData.user?.id;
+      if (!response.ok) {
+        setNotice("Error creating account: " + (data.error || "Unknown error"));
+        setLoading(false);
+        return;
+      }
+
+      const isEmailConfirmationRequired = true;
+      const userId = data?.user?.id;
 
     if (userId && !isEmailConfirmationRequired) {
       // 2. Insert or update profile
@@ -127,6 +129,10 @@ export default function BusinessSignupPage() {
       }
     } else {
       setNotice("Account created. Please check your email to confirm registration.");
+    }
+    } catch (err: any) {
+      console.error(err);
+      setNotice("An unexpected error occurred: " + (err.message || ""));
     }
     setLoading(false);
   };
