@@ -41,6 +41,13 @@ export default function LoginPage() {
         return;
       }
 
+      if (data?.user && !data?.session) {
+        setMsg("Please check your email to verify your account before signing in.");
+        setMsgType("error");
+        setLoading(false);
+        return;
+      }
+
       let userRole = data?.user?.user_metadata?.role || "buyer";
       let fullName = data?.user?.user_metadata?.full_name || friendlyName;
 

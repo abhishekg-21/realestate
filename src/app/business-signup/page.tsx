@@ -66,7 +66,7 @@ export default function BusinessSignupPage() {
     const isEmailConfirmationRequired = authData.user && !authData.session;
     const userId = authData.user?.id;
 
-    if (userId) {
+    if (userId && !isEmailConfirmationRequired) {
       // 2. Insert or update profile
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: userId,
@@ -76,7 +76,7 @@ export default function BusinessSignupPage() {
         updated_at: new Date().toISOString(),
       });
       
-      if (profileError && !isEmailConfirmationRequired) {
+      if (profileError) {
         console.warn("Profile upsert failed:", profileError);
       }
 

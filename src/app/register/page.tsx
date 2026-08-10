@@ -130,9 +130,9 @@ export default function RegisterPage() {
 
       const isEmailConfirmationRequired = data?.user && !data.session;
 
-      // Upsert user profile
+      // Upsert user profile only if they are logged in (no email confirmation required)
       const userId = data?.user?.id;
-      if (userId) {
+      if (userId && !isEmailConfirmationRequired) {
         const { error: profileError } = await supabase.from("profiles").upsert({
           id: userId,
           full_name: fullName,
@@ -140,7 +140,7 @@ export default function RegisterPage() {
           role: selectedRole,
         });
         
-        if (profileError && !isEmailConfirmationRequired) {
+        if (profileError) {
           console.warn("Profile upsert failed:", profileError);
         }
 
