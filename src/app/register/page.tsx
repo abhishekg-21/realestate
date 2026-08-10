@@ -132,8 +132,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // We assume email confirmation is always required if the API succeeds
-      const isEmailConfirmationRequired = true;
+      // If a warning is returned, it means the API bypassed email confirmation for testing
+      const isEmailConfirmationRequired = !data.warning;
 
       // Upsert user profile only if they are logged in (no email confirmation required)
       const userId = data?.user?.id;
