@@ -167,12 +167,6 @@ export default function RegisterPage() {
         }
       }
 
-      setCachedUser({
-        name: fullName,
-        email: data.user?.email || email,
-        role: selectedRole,
-      });
-
       if (isEmailConfirmationRequired) {
         setMsg("Registration successful! Please check your email to verify your account.");
         setMsgType("success");
@@ -181,6 +175,12 @@ export default function RegisterPage() {
           router.push("/login?message=Please%20verify%20your%20email");
         }, 4000);
       } else {
+        setCachedUser({
+          name: fullName,
+          email: data.user?.email || email,
+          role: selectedRole,
+        });
+
         setMsg("Account created successfully! Redirecting…");
         setMsgType("success");
         setTimeout(() => {

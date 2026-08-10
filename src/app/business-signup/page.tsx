@@ -107,18 +107,18 @@ export default function BusinessSignupPage() {
         }
       }
 
-      setCachedUser({
-        email,
-        name: contactName,
-        role,
-      });
-
       if (isEmailConfirmationRequired) {
         setNotice("✅ Registration successful! Please check your email to verify your account.");
         setTimeout(() => {
           router.push("/login?message=Please%20verify%20your%20email");
         }, 4000);
       } else {
+        setCachedUser({
+          email,
+          name: contactName,
+          role,
+        });
+
         setNotice("✅ Account created successfully! Redirecting to your dashboard...");
         setTimeout(() => {
           router.push("/dashboard");
