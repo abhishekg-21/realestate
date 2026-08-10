@@ -128,33 +128,41 @@ export default function RegisterPage() {
         return;
       }
 
+      const isEmailConfirmationRequired = data?.user && !data.session;
+
       // Upsert user profile
       const userId = data?.user?.id;
       if (userId) {
-        await supabase.from("profiles").upsert({
+        const { error: profileError } = await supabase.from("profiles").upsert({
           id: userId,
           full_name: fullName,
           phone,
           role: selectedRole,
         });
+        
+        if (profileError && !isEmailConfirmationRequired) {
+          console.warn("Profile upsert failed:", profileError);
+        }
 
         // Store verification documents in Supabase Storage if files uploaded
         if (uploadedFiles.length > 0) {
           for (const file of uploadedFiles) {
             const path = `${userId}/${Date.now()}_${file.name}`;
-            await supabase.storage
+            const { error: uploadError } = await supabase.storage
               .from("user-verification-docs")
               .upload(path, file);
-
-            await supabase.from("user_verification_documents").insert({
-              user_id: userId,
-              role: selectedRole,
-              doc_category: selectedRole === "seller" ? "ownership_proof" : "identity_proof",
-              doc_type: selectedRole === "seller" ? ownershipDocType : identityDocType,
-              storage_path: path,
-              file_name: file.name,
-              verification_status: "pending",
-            });
+              
+            if (!uploadError) {
+              await supabase.from("user_verification_documents").insert({
+                user_id: userId,
+                role: selectedRole,
+                doc_category: selectedRole === "seller" ? "ownership_proof" : "identity_proof",
+                doc_type: selectedRole === "seller" ? ownershipDocType : identityDocType,
+                storage_path: path,
+                file_name: file.name,
+                verification_status: "pending",
+              });
+            }
           }
         }
       }
@@ -165,11 +173,20 @@ export default function RegisterPage() {
         role: selectedRole,
       });
 
-      setMsg("Account created successfully! Redirecting…");
-      setMsgType("success");
-      setTimeout(() => {
-        router.push("/user-dashboard");
-      }, 800);
+      if (isEmailConfirmationRequired) {
+        setMsg("Registration successful! Please check your email to verify your account.");
+        setMsgType("success");
+        setLoading(false);
+        setTimeout(() => {
+          router.push("/login?message=Please%20verify%20your%20email");
+        }, 4000);
+      } else {
+        setMsg("Account created successfully! Redirecting…");
+        setMsgType("success");
+        setTimeout(() => {
+          router.push("/user-dashboard");
+        }, 800);
+      }
     } catch (err: any) {
       setMsg(err.message || "An unexpected error occurred.");
       setMsgType("error");

@@ -63,16 +63,22 @@ export default function BusinessSignupPage() {
       return;
     }
 
+    const isEmailConfirmationRequired = authData.user && !authData.session;
     const userId = authData.user?.id;
+
     if (userId) {
       // 2. Insert or update profile
-      await supabase.from("profiles").upsert({
+      const { error: profileError } = await supabase.from("profiles").upsert({
         id: userId,
         full_name: contactName,
         phone,
         role,
         updated_at: new Date().toISOString(),
       });
+      
+      if (profileError && !isEmailConfirmationRequired) {
+        console.warn("Profile upsert failed:", profileError);
+      }
 
       // 3. Upload document if provided
       if (file) {
@@ -107,10 +113,17 @@ export default function BusinessSignupPage() {
         role,
       });
 
-      setNotice("✅ Account created successfully! Redirecting to your dashboard...");
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1200);
+      if (isEmailConfirmationRequired) {
+        setNotice("✅ Registration successful! Please check your email to verify your account.");
+        setTimeout(() => {
+          router.push("/login?message=Please%20verify%20your%20email");
+        }, 4000);
+      } else {
+        setNotice("✅ Account created successfully! Redirecting to your dashboard...");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1200);
+      }
     } else {
       setNotice("Account created. Please check your email to confirm registration.");
     }

@@ -35,9 +35,10 @@ export default function LoginPage() {
       });
 
       if (error) {
-        // If Supabase auth fails (e.g., demo mode / test account without live server keys),
-        // gracefully fall back to caching the account so the user can test all features!
-        console.warn("Supabase auth note (using local session fallback):", error.message);
+        setMsg(error.message);
+        setMsgType("error");
+        setLoading(false);
+        return;
       }
 
       let userRole = data?.user?.user_metadata?.role || "buyer";
@@ -67,17 +68,9 @@ export default function LoginPage() {
         router.push(targetUrl);
       }, 500);
     } catch (err: any) {
-      // Fallback cache for instant gratification even in error state
-      setCachedUser({
-        name: friendlyName,
-        email: email,
-        role: "buyer",
-      });
-      setMsg("Signed in to local session. Opening your account…");
-      setMsgType("success");
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 500);
+      setMsg(err.message || "An unexpected error occurred during sign in.");
+      setMsgType("error");
+      setLoading(false);
     }
   };
 
