@@ -112,23 +112,7 @@ export default function Footer() {
         </div>
       </footer>
 
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-[15px] left-1/2 -translate-x-1/2 flex z-40 bg-white/95 backdrop-blur-md text-ink shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-200 px-[20px] py-[12px] rounded-full gap-[20px] whitespace-nowrap text-[12px]">
-        <Link href="/properties?view=map" className="font-bold hover:text-navy flex items-center gap-1.5">
-          <span>🗺️</span> Map
-        </Link>
-        <Link href="/properties" className="font-bold pl-[20px] border-l border-slate-200 hover:text-navy flex items-center gap-1.5">
-          <span>🔍</span> Search
-        </Link>
-        <a
-          href="https://wa.me/919136331992"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-bold pl-[20px] border-l border-slate-200 text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5"
-        >
-          <span>💬</span> Chat
-        </a>
-      </nav>
+
     </>
   );
 }

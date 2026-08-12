@@ -45,9 +45,9 @@ export default function Hero() {
         {/* Search Form */}
         <form
           onSubmit={handleSearch}
-          className="w-[min(785px,70%)] max-md:w-full grid grid-cols-[1.55fr_0.72fr_0.74fr_110px] max-md:grid-cols-[1fr_54px] bg-white p-[7px] rounded-[18px] max-md:rounded-[14px] shadow-[0_15px_35px_rgba(0,0,0,0.22)]"
+          className="w-[min(785px,70%)] max-md:w-full grid grid-cols-[1.55fr_0.72fr_0.74fr_110px] max-md:flex max-md:flex-col bg-white p-[7px] max-md:p-[12px] max-md:gap-[12px] rounded-[18px] max-md:rounded-[14px] shadow-[0_15px_35px_rgba(0,0,0,0.22)]"
         >
-          <label className="flex gap-[8px] items-center px-[15px] border-r border-[#e4e6e8] text-[#718090]">
+          <label className="flex gap-[8px] items-center px-[15px] max-md:px-[5px] border-r max-md:border-r-0 max-md:border-b max-md:border-[#e4e6e8] max-md:pb-[10px] border-[#e4e6e8] text-[#718090]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[18px] h-[18px] shrink-0">
               <circle cx="11" cy="11" r="6" />
               <path d="m20 20-4-4" />
@@ -60,7 +60,7 @@ export default function Hero() {
             />
           </label>
 
-          <label className="max-md:hidden flex gap-[8px] items-center px-[15px] border-r border-[#e4e6e8] text-[#718090]">
+          <label className="flex gap-[8px] items-center px-[15px] max-md:px-[5px] border-r max-md:border-r-0 max-md:border-b max-md:border-[#e4e6e8] max-md:pb-[10px] border-[#e4e6e8] text-[#718090]">
             <select
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
@@ -72,7 +72,7 @@ export default function Hero() {
             </select>
           </label>
 
-          <label className="max-md:hidden flex gap-[8px] items-center px-[15px] border-r border-[#e4e6e8] text-[#718090]">
+          <label className="flex gap-[8px] items-center px-[15px] max-md:px-[5px] border-r max-md:border-r-0 border-[#e4e6e8] text-[#718090]">
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
@@ -87,10 +87,9 @@ export default function Hero() {
 
           <button
             type="submit"
-            className="border-0 bg-[#ca8b29] hover:bg-gold text-white rounded-[13px] font-bold cursor-pointer text-[13px] max-md:text-[0px] transition-colors flex items-center justify-center"
+            className="border-0 bg-[#ca8b29] hover:bg-gold text-white rounded-[13px] max-md:rounded-[8px] max-md:h-[40px] font-bold cursor-pointer text-[13px] transition-colors flex items-center justify-center"
           >
-            <span className="max-md:hidden">Search</span>
-            <span className="hidden max-md:inline-block text-[23px] leading-none">⌕</span>
+            <span>Search</span>
           </button>
         </form>
 

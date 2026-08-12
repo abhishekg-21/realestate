@@ -45,7 +45,7 @@ export default function Home() {
                 href="https://wa.me/919136331992"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border border-[#aeb7be] px-[16px] py-[12px] font-bold text-[12px] hover:bg-navy hover:text-white hover:border-navy transition-colors max-md:hidden"
+                className="border border-[#aeb7be] px-[16px] py-[12px] font-bold text-[12px] hover:bg-navy hover:text-white hover:border-navy transition-colors"
               >
                 Speak to an advisor →
               </a>
@@ -391,21 +391,21 @@ export default function Home() {
       </main>
 
       {/* Floating Bottom Bar (Matching Image 4) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#0f172a]/95 text-white backdrop-blur-md px-5 py-2.5 rounded-full shadow-2xl border border-slate-700/60 flex items-center gap-4 text-[13px] font-semibold">
-        <span className="flex items-center gap-1.5 text-amber-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#0f172a]/95 text-white backdrop-blur-md px-5 py-2.5 max-md:px-4 max-md:py-2 rounded-full shadow-2xl border border-slate-700/60 flex items-center gap-4 max-md:gap-3 text-[13px] max-md:text-[11px] font-semibold w-max max-w-[95vw] overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <span className="flex items-center gap-1.5 text-amber-400 whitespace-nowrap">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
           <span>📌 {properties.length} Active Listings</span>
         </span>
-        <span className="w-[1px] h-4 bg-slate-700" />
-        <Link href="/properties?view=map" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+        <span className="w-[1px] h-4 bg-slate-700 shrink-0" />
+        <Link href="/properties?view=map" className="hover:text-amber-400 transition-colors flex items-center gap-1 whitespace-nowrap">
           🗺️ Map View
         </Link>
-        <span className="w-[1px] h-4 bg-slate-700" />
-        <Link href="/properties" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+        <span className="w-[1px] h-4 bg-slate-700 shrink-0" />
+        <Link href="/properties" className="hover:text-amber-400 transition-colors flex items-center gap-1 whitespace-nowrap">
           🔍 All Properties
         </Link>
-        <span className="w-[1px] h-4 bg-slate-700" />
-        <Link href="/properties" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+        <span className="w-[1px] h-4 bg-slate-700 shrink-0" />
+        <Link href="/properties" className="hover:text-amber-400 transition-colors flex items-center gap-1 whitespace-nowrap">
           ⚙️ Filters
         </Link>
       </div>

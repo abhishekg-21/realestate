@@ -132,7 +132,7 @@ export default async function DashboardPage() {
       .from("property_submissions")
       .select("status")
       .eq("owner_id", user.id);
-    (allSubs || []).forEach((s) => {
+    (allSubs || []).forEach((s: any) => {
       const k = s.status as keyof typeof submissionCounts;
       if (k in submissionCounts) submissionCounts[k]++;
     });

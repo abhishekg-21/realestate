@@ -39,7 +39,7 @@ export default async function PropertiesDashboardPage() {
   const seenIds = new Set<string>();
 
   if (submissions) {
-    submissions.forEach((s) => {
+    submissions.forEach((s: any) => {
       seenIds.add(s.id);
       combined.push({
         id: s.id,
@@ -54,7 +54,7 @@ export default async function PropertiesDashboardPage() {
   }
 
   if (properties) {
-    properties.forEach((p) => {
+    properties.forEach((p: any) => {
       if (!seenIds.has(p.id)) {
         seenIds.add(p.id);
         combined.push({
