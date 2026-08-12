@@ -348,7 +348,7 @@ export default function Navbar({ variant }: NavbarProps) {
                 </Link>
                 <Link
                   href="/login"
-                  className={`px-3.5 py-2 max-md:py-[9px] max-md:px-[11px] rounded-[24px] border transition-colors ${
+                  className={`whitespace-nowrap px-4 py-2 max-md:py-1.5 max-md:px-3 rounded-full border transition-colors ${
                     isDark
                       ? "border-white/40 text-white hover:bg-white/10"
                       : "border-line text-ink hover:bg-gray-50"
@@ -358,7 +358,7 @@ export default function Navbar({ variant }: NavbarProps) {
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 max-md:py-[9px] max-md:px-[11px] rounded-[24px] bg-[#1c2b39] !text-white font-bold text-[13px] hover:bg-[#2c3f52] transition-colors"
+                  className="whitespace-nowrap px-4 py-2 max-md:py-1.5 max-md:px-3 rounded-full bg-[#1c2b39] !text-white font-bold text-[13px] hover:bg-[#2c3f52] transition-colors"
                 >
                   Get started
                 </Link>
