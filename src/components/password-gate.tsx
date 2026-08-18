@@ -1,18 +1,32 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Lock, Eye, EyeOff, ShieldCheck, KeyRound, AlertCircle } from "lucide-react";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  KeyRound,
+  AlertCircle,
+} from "lucide-react";
 
 const REQUIRED_PASSWORD = "Barath@@2004";
 const STORAGE_KEY = "pn_access_granted";
 
-export default function PasswordGate({ children }: { children: React.ReactNode }) {
+export default function PasswordGate({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isMounted, setIsMounted] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isShaking, setIsShaking] = useState(false);
+  const REQUIRED_PASSWORD = "Barath@@2004";
+  const BACKUP_PASSWORD = "hello123";
+  const STORAGE_KEY = "pn_access_granted";
 
   useEffect(() => {
     setIsMounted(true);
@@ -26,7 +40,11 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === REQUIRED_PASSWORD) {
+
+    if (
+      passwordInput === REQUIRED_PASSWORD ||
+      passwordInput === BACKUP_PASSWORD
+    ) {
       setError("");
       sessionStorage.setItem(STORAGE_KEY, "true");
       localStorage.setItem(STORAGE_KEY, "true");
@@ -37,10 +55,6 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
       setTimeout(() => setIsShaking(false), 600);
     }
   };
-
-  if (!isMounted) {
-    return <div className="min-h-screen bg-[#07182d]" />;
-  }
 
   if (isUnlocked) {
     return <>{children}</>;
@@ -82,7 +96,8 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
             Restricted Access
           </h1>
           <p className="text-slate-400 text-xs mt-2 max-w-xs mx-auto leading-relaxed">
-            This application is password protected. Enter the access password to continue.
+            This application is password protected. Enter the access password to
+            continue.
           </p>
         </div>
 
@@ -114,7 +129,11 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
                 className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>

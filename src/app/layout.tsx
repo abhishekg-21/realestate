@@ -16,7 +16,8 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "PropertiesNexus | Luxury Real Estate Marketplace",
-  description: "Find your place in India. Discover verified homes, investments, and commercial spaces.",
+  description:
+    "Find your place in India. Discover verified homes, investments, and commercial spaces.",
 };
 
 export default function RootLayout({
@@ -26,12 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${dmSans.variable} ${playfair.variable} antialiased`}
-      >
-        <PasswordGate>
-          {children}
-        </PasswordGate>
+      <body className={`${dmSans.variable} ${playfair.variable} antialiased`}>
+        {/* <PasswordGate> */}
+        {children}
+        {/* </PasswordGate> */}
         <BroadcastListener />
       </body>
     </html>

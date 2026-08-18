@@ -1,3 +1,4 @@
+// app/api/auth/register/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
@@ -5,99 +6,123 @@ import { Resend } from "resend";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password, fullName, phone, role } = body;
+    const { email, password, fullName, phone, role, pendingDocs } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email and password are required" },
+        { status: 400 },
+      );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    
-    if (!supabaseServiceKey) {
-      return NextResponse.json({ error: "Server misconfiguration: Missing service role key" }, { status: 500 });
-    }
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
 
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    // 1. Generate a signup link using Supabase Admin
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "signup",
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          phone,
-          role,
+    const { data: linkData, error: linkError } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "signup",
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, phone, role },
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
         },
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://propertiesnexus.com"}/auth/callback`,
-      },
+      });
+
+    if (linkError || !linkData?.properties?.action_link) {
+      return NextResponse.json(
+        { error: linkError?.message ?? "Failed to generate link" },
+        { status: 400 },
+      );
+    }
+
+    const userId = linkData.user.id;
+
+    await supabaseAdmin.from("profiles").upsert({
+      id: userId,
+      full_name: fullName,
+      phone,
+      role,
+      verification_status: role === "buyer" ? "approved" : "pending",
     });
 
-    if (linkError) {
-      return NextResponse.json({ error: linkError.message }, { status: 400 });
+    if (pendingDocs && pendingDocs.length > 0) {
+      const docRows = pendingDocs.map((doc: any) => ({
+        user_id: userId,
+        role,
+        doc_category: doc.docCategory,
+        doc_type: doc.docType,
+        storage_path: "",
+        file_name: doc.fileName,
+        verification_status: "pending",
+      }));
+      await supabaseAdmin.from("user_verification_documents").insert(docRows);
     }
 
-    const actionLink = linkData.properties?.action_link;
+    // ─── Email ────────────────────────────────────────────────────────────────
+    const isDev = process.env.NODE_ENV === "development";
+    const resendTestEmail = process.env.RESEND_TEST_EMAIL; // your resend account email
 
-    if (!actionLink) {
-      return NextResponse.json({ error: "Failed to generate confirmation link." }, { status: 500 });
+    // In dev: only send if recipient is your verified test address,
+    // because onboarding@resend.dev won't deliver to arbitrary addresses.
+    const shouldSendEmail = !isDev || email === resendTestEmail;
+
+    if (shouldSendEmail) {
+      try {
+        const resend = new Resend(process.env.RESEND_API_KEY!);
+
+        // Use your verified domain in production; resend.dev only works for
+        // the test address in dev.
+        const fromAddress = isDev
+          ? "PropertiesNexus <onboarding@resend.dev>"
+          : `PropertiesNexus <noreply@${process.env.RESEND_FROM_DOMAIN}>`;
+
+        const { error: resendError } = await resend.emails.send({
+          from: fromAddress,
+          to: email,
+          subject: "Welcome to PropertiesNexus - Verify your email",
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e1e5e8;border-radius:10px;">
+              <h2 style="color:#07182d;">Verify your email address</h2>
+              <p style="color:#344556;">Hello ${fullName || "there"},</p>
+              <p style="color:#344556;">Thank you for registering on PropertiesNexus. Click below to verify your email and activate your account.</p>
+              <div style="margin:30px 0;">
+                <a href="${linkData.properties.action_link}" style="background:#2862e8;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">
+                  Confirm your email
+                </a>
+              </div>
+              <p style="color:#6b7986;font-size:12px;margin-top:40px;padding-top:20px;border-top:1px solid #e1e5e8;">
+                If you did not request this, you can safely ignore this email.
+              </p>
+            </div>
+          `,
+        });
+
+        // Log but don't block — user is already created in Supabase
+        if (resendError) {
+          console.error("[Resend] Email send failed:", resendError);
+        }
+      } catch (emailErr) {
+        console.error("[Resend] Unexpected email error:", emailErr);
+        // Still don't block — registration succeeded
+      }
+    } else {
+      // Dev mode, non-test recipient: log the verify link so you can test manually
+      console.log(
+        `[Dev] Skipping email to <${email}>. Verify link:\n${linkData.properties.action_link}`,
+      );
     }
+    // ─────────────────────────────────────────────────────────────────────────
 
-    // 2. Send the email using Resend
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      return NextResponse.json({ error: "Server misconfiguration: Missing Resend API key" }, { status: 500 });
-    }
-
-    const resend = new Resend(resendApiKey);
-
-    // Using the VERIFIED domain propertiesnexus.com!
-    const { error: resendError } = await resend.emails.send({
-      from: "PropertiesNexus <noreply@propertiesnexus.com>",
-      to: email,
-      subject: "Welcome to PropertiesNexus - Verify your email",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e5e8; border-radius: 10px;">
-          <h2 style="color: #07182d;">Verify your email address</h2>
-          <p style="color: #344556; line-height: 1.6;">
-            Hello ${fullName || "there"},
-          </p>
-          <p style="color: #344556; line-height: 1.6;">
-            Thank you for creating an account on PropertiesNexus. Please click the button below to verify your email address and securely activate your account.
-          </p>
-          <div style="margin: 30px 0;">
-            <a href="${actionLink}" style="background-color: #2862e8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-              Confirm your email
-            </a>
-          </div>
-          <p style="color: #6b7986; font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e1e5e8;">
-            If you did not request this, you can safely ignore this email.
-          </p>
-        </div>
-      `,
-    });
-
-    if (resendError) {
-      console.error("Resend Error:", resendError);
-      return NextResponse.json({ 
-        error: "Email failed to send. " + resendError.message,
-      }, { status: 500 });
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      user: { id: linkData.user.id } 
-    });
-
+    return NextResponse.json({ success: true, user: { id: userId } });
   } catch (err: any) {
-    console.error("Server Registration Error:", err);
-    return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
+    console.error("Registration error:", err);
+    return NextResponse.json(
+      { error: err.message || "Internal server error" },
+      { status: 500 },
+    );
   }
 }

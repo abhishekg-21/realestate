@@ -68,7 +68,9 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   // Role Document Upload State
-  const [ownershipDocType, setOwnershipDocType] = useState("Registered Sale Deed");
+  const [ownershipDocType, setOwnershipDocType] = useState(
+    "Registered Sale Deed",
+  );
   const [identityDocType, setIdentityDocType] = useState("Aadhaar Card");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
@@ -102,14 +104,20 @@ export default function RegisterPage() {
 
   const handleRegister = async () => {
     setLoading(true);
-    setMsg("Creating account & storing credentials…");
+    setMsg("Creating account…");
     setMsgType("success");
 
     const fullName = `${first} ${last}`.trim() || email.split("@")[0];
 
+    // Build doc metadata (no file bytes — just what the admin needs to know)
+    const pendingDocs = uploadedFiles.map((file) => ({
+      docCategory:
+        selectedRole === "seller" ? "ownership_proof" : "identity_proof",
+      docType: selectedRole === "seller" ? ownershipDocType : identityDocType,
+      fileName: file.name,
+    }));
+
     try {
-      const supabase = createClient();
-      // Use custom API route to bypass Supabase SMTP and send via Resend directly using the verified domain
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,84 +127,52 @@ export default function RegisterPage() {
           fullName,
           phone,
           role: selectedRole,
+          pendingDocs: selectedRole !== "buyer" ? pendingDocs : [],
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        let errorText = data.error || "An error occurred during registration.";
-        setMsg(errorText);
+        setMsg(data.error || "Registration failed.");
         setMsgType("error");
         setLoading(false);
         return;
       }
 
-      // We assume email confirmation is always required
-      const isEmailConfirmationRequired = true;
-
-      // Upsert user profile only if they are logged in (no email confirmation required)
-      const userId = data?.user?.id;
-      if (userId && !isEmailConfirmationRequired) {
-        const { error: profileError } = await supabase.from("profiles").upsert({
-          id: userId,
-          full_name: fullName,
-          phone,
-          role: selectedRole,
-        });
-        
-        if (profileError) {
-          console.warn("Profile upsert failed:", profileError);
-        }
-
-        // Store verification documents in Supabase Storage if files uploaded
-        if (uploadedFiles.length > 0) {
-          for (const file of uploadedFiles) {
-            const path = `${userId}/${Date.now()}_${file.name}`;
-            const { error: uploadError } = await supabase.storage
-              .from("user-verification-docs")
-              .upload(path, file);
-              
-            if (!uploadError) {
-              await supabase.from("user_verification_documents").insert({
-                user_id: userId,
-                role: selectedRole,
-                doc_category: selectedRole === "seller" ? "ownership_proof" : "identity_proof",
-                doc_type: selectedRole === "seller" ? ownershipDocType : identityDocType,
-                storage_path: path,
-                file_name: file.name,
-                verification_status: "pending",
-              });
-            }
-          }
-        }
+      // Save files to localStorage so /auth/callback can upload them after confirm
+      // Files can't survive email redirect — save metadata + re-prompt upload there
+      // OR: upload files now using the service-role API route below
+      if (uploadedFiles.length > 0 && data.user?.id) {
+        await uploadDocsNow(data.user.id);
       }
 
-      if (isEmailConfirmationRequired) {
-        setMsg("Registration successful! Please check your email to verify your account.");
-        setMsgType("success");
-        setLoading(false);
-        setTimeout(() => {
-          router.push(`/verify-email?email=${encodeURIComponent(email)}`);
-        }, 2000);
-      } else {
-        setCachedUser({
-          name: fullName,
-          email: data.user?.email || email,
-          role: selectedRole,
-        });
-
-        setMsg("Account created successfully! Redirecting…");
-        setMsgType("success");
-        setTimeout(() => {
-          router.push("/user-dashboard");
-        }, 800);
-      }
+      setMsg("Check your email to verify your account!");
+      setMsgType("success");
+      setLoading(false);
+      setTimeout(() => {
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+      }, 2000);
     } catch (err: any) {
-      setMsg(err.message || "An unexpected error occurred.");
+      setMsg(err.message || "Unexpected error.");
       setMsgType("error");
       setLoading(false);
     }
+  };
+
+  // Upload files immediately via a service-role API route
+  const uploadDocsNow = async (userId: string) => {
+    const formData = new FormData();
+    formData.append("userId", userId);
+    formData.append("role", selectedRole);
+    formData.append("ownershipDocType", ownershipDocType);
+    formData.append("identityDocType", identityDocType);
+    uploadedFiles.forEach((file) => formData.append("files", file));
+
+    await fetch("/api/auth/upload-docs", {
+      method: "POST",
+      body: formData,
+    });
   };
 
   return (
@@ -214,24 +190,31 @@ export default function RegisterPage() {
         Join PropertiesNexus
       </h2>
       <p className="text-[13px] leading-[1.6] text-muted m-0 mb-[20px]">
-        Official registration for Buyers, Sellers, Agents, Builders, Developers & Investors.
+        Official registration for Buyers, Sellers, Agents, Builders, Developers
+        & Investors.
       </p>
 
       {/* Step Indicator */}
       <div className="flex items-center gap-[8px] mb-[24px]">
-        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 1 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}>
+        <div
+          className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 1 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}
+        >
           1
         </div>
         <span className="text-[11px] font-bold text-slate-700">Role</span>
         <div className="flex-1 h-[1px] bg-slate-200" />
-        <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 2 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}>
+        <div
+          className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step >= 2 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}
+        >
           2
         </div>
         <span className="text-[11px] font-bold text-slate-700">Details</span>
         {selectedRole !== "buyer" && (
           <>
             <div className="flex-1 h-[1px] bg-slate-200" />
-            <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step === 3 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}>
+            <div
+              className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[11px] font-bold ${step === 3 ? "bg-navy !text-white" : "bg-slate-200 text-slate-600"}`}
+            >
               3
             </div>
             <span className="text-[11px] font-bold text-slate-700">Docs</span>
@@ -259,7 +242,9 @@ export default function RegisterPage() {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[22px]">{r.icon}</span>
-                  <span className="text-[13px] font-bold text-slate-900">{r.label}</span>
+                  <span className="text-[13px] font-bold text-slate-900">
+                    {r.label}
+                  </span>
                 </div>
                 <p className="text-[11px] text-slate-500 mb-2 line-clamp-2 leading-tight">
                   {r.desc}
@@ -285,19 +270,31 @@ export default function RegisterPage() {
       {step === 2 && (
         <form onSubmit={handleNextStep2} className="flex flex-col">
           <div className="flex items-center gap-2 mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-[20px]">{ROLES.find(r => r.value === selectedRole)?.icon}</span>
+            <span className="text-[20px]">
+              {ROLES.find((r) => r.value === selectedRole)?.icon}
+            </span>
             <div>
-              <span className="block text-[12px] font-bold text-slate-900">{ROLES.find(r => r.value === selectedRole)?.label}</span>
-              <span className="text-[10px] text-slate-500">{ROLES.find(r => r.value === selectedRole)?.docsRequired}</span>
+              <span className="block text-[12px] font-bold text-slate-900">
+                {ROLES.find((r) => r.value === selectedRole)?.label}
+              </span>
+              <span className="text-[10px] text-slate-500">
+                {ROLES.find((r) => r.value === selectedRole)?.docsRequired}
+              </span>
             </div>
-            <button type="button" onClick={() => setStep(1)} className="ml-auto text-[11px] text-[#d49a38] font-bold hover:underline">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="ml-auto text-[11px] text-[#d49a38] font-bold hover:underline"
+            >
               Change
             </button>
           </div>
 
           <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[12px] my-[6px]">
             <label className="block">
-              <span className="block text-[11px] font-bold text-ink mb-[5px]">First name</span>
+              <span className="block text-[11px] font-bold text-ink mb-[5px]">
+                First name
+              </span>
               <input
                 type="text"
                 required
@@ -308,7 +305,9 @@ export default function RegisterPage() {
               />
             </label>
             <label className="block">
-              <span className="block text-[11px] font-bold text-ink mb-[5px]">Last name</span>
+              <span className="block text-[11px] font-bold text-ink mb-[5px]">
+                Last name
+              </span>
               <input
                 type="text"
                 required
@@ -321,7 +320,9 @@ export default function RegisterPage() {
           </div>
 
           <label className="block my-[6px]">
-            <span className="block text-[11px] font-bold text-ink mb-[5px]">Email address</span>
+            <span className="block text-[11px] font-bold text-ink mb-[5px]">
+              Email address
+            </span>
             <input
               type="email"
               required
@@ -333,7 +334,9 @@ export default function RegisterPage() {
           </label>
 
           <label className="block my-[6px]">
-            <span className="block text-[11px] font-bold text-ink mb-[5px]">Phone number</span>
+            <span className="block text-[11px] font-bold text-ink mb-[5px]">
+              Phone number
+            </span>
             <input
               type="tel"
               required
@@ -345,7 +348,9 @@ export default function RegisterPage() {
           </label>
 
           <label className="block my-[6px] relative">
-            <span className="block text-[11px] font-bold text-ink mb-[5px]">Password</span>
+            <span className="block text-[11px] font-bold text-ink mb-[5px]">
+              Password
+            </span>
             <input
               type={showPassword ? "text" : "password"}
               required
@@ -380,7 +385,11 @@ export default function RegisterPage() {
             disabled={loading}
             className="h-[48px] border-0 rounded-xl bg-navy hover:bg-navy2 text-white w-full text-[13px] font-bold cursor-pointer mt-[6px] transition-colors shadow-sm disabled:opacity-60"
           >
-            {selectedRole === "buyer" ? (loading ? "Creating account…" : "Complete Registration") : "Continue to Verification Docs →"}
+            {selectedRole === "buyer"
+              ? loading
+                ? "Creating account…"
+                : "Complete Registration"
+              : "Continue to Verification Docs →"}
           </button>
         </form>
       )}
@@ -390,10 +399,12 @@ export default function RegisterPage() {
         <div className="flex flex-col gap-4">
           <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-[12px] text-amber-900">
             <h3 className="font-bold text-[14px] mb-1">
-              Verification Documents for {ROLES.find(r => r.value === selectedRole)?.label}
+              Verification Documents for{" "}
+              {ROLES.find((r) => r.value === selectedRole)?.label}
             </h3>
             <p className="m-0 leading-relaxed">
-              To verify your role in Supabase, please select and upload your required documents below.
+              To verify your role in Supabase, please select and upload your
+              required documents below.
             </p>
           </div>
 
@@ -401,7 +412,9 @@ export default function RegisterPage() {
           {selectedRole === "seller" && (
             <div className="space-y-3">
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">A. Property Ownership Proof (Upload any ONE)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  A. Property Ownership Proof (Upload any ONE)
+                </span>
                 <select
                   value={ownershipDocType}
                   onChange={(e) => setOwnershipDocType(e.target.value)}
@@ -416,7 +429,9 @@ export default function RegisterPage() {
               </label>
 
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">B. Identity Proof (Upload any ONE)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  B. Identity Proof (Upload any ONE)
+                </span>
                 <select
                   value={identityDocType}
                   onChange={(e) => setIdentityDocType(e.target.value)}
@@ -436,7 +451,9 @@ export default function RegisterPage() {
           {selectedRole === "agent" && (
             <div className="space-y-3">
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">A. Identity Proof (Upload any ONE)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  A. Identity Proof (Upload any ONE)
+                </span>
                 <select
                   value={identityDocType}
                   onChange={(e) => setIdentityDocType(e.target.value)}
@@ -449,7 +466,9 @@ export default function RegisterPage() {
                 </select>
               </label>
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">B. Professional Document (Mandatory if RERA applicable)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  B. Professional Document (Mandatory if RERA applicable)
+                </span>
                 <select
                   value={ownershipDocType}
                   onChange={(e) => setOwnershipDocType(e.target.value)}
@@ -467,13 +486,17 @@ export default function RegisterPage() {
           {selectedRole === "builder" && (
             <div className="space-y-3">
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">Mandatory & Optional Company Documents</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  Mandatory & Optional Company Documents
+                </span>
                 <select
                   value={ownershipDocType}
                   onChange={(e) => setOwnershipDocType(e.target.value)}
                   className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
                 >
-                  <option>Certificate of Incorporation (COI) / Company Registration</option>
+                  <option>
+                    Certificate of Incorporation (COI) / Company Registration
+                  </option>
                   <option>RERA Registration Certificate</option>
                   <option>GST Registration Certificate</option>
                   <option>PAN Card of Company</option>
@@ -487,7 +510,9 @@ export default function RegisterPage() {
           {selectedRole === "developer" && (
             <div className="space-y-3">
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">Company Documents (Mandatory & Optional)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  Company Documents (Mandatory & Optional)
+                </span>
                 <select
                   value={ownershipDocType}
                   onChange={(e) => setOwnershipDocType(e.target.value)}
@@ -507,7 +532,9 @@ export default function RegisterPage() {
           {selectedRole === "investor" && (
             <div className="space-y-3">
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">A. Identity Proof (Upload any ONE)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  A. Identity Proof (Upload any ONE)
+                </span>
                 <select
                   value={identityDocType}
                   onChange={(e) => setIdentityDocType(e.target.value)}
@@ -519,13 +546,17 @@ export default function RegisterPage() {
                 </select>
               </label>
               <label className="block">
-                <span className="block text-[11px] font-bold text-slate-900 mb-1">B. Company / Tax Documents (If applicable)</span>
+                <span className="block text-[11px] font-bold text-slate-900 mb-1">
+                  B. Company / Tax Documents (If applicable)
+                </span>
                 <select
                   value={ownershipDocType}
                   onChange={(e) => setOwnershipDocType(e.target.value)}
                   className="w-full h-[42px] border border-slate-300 rounded-xl px-3 text-[12px] bg-white outline-none"
                 >
-                  <option>Certificate of Incorporation (Company Investors)</option>
+                  <option>
+                    Certificate of Incorporation (Company Investors)
+                  </option>
                   <option>GST Registration Certificate</option>
                 </select>
               </label>
@@ -542,17 +573,32 @@ export default function RegisterPage() {
               className="hidden"
             />
             <span className="block text-2xl mb-1">📁</span>
-            <b className="text-[12px] text-slate-900 font-bold block mb-0.5">Click to upload verification files</b>
-            <span className="text-[11px] text-slate-500">PDF, JPG, PNG or WebP up to 50 MB each</span>
+            <b className="text-[12px] text-slate-900 font-bold block mb-0.5">
+              Click to upload verification files
+            </b>
+            <span className="text-[11px] text-slate-500">
+              PDF, JPG, PNG or WebP up to 50 MB each
+            </span>
           </label>
 
           {uploadedFiles.length > 0 && (
             <div className="space-y-2">
-              <span className="text-[11px] font-bold text-slate-800">Uploaded Files ({uploadedFiles.length}):</span>
+              <span className="text-[11px] font-bold text-slate-800">
+                Uploaded Files ({uploadedFiles.length}):
+              </span>
               {uploadedFiles.map((file, idx) => (
-                <div key={idx} className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200 text-[11px]">
-                  <span className="font-semibold text-slate-900 truncate">{file.name}</span>
-                  <button type="button" onClick={() => removeFile(idx)} className="text-red-600 font-bold hover:underline ml-2">
+                <div
+                  key={idx}
+                  className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200 text-[11px]"
+                >
+                  <span className="font-semibold text-slate-900 truncate">
+                    {file.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(idx)}
+                    className="text-red-600 font-bold hover:underline ml-2"
+                  >
                     Remove
                   </button>
                 </div>
@@ -574,7 +620,9 @@ export default function RegisterPage() {
               disabled={loading}
               className="flex-1 h-[48px] border-0 rounded-xl bg-navy hover:bg-navy2 text-white text-[13px] font-bold transition-colors shadow-sm disabled:opacity-60"
             >
-              {loading ? "Registering & Uploading…" : "Complete Registration & Submit Docs"}
+              {loading
+                ? "Registering & Uploading…"
+                : "Complete Registration & Submit Docs"}
             </button>
           </div>
         </div>
@@ -593,7 +641,10 @@ export default function RegisterPage() {
 
       <p className="text-center text-[12px] text-[#687783] mt-[22px] mb-0">
         Already have an account?{" "}
-        <Link href="/login" className="text-[#d49a38] font-bold hover:underline">
+        <Link
+          href="/login"
+          className="text-[#d49a38] font-bold hover:underline"
+        >
           Sign in
         </Link>
       </p>
