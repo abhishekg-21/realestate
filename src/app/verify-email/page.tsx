@@ -31,13 +31,21 @@ function VerifyEmailContent() {
         email,
       });
       if (error) {
-        setResendMsg("Could not resend. Please try again in a few minutes.");
+        if (error.status === 429) {
+          setResendMsg(
+            "Too many attempts. Please wait a few minutes before trying again.",
+          );
+        } else {
+          setResendMsg("Could not resend. Please try again in a few minutes.");
+        }
+        setCountdown(120); // longer cooldown after a failed attempt
       } else {
         setResendMsg("Verification email resent! Check your inbox.");
-        setCountdown(60); // 60 second cooldown
+        setCountdown(60);
       }
     } catch {
       setResendMsg("An unexpected error occurred.");
+      setCountdown(60);
     } finally {
       setResendLoading(false);
     }
@@ -94,13 +102,15 @@ function VerifyEmailContent() {
               {resendLoading
                 ? "Sending…"
                 : countdown > 0
-                ? `Resend in ${countdown}s`
-                : "Resend verification email"}
+                  ? `Resend in ${countdown}s`
+                  : "Resend verification email"}
             </button>
             {resendMsg && (
               <p
                 className={`text-[11px] mt-[8px] font-semibold ${
-                  resendMsg.includes("resent") ? "text-green-600" : "text-red-600"
+                  resendMsg.includes("resent")
+                    ? "text-green-600"
+                    : "text-red-600"
                 }`}
               >
                 {resendMsg}
@@ -124,7 +134,13 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#6b7280]">Loading…</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-[#6b7280]">
+          Loading…
+        </div>
+      }
+    >
       <VerifyEmailContent />
     </Suspense>
   );
