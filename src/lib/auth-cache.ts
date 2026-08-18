@@ -5,6 +5,7 @@ export interface UserCache {
   email: string;
   role: string;
   avatar?: string;
+  location?: string;
 }
 
 const USER_KEY = "pn_account_cache";
@@ -30,7 +31,8 @@ export function setCachedUser(user: UserCache): void {
   try {
     const enriched: UserCache = {
       ...user,
-      avatar: user.avatar || (user.name ? user.name.charAt(0).toUpperCase() : "U"),
+      avatar:
+        user.avatar || (user.name ? user.name.charAt(0).toUpperCase() : "U"),
     };
     localStorage.setItem(USER_KEY, JSON.stringify(enriched));
     window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));

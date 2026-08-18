@@ -152,7 +152,7 @@ function UserDashboardContent() {
         setEmailInput(email);
         setPhoneInput(phone);
         // Location isn't in your DB schema yet — use cache or default
-        setLocationInput(getCachedUser()?.location || "");
+        setLocationInput("");
 
         // 4. Avatar from cache (stored as base64 locally)
         const cached = getCachedUser();
@@ -167,6 +167,7 @@ function UserDashboardContent() {
           email,
           role: profile?.verification_status || cached?.role || "buyer",
           avatar: cached?.avatar || "",
+          location: cached?.location || "",
         });
       }
 
