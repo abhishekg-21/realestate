@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/auth/register/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -21,13 +22,32 @@ export async function POST(request: Request) {
       { auth: { autoRefreshToken: false, persistSession: false } },
     );
 
+    // Step 1: Create user with email_confirm: false so Supabase does NOT
+    // send its own confirmation email — we send ours via Resend below
+    const { data: userData, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: false, // ← key: prevents Supabase default email
+        user_metadata: { full_name: fullName, phone, role },
+      });
+
+    if (createError || !userData?.user) {
+      return NextResponse.json(
+        { error: createError?.message ?? "Failed to create user" },
+        { status: 400 },
+      );
+    }
+
+    const userId = userData.user.id;
+
+    // Step 2: Generate the confirmation link separately (no email sent)
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({
         type: "signup",
         email,
         password,
         options: {
-          data: { full_name: fullName, phone, role },
           redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
         },
       });
@@ -39,8 +59,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const userId = linkData.user.id;
-
+    // Step 3: Upsert profile
     await supabaseAdmin.from("profiles").upsert({
       id: userId,
       full_name: fullName,
@@ -49,6 +68,7 @@ export async function POST(request: Request) {
       verification_status: role === "buyer" ? "approved" : "pending",
     });
 
+    // Step 4: Store pending doc metadata
     if (pendingDocs && pendingDocs.length > 0) {
       const docRows = pendingDocs.map((doc: any) => ({
         user_id: userId,
@@ -62,20 +82,14 @@ export async function POST(request: Request) {
       await supabaseAdmin.from("user_verification_documents").insert(docRows);
     }
 
-    // ─── Email ────────────────────────────────────────────────────────────────
+    // Step 5: Send OUR branded email via Resend (only one email, from us)
     const isDev = process.env.NODE_ENV === "development";
-    const resendTestEmail = process.env.RESEND_TEST_EMAIL; // your resend account email
-
-    // In dev: only send if recipient is your verified test address,
-    // because onboarding@resend.dev won't deliver to arbitrary addresses.
+    const resendTestEmail = process.env.RESEND_TEST_EMAIL;
     const shouldSendEmail = !isDev || email === resendTestEmail;
 
     if (shouldSendEmail) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY!);
-
-        // Use your verified domain in production; resend.dev only works for
-        // the test address in dev.
         const fromAddress = isDev
           ? "PropertiesNexus <onboarding@resend.dev>"
           : `PropertiesNexus <noreply@${process.env.RESEND_FROM_DOMAIN}>`;
@@ -83,14 +97,15 @@ export async function POST(request: Request) {
         const { error: resendError } = await resend.emails.send({
           from: fromAddress,
           to: email,
-          subject: "Welcome to PropertiesNexus - Verify your email",
+          subject: "Welcome to PropertiesNexus – Verify your email",
           html: `
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e1e5e8;border-radius:10px;">
               <h2 style="color:#07182d;">Verify your email address</h2>
               <p style="color:#344556;">Hello ${fullName || "there"},</p>
               <p style="color:#344556;">Thank you for registering on PropertiesNexus. Click below to verify your email and activate your account.</p>
               <div style="margin:30px 0;">
-                <a href="${linkData.properties.action_link}" style="background:#2862e8;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">
+                <a href="${linkData.properties.action_link}" 
+                   style="background:#2862e8;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">
                   Confirm your email
                 </a>
               </div>
@@ -101,21 +116,17 @@ export async function POST(request: Request) {
           `,
         });
 
-        // Log but don't block — user is already created in Supabase
         if (resendError) {
           console.error("[Resend] Email send failed:", resendError);
         }
       } catch (emailErr) {
         console.error("[Resend] Unexpected email error:", emailErr);
-        // Still don't block — registration succeeded
       }
     } else {
-      // Dev mode, non-test recipient: log the verify link so you can test manually
       console.log(
         `[Dev] Skipping email to <${email}>. Verify link:\n${linkData.properties.action_link}`,
       );
     }
-    // ─────────────────────────────────────────────────────────────────────────
 
     return NextResponse.json({ success: true, user: { id: userId } });
   } catch (err: any) {

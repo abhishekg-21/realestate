@@ -343,7 +343,7 @@ CREATE POLICY "Admin reads all files" ON storage.objects
 -- ==============================================================================
 -- PART 6: CREATE SUPER ADMIN USER ACCOUNT
 -- Email: superadmin@propertynexus.com
--- Password: PropertyNexus@2026
+-- Password: PropertyNexus#@2026#@
 -- ==============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
@@ -352,7 +352,7 @@ DO $$
 DECLARE
   new_user_id uuid := gen_random_uuid();
   user_email text := 'superadmin@propertynexus.com';
-  user_pass text := 'PropertyNexus@2026';
+  user_pass text := 'PropertyNexus#@2026#@';
 BEGIN
   -- Create user in auth.users if not exists
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = user_email) THEN
@@ -431,5 +431,5 @@ END $$;
 -- DONE! SUPER ADMIN ACCOUNT CREATED SUCCESSFULLY.
 -- Credentials:
 -- Email: superadmin@propertynexus.com
--- Password: PropertyNexus@2026
+-- Password: PropertyNexus#@2026#@
 -- ==============================================================================
