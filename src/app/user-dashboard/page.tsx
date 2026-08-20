@@ -530,7 +530,7 @@ function UserDashboardContent() {
               <section className="bg-white border border-line p-[20px] rounded">
                 <div className="flex justify-between items-center mb-[16px]">
                   <h2 className="text-[15px] m-0 font-bold text-ink">
-                    Next best actions
+                    Move forward with confidence
                   </h2>
                   <button
                     onClick={() => switchView("alerts")}
