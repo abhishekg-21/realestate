@@ -30,23 +30,35 @@ export default function GuidancePage() {
 
       {/* Hero Section */}
       <section className="bg-navy text-white pt-20 pb-16 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80')", backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
         <div className="max-w-[1216px] mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-serif font-medium mb-4">Expert Guidance & Support</h1>
+          <h1 className="text-4xl md:text-5xl font-serif font-medium mb-4">
+            Expert Guidance & Support
+          </h1>
           <p className="text-slate-300 max-w-2xl mx-auto text-lg">
-            Whether you are looking to buy your first home, sell a commercial space, or need investment advisory, our expert team is here to help.
+            Whether you are looking to buy your first home, sell a commercial
+            space, or need investment advisory, our expert team is here to help.
           </p>
         </div>
       </section>
 
       {/* Contact Section */}
       <section className="max-w-[1000px] mx-auto w-full px-6 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 flex-1">
-        
         {/* Company Details */}
         <div>
           <h2 className="text-2xl font-serif font-medium mb-6">Get in Touch</h2>
           <p className="text-slate-600 mb-8 leading-relaxed">
-            Reach out to our specialized real estate advisory team. We are available to answer your questions and provide personalized property recommendations based on your unique needs.
+            Reach out to our specialized real estate advisory team. We are
+            available to answer your questions and provide personalized property
+            recommendations based on your unique needs.
           </p>
 
           <div className="space-y-6">
@@ -56,7 +68,10 @@ export default function GuidancePage() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-900">Headquarters</h3>
-                <p className="text-slate-600 mt-1">PropertiesNexus Tower, Level 4<br />Bandra Kurla Complex, Mumbai 400051</p>
+                <p className="text-slate-600 mt-1">
+                  PropertiesNexus Tower, Level 4<br />
+                  Bandra Kurla Complex, Mumbai 400051
+                </p>
               </div>
             </div>
 
@@ -66,7 +81,12 @@ export default function GuidancePage() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-900">Email Us</h3>
-                <a href="mailto:hello@propertiesnexus.com" className="text-blue-600 hover:underline mt-1 block">hello@propertiesnexus.com</a>
+                <a
+                  href="mailto:hello@propertiesnexus.com"
+                  className="text-blue-600 hover:underline mt-1 block"
+                >
+                  hello@propertiesnexus.com
+                </a>
               </div>
             </div>
 
@@ -76,7 +96,12 @@ export default function GuidancePage() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-900">Call Us</h3>
-                <a href="tel:+919136331992" className="text-slate-600 hover:text-emerald-600 transition-colors mt-1 block">+91 91363 31992</a>
+                <a
+                  href="tel:+919136331992"
+                  className="text-slate-600 hover:text-emerald-600 transition-colors mt-1 block"
+                >
+                  +91 91363 31992
+                </a>
               </div>
             </div>
           </div>
@@ -87,7 +112,9 @@ export default function GuidancePage() {
           <h3 className="font-bold text-xl mb-6">Send us a message</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Full Name
+              </label>
               <input
                 type="text"
                 required
@@ -98,7 +125,9 @@ export default function GuidancePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Email Address
+              </label>
               <input
                 type="email"
                 required
@@ -109,7 +138,9 @@ export default function GuidancePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">How can we help?</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                How can we help?
+              </label>
               <textarea
                 required
                 rows={4}
@@ -143,7 +174,9 @@ export default function GuidancePage() {
               <h2 className="font-serif text-[28px] font-medium text-slate-900">
                 Recommended Properties
               </h2>
-              <p className="text-slate-500 mt-2">Curated selections from our expert advisors.</p>
+              <p className="text-slate-500 mt-2">
+                Curated selections from our expert advisors.
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

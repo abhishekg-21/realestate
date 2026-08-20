@@ -5,7 +5,9 @@ import { Home, Plus, ExternalLink } from "lucide-react";
 
 export default async function PropertiesDashboardPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
@@ -91,10 +93,17 @@ export default async function PropertiesDashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-navy">My Properties</h1>
-          <p className="text-gray-500 mt-2">Manage your property listings and view live status updates.</p>
+          <h1 className="text-3xl font-serif font-bold text-navy">
+            My Properties
+          </h1>
+          <p className="text-gray-500 mt-2">
+            Manage your property listings and view live status updates.
+          </p>
         </div>
-        <Link href="/dashboard/add-property" className="bg-navy hover:bg-navy2 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-sm">
+        <Link
+          href="/dashboard/add-property"
+          className="bg-navy hover:bg-navy2 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-sm"
+        >
           <Plus className="w-5 h-5" />
           Add Property
         </Link>
@@ -104,9 +113,17 @@ export default async function PropertiesDashboardPage() {
         {combined.length === 0 ? (
           <div className="text-center py-16 px-4">
             <Home className="w-16 h-16 mx-auto mb-4 text-gray-200" />
-            <h3 className="text-xl font-serif text-navy font-semibold mb-2">No properties found</h3>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">You haven't listed any properties yet. Once you add a property, it will appear here for you to manage.</p>
-            <Link href="/dashboard/add-property" className="bg-gold hover:bg-yellow-600 text-white px-8 py-3 rounded-xl font-semibold inline-flex items-center gap-2 transition-all">
+            <h3 className="text-xl font-serif text-navy font-semibold mb-2">
+              No properties found
+            </h3>
+            <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              You haven't listed any properties yet. Once you add a property, it
+              will appear here for you to manage.
+            </p>
+            <Link
+              href="/dashboard/add-property"
+              className="bg-gold hover:bg-yellow-600 text-white px-8 py-3 rounded-xl font-semibold inline-flex items-center gap-2 transition-all"
+            >
               <Plus className="w-5 h-5" />
               Add Your First Property
             </Link>
@@ -116,33 +133,52 @@ export default async function PropertiesDashboardPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Property</th>
-                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Status</th>
-                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Price</th>
-                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm text-right">View</th>
+                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm">
+                    Property
+                  </th>
+                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm">
+                    Status
+                  </th>
+                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm">
+                    Price
+                  </th>
+                  <th className="py-4 px-6 font-semibold text-gray-600 text-sm text-right">
+                    View
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {combined.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr
+                    key={p.id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
                           <Home className="w-5 h-5 text-gray-400" />
                         </div>
                         <div>
-                          <p className="font-semibold text-navy truncate max-w-[200px] md:max-w-[300px]">{p.title}</p>
-                          <p className="text-xs text-gray-500 truncate max-w-[200px]">{p.location}, {p.city}</p>
+                          <p className="font-semibold text-navy truncate max-w-[200px] md:max-w-[300px]">
+                            {p.title}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate max-w-[200px]">
+                            {p.location}, {p.city}
+                          </p>
                         </div>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${getStatusBadge(p.status)}`}>
+                      <span
+                        className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${getStatusBadge(p.status)}`}
+                      >
                         {p.status.replace("_", " ")}
                       </span>
                     </td>
                     <td className="py-4 px-6 font-medium text-navy">
-                      {p.price > 0 ? `₹ ${p.price.toLocaleString("en-IN")}` : "Price on request"}
+                      {p.price > 0
+                        ? `₹ ${p.price.toLocaleString("en-IN")}`
+                        : "Price on request"}
                     </td>
                     <td className="py-4 px-6 text-right">
                       <Link

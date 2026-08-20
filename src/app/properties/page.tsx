@@ -9,11 +9,33 @@ import { Property } from "@/lib/properties-data";
 import { useProperties } from "@/lib/supabase-properties";
 import dynamic from "next/dynamic";
 
-const PropertiesMapView = dynamic(() => import("@/components/properties-map-view"), { ssr: false });
+const PropertiesMapView = dynamic(
+  () => import("@/components/properties-map-view"),
+  { ssr: false },
+);
 
-const CITIES = ["All Cities", "Mumbai", "Pune", "Delhi NCR", "Bengaluru", "Hyderabad", "Goa", "Nashik", "Chennai", "Other"];
+const CITIES = [
+  "All Cities",
+  "Mumbai",
+  "Pune",
+  "Delhi NCR",
+  "Bengaluru",
+  "Hyderabad",
+  "Goa",
+  "Nashik",
+  "Chennai",
+  "Other",
+];
 
-const PROPERTY_TYPES = ["Apartment", "Villa", "Office", "Plot", "Builder floor", "Penthouse", "Commercial"];
+const PROPERTY_TYPES = [
+  "Apartment",
+  "Villa",
+  "Office",
+  "Plot",
+  "Builder floor",
+  "Penthouse",
+  "Commercial",
+];
 
 const PRICE_PRESETS = [
   { label: "All Prices", min: "", max: "" },
@@ -34,16 +56,20 @@ function PropertiesExplorerContent() {
 
   const { properties, loading } = useProperties();
 
-  const initialSelectedCity = CITIES.includes(initialCity || "All Cities") ? (initialCity || "All Cities") : "Other";
-  
+  const initialSelectedCity = CITIES.includes(initialCity || "All Cities")
+    ? initialCity || "All Cities"
+    : "Other";
+
   const [queryInput, setQueryInput] = useState(initialQuery);
   const [selectedCity, setSelectedCity] = useState(initialSelectedCity);
-  const [customCity, setCustomCity] = useState(initialSelectedCity === "Other" ? initialCity : "");
+  const [customCity, setCustomCity] = useState(
+    initialSelectedCity === "Other" ? initialCity : "",
+  );
   const [purposes, setPurposes] = useState<string[]>(
-    initialPurpose && initialPurpose !== "Buy or rent" ? [initialPurpose] : []
+    initialPurpose && initialPurpose !== "Buy or rent" ? [initialPurpose] : [],
   );
   const [types, setTypes] = useState<string[]>(
-    initialType && initialType !== "Any type" ? [initialType] : []
+    initialType && initialType !== "Any type" ? [initialType] : [],
   );
   const [selectedTag, setSelectedTag] = useState(initialTag);
   const [minPrice, setMinPrice] = useState("");
@@ -57,7 +83,8 @@ function PropertiesExplorerContent() {
   // Sync state if url params change
   useEffect(() => {
     if (initialQuery) setQueryInput(initialQuery);
-    if (initialPurpose && initialPurpose !== "Buy or rent") setPurposes([initialPurpose]);
+    if (initialPurpose && initialPurpose !== "Buy or rent")
+      setPurposes([initialPurpose]);
     if (initialType && initialType !== "Any type") setTypes([initialType]);
     if (initialTag) setSelectedTag(initialTag);
     if (initialCity) {
@@ -70,17 +97,24 @@ function PropertiesExplorerContent() {
       }
     }
     if (initialView) setViewMode(initialView);
-  }, [initialQuery, initialPurpose, initialType, initialTag, initialCity, initialView]);
+  }, [
+    initialQuery,
+    initialPurpose,
+    initialType,
+    initialTag,
+    initialCity,
+    initialView,
+  ]);
 
   const togglePurpose = (val: string) => {
     setPurposes((prev) =>
-      prev.includes(val) ? prev.filter((p) => p !== val) : [...prev, val]
+      prev.includes(val) ? prev.filter((p) => p !== val) : [...prev, val],
     );
   };
 
   const toggleType = (val: string) => {
     setTypes((prev) =>
-      prev.includes(val) ? prev.filter((t) => t !== val) : [...prev, val]
+      prev.includes(val) ? prev.filter((t) => t !== val) : [...prev, val],
     );
   };
 
@@ -140,8 +174,14 @@ function PropertiesExplorerContent() {
       // 3. Purpose Filter
       if (purposes.length > 0) {
         const matchPurpose = purposes.some((purp) => {
-          if (purp === "Buy") return p.purpose === "Buy" || p.purpose === "Sale";
-          if (purp === "Rent") return p.purpose === "Rent" || p.purpose === "Lease" || p.purpose === "PG";
+          if (purp === "Buy")
+            return p.purpose === "Buy" || p.purpose === "Sale";
+          if (purp === "Rent")
+            return (
+              p.purpose === "Rent" ||
+              p.purpose === "Lease" ||
+              p.purpose === "PG"
+            );
           return p.purpose.toLowerCase() === purp.toLowerCase();
         });
         if (!matchPurpose) return false;
@@ -152,9 +192,12 @@ function PropertiesExplorerContent() {
         const matchType = types.some((t) => {
           const pType = p.type.toLowerCase();
           const target = t.toLowerCase();
-          if (target === "villa") return pType.includes("villa") || pType.includes("house");
-          if (target === "apartment") return pType.includes("apartment") || pType.includes("flat");
-          if (target === "office") return pType.includes("office") || pType.includes("commercial");
+          if (target === "villa")
+            return pType.includes("villa") || pType.includes("house");
+          if (target === "apartment")
+            return pType.includes("apartment") || pType.includes("flat");
+          if (target === "office")
+            return pType.includes("office") || pType.includes("commercial");
           return pType.includes(target);
         });
         if (!matchType) return false;
@@ -242,10 +285,16 @@ function PropertiesExplorerContent() {
           <div className="hidden max-md:flex justify-between items-center mb-6 pb-4 border-b border-line">
             <h2 className="font-serif text-xl font-bold m-0">Filters</h2>
             <div className="flex gap-4 items-center">
-              <button onClick={resetFilters} className="text-sm text-gold font-bold">
+              <button
+                onClick={resetFilters}
+                className="text-sm text-gold font-bold"
+              >
                 Clear all
               </button>
-              <button onClick={() => setMobileFiltersOpen(false)} className="text-xl font-bold p-1 cursor-pointer">
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="text-xl font-bold p-1 cursor-pointer"
+              >
                 ✕
               </button>
             </div>
@@ -279,7 +328,16 @@ function PropertiesExplorerContent() {
                   className="w-full border border-line p-[10px_12px] rounded-[8px] outline-0 text-[13px] bg-white text-ink focus:border-gold"
                   autoFocus
                 />
-                <button type="button" onClick={() => { setSelectedCity("All Cities"); setCustomCity(""); }} className="px-3 border border-line rounded-[8px] text-xs font-bold bg-slate-50 hover:bg-slate-100 text-slate-500">✕</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCity("All Cities");
+                    setCustomCity("");
+                  }}
+                  className="px-3 border border-line rounded-[8px] text-xs font-bold bg-slate-50 hover:bg-slate-100 text-slate-500"
+                >
+                  ✕
+                </button>
               </div>
             ) : (
               <select
@@ -324,7 +382,10 @@ function PropertiesExplorerContent() {
           <div className="mb-[22px] flex flex-col gap-[8px] text-[13px]">
             <span className="font-bold text-ink">Property type</span>
             {PROPERTY_TYPES.map((t) => (
-              <label key={t} className="flex items-center gap-[8px] text-muted cursor-pointer font-normal hover:text-ink">
+              <label
+                key={t}
+                className="flex items-center gap-[8px] text-muted cursor-pointer font-normal hover:text-ink"
+              >
                 <input
                   type="checkbox"
                   checked={types.includes(t)}
@@ -376,7 +437,10 @@ function PropertiesExplorerContent() {
           {/* Bedrooms & Bathrooms */}
           <div className="grid grid-cols-2 gap-3 mb-[22px] text-[13px]">
             <div>
-              <label htmlFor="bedSelect" className="font-bold text-ink block mb-1.5">
+              <label
+                htmlFor="bedSelect"
+                className="font-bold text-ink block mb-1.5"
+              >
                 Bedrooms
               </label>
               <select
@@ -393,7 +457,10 @@ function PropertiesExplorerContent() {
               </select>
             </div>
             <div>
-              <label htmlFor="bathSelect" className="font-bold text-ink block mb-1.5">
+              <label
+                htmlFor="bathSelect"
+                className="font-bold text-ink block mb-1.5"
+              >
                 Bathrooms
               </label>
               <select
@@ -443,7 +510,9 @@ function PropertiesExplorerContent() {
         <section>
           <div className="flex justify-between items-center mb-[20px] text-[13px] text-muted flex-wrap gap-3">
             <span>
-              Showing <strong className="text-ink">{filteredProperties.length}</strong> verified properties
+              Showing{" "}
+              <strong className="text-ink">{filteredProperties.length}</strong>{" "}
+              verified properties
             </span>
             <div className="flex items-center gap-4">
               <div className="flex bg-slate-100 rounded-lg p-1 border border-line">
@@ -462,24 +531,27 @@ function PropertiesExplorerContent() {
               </div>
               <label className="flex items-center gap-2 font-medium">
                 Sort by:{" "}
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="border border-line p-[6px_10px] rounded-[6px] text-[12px] bg-white text-ink cursor-pointer focus:border-gold font-semibold"
-              >
-                <option value="new">Newest first</option>
-                <option value="low">Price: low to high</option>
-                <option value="high">Price: high to low</option>
-                <option value="beds">Most bedrooms</option>
-              </select>
-            </label>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  className="border border-line p-[6px_10px] rounded-[6px] text-[12px] bg-white text-ink cursor-pointer focus:border-gold font-semibold"
+                >
+                  <option value="new">Newest first</option>
+                  <option value="low">Price: low to high</option>
+                  <option value="high">Price: high to low</option>
+                  <option value="beds">Most bedrooms</option>
+                </select>
+              </label>
             </div>
           </div>
 
           {loading ? (
             <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-[19px]">
               {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div key={n} className="h-[380px] bg-white border border-line rounded-[12px] animate-pulse p-4 flex flex-col justify-between">
+                <div
+                  key={n}
+                  className="h-[380px] bg-white border border-line rounded-[12px] animate-pulse p-4 flex flex-col justify-between"
+                >
                   <div className="h-[200px] bg-gray-200 rounded-[8px]" />
                   <div className="space-y-2 mt-4">
                     <div className="h-3 bg-gray-200 rounded w-1/4" />
@@ -499,9 +571,12 @@ function PropertiesExplorerContent() {
             </div>
           ) : (
             <div className="bg-white border border-dashed border-line p-[60px_20px] text-center rounded-[12px] mt-[10px] shadow-sm">
-              <p className="text-[16px] font-serif font-medium text-ink mb-2">No matching properties found</p>
+              <p className="text-[16px] font-serif font-medium text-ink mb-2">
+                No matching properties found
+              </p>
               <p className="text-[14px] text-muted mb-6 max-w-md mx-auto">
-                We couldn't find any properties matching your selected filters. Try broadening your criteria.
+                We couldn't find any properties matching your selected filters.
+                Try broadening your criteria.
               </p>
               <button
                 onClick={resetFilters}
@@ -521,7 +596,13 @@ function PropertiesExplorerContent() {
 
 export default function PropertiesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-paper flex items-center justify-center font-serif text-xl">Loading properties...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-paper flex items-center justify-center font-serif text-xl">
+          Loading properties...
+        </div>
+      }
+    >
       <PropertiesExplorerContent />
     </Suspense>
   );

@@ -48,7 +48,10 @@ export default function ForgotPasswordPage() {
       fact2Value="250+"
       fact2Label="Verified partners"
     >
-      <Link href="/login" className="text-[12px] text-[#667581] hover:underline inline-block mb-[40px] font-semibold">
+      <Link
+        href="/login"
+        className="text-[12px] text-[#667581] hover:underline inline-block mb-[40px] font-semibold"
+      >
         ← Back to sign in
       </Link>
       <h2 className="font-serif text-[39px] max-md:text-[34px] font-medium tracking-[-1.4px] m-0 mb-[8px] text-ink">
@@ -60,7 +63,9 @@ export default function ForgotPasswordPage() {
 
       <form onSubmit={handleReset} className="flex flex-col">
         <label className="block my-[14px]">
-          <span className="block text-[11px] font-bold text-ink mb-[7px]">Email address</span>
+          <span className="block text-[11px] font-bold text-ink mb-[7px]">
+            Email address
+          </span>
           <input
             type="email"
             required

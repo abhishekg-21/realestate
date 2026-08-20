@@ -52,7 +52,9 @@ function LoginContent() {
       }
 
       if (data?.user && !data?.session) {
-        setMsg("Please check your email to verify your account before signing in.");
+        setMsg(
+          "Please check your email to verify your account before signing in.",
+        );
         setMsgType("error");
         setLoading(false);
         return;
@@ -80,7 +82,8 @@ function LoginContent() {
 
       setMsg("Signed in. Opening your account…");
       setMsgType("success");
-      const targetUrl = userRole === "super_admin" ? "/super-admin" : "/dashboard";
+      const targetUrl =
+        userRole === "super_admin" ? "/super-admin" : "/dashboard";
       setTimeout(() => {
         router.push(targetUrl);
       }, 500);
@@ -111,7 +114,9 @@ function LoginContent() {
 
       <form onSubmit={handleLogin} className="flex flex-col">
         <label className="block my-[14px]">
-          <span className="block text-[11px] font-bold text-ink mb-[7px]">Email address</span>
+          <span className="block text-[11px] font-bold text-ink mb-[7px]">
+            Email address
+          </span>
           <input
             type="email"
             required
@@ -124,7 +129,9 @@ function LoginContent() {
         </label>
 
         <label className="block my-[14px] relative">
-          <span className="block text-[11px] font-bold text-ink mb-[7px]">Password</span>
+          <span className="block text-[11px] font-bold text-ink mb-[7px]">
+            Password
+          </span>
           <input
             type={showPassword ? "text" : "password"}
             required
@@ -153,7 +160,10 @@ function LoginContent() {
             />
             Keep me signed in
           </label>
-          <Link href="/forgot-password" className="text-[#9a6419] font-bold hover:underline">
+          <Link
+            href="/forgot-password"
+            className="text-[#9a6419] font-bold hover:underline"
+          >
             Forgot password?
           </Link>
         </div>
@@ -180,7 +190,10 @@ function LoginContent() {
 
       <p className="text-center text-[12px] text-[#687783] mt-[22px] mb-0">
         New to PropertiesNexus?{" "}
-        <Link href="/register" className="text-[#9a6419] font-bold hover:underline">
+        <Link
+          href="/register"
+          className="text-[#9a6419] font-bold hover:underline"
+        >
           Create an account
         </Link>
       </p>
@@ -190,7 +203,11 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" />}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center" />
+      }
+    >
       <LoginContent />
     </Suspense>
   );

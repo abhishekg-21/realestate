@@ -376,6 +376,84 @@ function UserDashboardContent() {
         {/* OVERVIEW VIEW */}
         {currentView === "overview" && (
           <div>
+            {/* At a glance — summary cards */}
+            <div className="flex justify-between items-end mb-[14px]">
+              <div>
+                <p className="m-0 mb-[5px] text-[#a4681c] text-[10px] font-bold tracking-[1.5px] uppercase">
+                  Account overview
+                </p>
+                <h2 className="font-serif text-[28px] font-medium tracking-[-1px] m-0">
+                  At a glance
+                </h2>
+              </div>
+              <span className="text-[11px] text-[#798791]">
+                Your private account summary
+              </span>
+            </div>
+            <div className="grid grid-cols-4 max-md:grid-cols-2 gap-[14px] max-sm:gap-[9px] mb-[25px]">
+              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#eaf1ff] text-[#2c68d9] text-[14px]">
+                  ◷
+                </span>
+                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
+                  Property sessions
+                </p>
+                <b className="block font-serif text-[25px] font-medium text-ink">
+                  1
+                </b>
+                <small className="block mt-[4px] text-[#85929a] text-[10px]">
+                  Current signed-in session
+                </small>
+              </article>
+              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e] text-[14px]">
+                  ◌
+                </span>
+                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
+                  Member since
+                </p>
+                <b className="block font-serif text-[20px] font-medium text-ink">
+                  {new Date().toLocaleString("en-IN", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </b>
+                <small className="block mt-[4px] text-[#85929a] text-[10px]">
+                  PropertiesNexus account
+                </small>
+              </article>
+              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#e2faed] text-[#078b58] text-[14px]">
+                  ✓
+                </span>
+                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
+                  Account status
+                </p>
+                <b className="block font-serif text-[25px] font-medium text-ink">
+                  Active
+                </b>
+                <small className="block mt-[4px] text-[#85929a] text-[10px]">
+                  Verified account
+                </small>
+              </article>
+              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#fff2df] text-[#aa701d] text-[14px]">
+                  ▦
+                </span>
+                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
+                  Properties listed
+                </p>
+                <b className="block font-serif text-[25px] font-medium text-ink">
+                  {listings.length}
+                </b>
+                <small className="block mt-[4px] text-[#85929a] text-[10px]">
+                  {listings.length
+                    ? `${listings.filter((l) => l.status === "Live").length} live · ${listings.filter((l) => l.status !== "Live").length} draft`
+                    : "No active listings"}
+                </small>
+              </article>
+            </div>
+
             <div className="bg-gradient-to-r from-[#f8ecda] via-[#fff8ed] to-[#ecf2f1] p-[28px_30px] max-sm:p-[23px] border border-[#eadbc5] rounded relative overflow-hidden">
               <p className="text-[10px] uppercase tracking-[1.5px] font-bold text-[#a4681c] m-0 mb-[12px]">
                 Your next address, considered
