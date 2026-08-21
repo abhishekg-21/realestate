@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
-// import { Property, PROPERTIES as STATIC_PROPERTIES } from "@/lib/properties-data";
+import {
+  Property,
+  PROPERTIES as STATIC_PROPERTIES,
+} from "@/lib/properties-data";
 
 /**
  * Formats a numeric price into Indian currency format (e.g., ₹ 8.75 Cr, ₹ 1.45 L)
