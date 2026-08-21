@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-// import { PROPERTIES, Property } from "@/lib/properties-data";
+import { PROPERTIES, Property } from "@/lib/properties-data";
 import {
   getCachedUser,
   setCachedUser,
