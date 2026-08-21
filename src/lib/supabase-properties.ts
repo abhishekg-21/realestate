@@ -2,21 +2,31 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Property, PROPERTIES as STATIC_PROPERTIES } from "@/lib/properties-data";
+// import { Property, PROPERTIES as STATIC_PROPERTIES } from "@/lib/properties-data";
 
 /**
  * Formats a numeric price into Indian currency format (e.g., ₹ 8.75 Cr, ₹ 1.45 L)
  */
-export function formatDisplayPrice(price: number, purpose: string, period?: string): string {
+export function formatDisplayPrice(
+  price: number,
+  purpose: string,
+  period?: string,
+): string {
   if (!price || isNaN(price)) return "Price on request";
-  
+
   let formatted = "";
   if (price >= 10000000) {
     const cr = price / 10000000;
-    formatted = `₹ ${cr.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")} Cr`;
+    formatted = `₹ ${cr
+      .toFixed(2)
+      .replace(/\.00$/, "")
+      .replace(/(\.\d)0$/, "$1")} Cr`;
   } else if (price >= 100000) {
     const lac = price / 100000;
-    formatted = `₹ ${lac.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")} L`;
+    formatted = `₹ ${lac
+      .toFixed(2)
+      .replace(/\.00$/, "")
+      .replace(/(\.\d)0$/, "$1")} L`;
   } else if (price >= 1000) {
     const k = price / 1000;
     formatted = `₹ ${k.toFixed(1).replace(/\.0$/, "")}k`;
@@ -25,7 +35,12 @@ export function formatDisplayPrice(price: number, purpose: string, period?: stri
   }
 
   const pLower = purpose?.toLowerCase() || "";
-  if (pLower === "rent" || pLower === "lease" || period === "monthly" || period === "per month") {
+  if (
+    pLower === "rent" ||
+    pLower === "lease" ||
+    period === "monthly" ||
+    period === "per month"
+  ) {
     return `${formatted} / mo`;
   }
   return formatted;
@@ -66,8 +81,10 @@ function capitalize(str?: string): string {
 export function transformSupabaseProperty(row: any): Property {
   const priceNum = Number(row.price) || 0;
   const purposeFormatted = capitalize(row.purpose || "buy");
-  const typeFormatted = capitalize(row.property_type || row.type || "Apartment");
-  
+  const typeFormatted = capitalize(
+    row.property_type || row.type || "Apartment",
+  );
+
   // Extract images and videos from joined property_media or property_submission_media
   const mediaList: string[] = [];
   if (Array.isArray(row.property_media)) {
@@ -85,8 +102,9 @@ export function transformSupabaseProperty(row: any): Property {
   }
 
   // Fallback default image if no media uploaded
-  const defaultImg = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=86";
-  const image = mediaList.length > 0 ? mediaList[0] : (row.image || defaultImg);
+  const defaultImg =
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=86";
+  const image = mediaList.length > 0 ? mediaList[0] : row.image || defaultImg;
   const images = mediaList.length > 0 ? mediaList : [image, image, image];
 
   // Amenities list
@@ -97,11 +115,19 @@ export function transformSupabaseProperty(row: any): Property {
     try {
       amenities = JSON.parse(row.amenities);
     } catch {
-      amenities = row.amenities.split(",").map((s: string) => s.trim()).filter(Boolean);
+      amenities = row.amenities
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean);
     }
   }
   if (amenities.length === 0) {
-    amenities = ["Verified listing", "Direct contact", "Clear documentation", "Prime location"];
+    amenities = [
+      "Verified listing",
+      "Direct contact",
+      "Clear documentation",
+      "Prime location",
+    ];
   }
 
   return {
@@ -112,15 +138,23 @@ export function transformSupabaseProperty(row: any): Property {
     type: typeFormatted,
     purpose: purposeFormatted,
     price: priceNum,
-    displayPrice: formatDisplayPrice(priceNum, purposeFormatted, row.price_period),
+    displayPrice: formatDisplayPrice(
+      priceNum,
+      purposeFormatted,
+      row.price_period,
+    ),
     beds: Number(row.bedrooms) || 0,
     baths: Number(row.bathrooms) || 0,
-    areaSq: row.area_sqft ? `${Number(row.area_sqft).toLocaleString("en-IN")} sq ft` : "Area on request",
+    areaSq: row.area_sqft
+      ? `${Number(row.area_sqft).toLocaleString("en-IN")} sq ft`
+      : "Area on request",
     tag: row.tag || (row.status === "published" ? "Verified" : "Just listed"),
     date: formatRelativeDate(row.created_at),
     image,
     images,
-    description: row.description || "A well-positioned property offering modern conveniences, clean design, and immediate connection to local infrastructure.",
+    description:
+      row.description ||
+      "A well-positioned property offering modern conveniences, clean design, and immediate connection to local infrastructure.",
     amenities,
     providerName: row.contact_name || undefined,
     providerPhone: row.contact_phone || undefined,
@@ -136,9 +170,28 @@ function isRealProperty(prop: Property): boolean {
 
   // Test / fake / placeholder keywords
   const testKeywords = [
-    "test", "testing", "testts", "asdf", "qwerty", "demo", "sample", "temp",
-    "aaa", "bbb", "ccc", "1234", "fake", "junk", "foo", "bar", "xyz",
-    "luxury 3 bhk home", "sample property", "test property", "my property", "dummy"
+    "test",
+    "testing",
+    "testts",
+    "asdf",
+    "qwerty",
+    "demo",
+    "sample",
+    "temp",
+    "aaa",
+    "bbb",
+    "ccc",
+    "1234",
+    "fake",
+    "junk",
+    "foo",
+    "bar",
+    "xyz",
+    "luxury 3 bhk home",
+    "sample property",
+    "test property",
+    "my property",
+    "dummy",
   ];
 
   for (const kw of testKeywords) {
@@ -208,9 +261,13 @@ export async function fetchAllProperties(): Promise<Property[]> {
 
     // Combine live properties with clean static properties (deduplicating by id and title)
     const existingIds = new Set(liveProperties.map((p) => p.id));
-    const existingTitles = new Set(liveProperties.map((p) => p.title.toLowerCase().trim()));
+    const existingTitles = new Set(
+      liveProperties.map((p) => p.title.toLowerCase().trim()),
+    );
     const uniqueStatic = cleanStatic.filter(
-      (p) => !existingIds.has(p.id) && !existingTitles.has(p.title.toLowerCase().trim())
+      (p) =>
+        !existingIds.has(p.id) &&
+        !existingTitles.has(p.title.toLowerCase().trim()),
     );
 
     return [...liveProperties, ...uniqueStatic];
