@@ -10,7 +10,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "My Dashboard", href: "/dashboard" },
     { label: "Browse Properties", href: "/properties" },
     { label: "My Listed Properties", href: "/dashboard/properties" },
-    { label: "Saved Properties", href: "/dashboard/saved properties" },
+    { label: "Saved Properties", href: "/dashboard/saved-properties" },
     { label: "My Enquiries", href: "/user-dashboard?view=enquiries" },
     { label: "Price Alerts", href: "/user-dashboard?view=alerts" },
     { label: "Account Settings", href: "/user-dashboard?view=settings" },
