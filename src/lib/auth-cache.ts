@@ -1,5 +1,7 @@
 "use client";
 
+import { createClient } from "@/utils/supabase/client";
+
 export interface UserCache {
   name: string;
   email: string;
@@ -51,12 +53,13 @@ export function clearCachedUser(): void {
   }
 }
 
+// ─── localStorage (sync, offline-safe) ───────────────────────────────────────
+
 export function getSavedPropertyIds(): string[] {
   if (typeof window === "undefined") return ["skyline-worli", "palm-courtyard"];
   try {
     const raw = localStorage.getItem(SAVED_KEY);
     if (!raw) {
-      // Default initial saved spaces for instant gratification
       const initial = ["skyline-worli", "palm-courtyard"];
       localStorage.setItem(SAVED_KEY, JSON.stringify(initial));
       return initial;
@@ -93,4 +96,61 @@ export function isPropertySaved(id: string): boolean {
   if (typeof window === "undefined") return false;
   const current = getSavedPropertyIds();
   return current.includes(id);
+}
+
+// ─── Supabase DB (async, cross-device) ───────────────────────────────────────
+
+export async function getSavedPropertyIdsDB(): Promise<string[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Not logged in — fall back to localStorage
+  if (!user) return getSavedPropertyIds();
+
+  const { data } = await supabase
+    .from("saved_properties")
+    .select("property_id")
+    .eq("user_id", user.id);
+
+  const ids = (data ?? []).map((row: { property_id: string }) => row.property_id);
+
+  // Sync to localStorage so offline still works
+  localStorage.setItem(SAVED_KEY, JSON.stringify(ids));
+  window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
+  return ids;
+}
+
+export async function toggleSavedPropertyIdDB(id: string): Promise<boolean> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Not logged in — fall back to localStorage
+  if (!user) return toggleSavedPropertyId(id);
+
+  const { data: existing } = await supabase
+    .from("saved_properties")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("property_id", id)
+    .single();
+
+  if (existing) {
+    // Already saved — remove it
+    await supabase.from("saved_properties").delete().eq("id", existing.id);
+    toggleSavedPropertyId(id); // keep localStorage in sync
+    window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
+    return false;
+  } else {
+    // Not saved — add it
+    await supabase
+      .from("saved_properties")
+      .insert({ user_id: user.id, property_id: id });
+    toggleSavedPropertyId(id); // keep localStorage in sync
+    window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
+    return true;
+  }
 }
