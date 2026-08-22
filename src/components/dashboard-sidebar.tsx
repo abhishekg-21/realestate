@@ -10,7 +10,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "My Dashboard", href: "/dashboard" },
     { label: "Browse Properties", href: "/properties" },
     { label: "My Listed Properties", href: "/dashboard/properties" },
-    { label: "Saved Properties", href: "/user-dashboard?view=saved" },
+    { label: "Saved Properties", href: "/dashboard/saved properties" },
     { label: "My Enquiries", href: "/user-dashboard?view=enquiries" },
     { label: "Price Alerts", href: "/user-dashboard?view=alerts" },
     { label: "Account Settings", href: "/user-dashboard?view=settings" },
@@ -145,16 +145,16 @@ export default function DashboardSidebar({
               href={link.href}
               onClick={() => setIsOpen(false)}
               className={`flex items-center gap-[11px] p-[11px_13px] rounded-[10px] text-[13px] font-semibold transition-colors ${isActive(link.href)
-                  ? "bg-white/12 text-white"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
+                ? "bg-white/12 text-white"
+                : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
             >
               <i
                 className={`w-[8px] h-[8px] rounded-full inline-block shrink-0 ${link.dot === "green"
-                    ? "bg-green"
-                    : isActive(link.href)
-                      ? "bg-gold"
-                      : "bg-white/25"
+                  ? "bg-green"
+                  : isActive(link.href)
+                    ? "bg-gold"
+                    : "bg-white/25"
                   }`}
               />
               {link.label}
