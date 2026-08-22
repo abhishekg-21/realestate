@@ -13,10 +13,16 @@ import {
 export default function SavedPropertiesPage() {
   const [savedIds, setSavedIds] = useState<string[]>(() => getSavedPropertyIds());
   const [toastMsg, setToastMsg] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Load from Supabase on mount (syncs to localStorage automatically)
-    getSavedPropertyIdsDB().then(setSavedIds);
+    getSavedPropertyIdsDB().then((ids) => {
+      console.log("[SavedPage] IDs from DB:", ids);
+      console.log("[SavedPage] All property IDs:", PROPERTIES.map((p) => p.id));
+      setSavedIds(ids);
+      setLoading(false);
+    });
 
     const handleChange = () => setSavedIds(getSavedPropertyIds());
     window.addEventListener(SAVED_CHANGE_EVENT, handleChange);
@@ -75,57 +81,63 @@ export default function SavedPropertiesPage() {
           </Link>
         </div>
 
-        <div className="grid gap-[10px]">
-          {savedProperties.length > 0 ? (
-            savedProperties.map((p) => (
-              <article
-                key={p.id}
-                className="grid grid-cols-[95px_1fr_auto] max-sm:grid-cols-[72px_1fr] gap-[13px] items-center border border-[#e3e8e9] p-[10px] rounded bg-white relative"
-              >
-                <Link
-                  href={`/properties/${p.id}`}
-                  className="h-[66px] w-[95px] max-sm:h-[57px] max-sm:w-[72px] bg-cover bg-center rounded block shrink-0"
-                  style={{ backgroundImage: `url('${p.image}')` }}
-                />
-                <div className="min-w-0 max-sm:col-start-2">
+        {loading ? (
+          <div className="text-center text-[12px] text-muted py-[38px]">
+            Loading your saved spaces…
+          </div>
+        ) : (
+          <div className="grid gap-[10px]">
+            {savedProperties.length > 0 ? (
+              savedProperties.map((p) => (
+                <article
+                  key={p.id}
+                  className="grid grid-cols-[95px_1fr_auto] max-sm:grid-cols-[72px_1fr] gap-[13px] items-center border border-[#e3e8e9] p-[10px] rounded bg-white relative"
+                >
                   <Link
                     href={`/properties/${p.id}`}
-                    className="hover:text-gold transition-colors block"
+                    className="h-[66px] w-[95px] max-sm:h-[57px] max-sm:w-[72px] bg-cover bg-center rounded block shrink-0"
+                    style={{ backgroundImage: `url('${p.image}')` }}
+                  />
+                  <div className="min-w-0 max-sm:col-start-2">
+                    <Link
+                      href={`/properties/${p.id}`}
+                      className="hover:text-gold transition-colors block"
+                    >
+                      <h3 className="text-[13px] font-bold m-0 mb-[4px] text-ink truncate">
+                        {p.title}
+                      </h3>
+                    </Link>
+                    <p className="m-0 text-[10px] text-muted truncate">
+                      {p.area}, {p.city} · {p.beds || "—"} Bed · {p.areaSq}
+                    </p>
+                    <b className="text-[12px] font-bold block my-[7px] text-ink">
+                      {p.displayPrice}
+                    </b>
+                  </div>
+                  <button
+                    onClick={() => removeSaved(p.id)}
+                    title="Remove"
+                    className="border-0 bg-white text-[#9aa5ab] text-[20px] font-bold cursor-pointer hover:text-red transition-colors max-sm:absolute max-sm:right-[9px] max-sm:top-[9px]"
                   >
-                    <h3 className="text-[13px] font-bold m-0 mb-[4px] text-ink truncate">
-                      {p.title}
-                    </h3>
-                  </Link>
-                  <p className="m-0 text-[10px] text-muted truncate">
-                    {p.area}, {p.city} · {p.beds || "—"} Bed · {p.areaSq}
-                  </p>
-                  <b className="text-[12px] font-bold block my-[7px] text-ink">
-                    {p.displayPrice}
-                  </b>
-                </div>
-                <button
-                  onClick={() => removeSaved(p.id)}
-                  title="Remove"
-                  className="border-0 bg-white text-[#9aa5ab] text-[20px] font-bold cursor-pointer hover:text-red transition-colors max-sm:absolute max-sm:right-[9px] max-sm:top-[9px]"
+                    ×
+                  </button>
+                </article>
+              ))
+            ) : (
+              <div className="border border-dashed border-[#bdc8cc] p-[38px] text-center text-[12px] text-muted rounded bg-white">
+                No saved spaces yet.
+                <br />
+                <br />
+                <Link
+                  href="/properties"
+                  className="inline-block bg-navy !text-white font-bold px-4 py-2 rounded"
                 >
-                  ×
-                </button>
-              </article>
-            ))
-          ) : (
-            <div className="border border-dashed border-[#bdc8cc] p-[38px] text-center text-[12px] text-muted rounded bg-white">
-              No saved spaces yet.
-              <br />
-              <br />
-              <Link
-                href="/properties"
-                className="inline-block bg-navy !text-white font-bold px-4 py-2 rounded"
-              >
-                Explore properties
-              </Link>
-            </div>
-          )}
-        </div>
+                  Explore properties
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Toast */}
