@@ -11,15 +11,14 @@ import {
 } from "@/lib/auth-cache";
 
 export default function SavedPropertiesPage() {
-  const [savedIds, setSavedIds] = useState<string[]>(() => getSavedPropertyIds());
+  const [savedIds, setSavedIds] = useState<string[]>([]);
   const [toastMsg, setToastMsg] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load from Supabase on mount (syncs to localStorage automatically)
+    setLoading(true);
+
     getSavedPropertyIdsDB().then((ids) => {
-      console.log("[SavedPage] IDs from DB:", ids);
-      console.log("[SavedPage] All property IDs:", PROPERTIES.map((p) => p.id));
       setSavedIds(ids);
       setLoading(false);
     });

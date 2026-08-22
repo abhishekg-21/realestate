@@ -56,17 +56,12 @@ export function clearCachedUser(): void {
 // ─── localStorage (sync, offline-safe) ───────────────────────────────────────
 
 export function getSavedPropertyIds(): string[] {
-  if (typeof window === "undefined") return ["skyline-worli", "palm-courtyard"];
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(SAVED_KEY);
-    if (!raw) {
-      const initial = ["skyline-worli", "palm-courtyard"];
-      localStorage.setItem(SAVED_KEY, JSON.stringify(initial));
-      return initial;
-    }
-    return JSON.parse(raw) as string[];
+    return raw ? (JSON.parse(raw) as string[]) : [];
   } catch {
-    return ["skyline-worli", "palm-courtyard"];
+    return [];
   }
 }
 
@@ -122,13 +117,12 @@ export async function getSavedPropertyIdsDB(): Promise<string[]> {
   return ids;
 }
 
+// REPLACE the entire toggleSavedPropertyIdDB function:
 export async function toggleSavedPropertyIdDB(id: string): Promise<boolean> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // Not logged in — fall back to localStorage
+  // Not logged in — fall back to localStorage only
   if (!user) return toggleSavedPropertyId(id);
 
   const { data: existing } = await supabase
@@ -138,18 +132,22 @@ export async function toggleSavedPropertyIdDB(id: string): Promise<boolean> {
     .eq("property_id", id)
     .single();
 
+  // Update localStorage directly (don't call toggleSavedPropertyId — it
+  // re-reads stale state and double-dispatches the event)
+  const current = getSavedPropertyIds();
+
   if (existing) {
-    // Already saved — remove it
     await supabase.from("saved_properties").delete().eq("id", existing.id);
-    toggleSavedPropertyId(id); // keep localStorage in sync
+    const next = current.filter((i) => i !== id);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
     return false;
   } else {
-    // Not saved — add it
     await supabase
       .from("saved_properties")
       .insert({ user_id: user.id, property_id: id });
-    toggleSavedPropertyId(id); // keep localStorage in sync
+    const next = [...current, id];
+    localStorage.setItem(SAVED_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
     return true;
   }
