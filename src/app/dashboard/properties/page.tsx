@@ -102,9 +102,9 @@ export default async function PropertiesDashboardPage() {
         </div>
         <Link
           href="/dashboard/add-property"
-          className="bg-navy hover:bg-navy2 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-sm"
+          className="text-white bg-navy hover:bg-navy2 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-sm"
         >
-          <Plus className="w-5 h-5 text-white" />
+          <Plus className="w-5 h-5" />
           Add Property
         </Link>
       </div>
