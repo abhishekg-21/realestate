@@ -58,8 +58,7 @@ export function clearCachedUser(): void {
 export function getSavedPropertyIds(): string[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(SAVED_KEY);
-    return raw ? (JSON.parse(raw) as string[]) : [];
+    return JSON.parse(localStorage.getItem(SAVED_KEY) || "[]");
   } catch {
     return [];
   }
@@ -88,68 +87,63 @@ export function toggleSavedPropertyId(id: string): boolean {
 }
 
 export function isPropertySaved(id: string): boolean {
-  if (typeof window === "undefined") return false;
-  const current = getSavedPropertyIds();
-  return current.includes(id);
+  return getSavedPropertyIds().includes(id);
 }
 
 // ─── Supabase DB (async, cross-device) ───────────────────────────────────────
 
 export async function getSavedPropertyIdsDB(): Promise<string[]> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
 
-  // Not logged in — fall back to localStorage
-  if (!user) return getSavedPropertyIds();
-
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("saved_properties")
     .select("property_id")
     .eq("user_id", user.id);
 
-  const ids = (data ?? []).map((row: { property_id: string }) => row.property_id);
+  if (error) {
+    console.error("[getSavedPropertyIdsDB]", error.message);
+    return [];
+  }
 
-  // Sync to localStorage so offline still works
+  const ids = (data ?? []).map((row) => row.property_id as string);
+
+  // Keep localStorage in sync for instant UI updates
   localStorage.setItem(SAVED_KEY, JSON.stringify(ids));
   window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
   return ids;
 }
 
-// REPLACE the entire toggleSavedPropertyIdDB function:
-export async function toggleSavedPropertyIdDB(id: string): Promise<boolean> {
-  // Guard: never save a UUID as property_id — must be a slug
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id)) {
-    console.error("[toggleSavedPropertyIdDB] Received a UUID instead of a property slug:", id);
-    return false;
-  }
 
+// REPLACE the entire toggleSavedPropertyIdDB function:
+export async function toggleSavedPropertyIdDB(propertyId: string): Promise<boolean> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return toggleSavedPropertyId(id);
+  if (!user) return false;
 
   const { data: existing } = await supabase
     .from("saved_properties")
     .select("id")
     .eq("user_id", user.id)
-    .eq("property_id", id)
-    .maybeSingle(); // ← fixed
+    .eq("property_id", propertyId)
+    .maybeSingle();
 
-  const current = getSavedPropertyIds();
+  const current: string[] = JSON.parse(localStorage.getItem(SAVED_KEY) || "[]");
 
   if (existing) {
+    // Unsave
     await supabase.from("saved_properties").delete().eq("id", existing.id);
-    const next = current.filter((i) => i !== id);
+    const next = current.filter((i) => i !== propertyId);
     localStorage.setItem(SAVED_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
     return false;
   } else {
+    // Save
     await supabase
       .from("saved_properties")
-      .insert({ user_id: user.id, property_id: id });
-    const next = [...current, id];
+      .insert({ user_id: user.id, property_id: propertyId });
+    const next = [...current, propertyId];
     localStorage.setItem(SAVED_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
     return true;
