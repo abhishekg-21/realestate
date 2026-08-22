@@ -122,13 +122,11 @@ function UserDashboardContent() {
     const loadProfile = async () => {
       const supabase = createClient();
 
-      // 1. Get authenticated user from Supabase
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (user) {
-        // 2. Fetch their profile row from the profiles table
         const { data: profile } = await supabase
           .from("profiles")
           .select(
@@ -145,23 +143,19 @@ function UserDashboardContent() {
         const phone = profile?.phone || user.user_metadata?.phone || "";
         const email = user.email || "";
 
-        // 3. Update all display state
         setUserName(fullName);
         setNameInput(fullName);
         setUserEmail(email);
         setEmailInput(email);
         setPhoneInput(phone);
-        // Location isn't in your DB schema yet — use cache or default
         setLocationInput("");
 
-        // 4. Avatar from cache (stored as base64 locally)
         const cached = getCachedUser();
         if (cached?.avatar?.startsWith("data:image")) {
           setUserAvatar(cached.avatar);
           setAvatarInput(cached.avatar);
         }
 
-        // 5. Keep cache in sync
         setCachedUser({
           name: fullName,
           email,
@@ -800,11 +794,10 @@ function UserDashboardContent() {
                   <button
                     key={i}
                     onClick={() => setActiveThread(i)}
-                    className={`w-full max-md:min-w-[160px] max-md:w-auto border-0 border-b border-[#edf0f1] text-left p-[14px] cursor-pointer transition-colors ${
-                      i === activeThread
+                    className={`w-full max-md:min-w-[160px] max-md:w-auto border-0 border-b border-[#edf0f1] text-left p-[14px] cursor-pointer transition-colors ${i === activeThread
                         ? "bg-[#f2f5f4] border-l-4 border-l-gold max-md:border-l-0 max-md:border-b-4 max-md:border-b-gold"
                         : "bg-white hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <b className="text-[12px] font-bold text-ink block">
                       {t.name}
@@ -828,11 +821,10 @@ function UserDashboardContent() {
                     {activeThreadData.messages.map((m, idx) => (
                       <div
                         key={idx}
-                        className={`p-[10px_12px] text-[12px] leading-[1.45] max-w-[75%] ${
-                          m[0] === "you"
+                        className={`p-[10px_12px] text-[12px] leading-[1.45] max-w-[75%] ${m[0] === "you"
                             ? "bg-[#143957] text-white rounded-[12px_3px_12px_12px] ml-auto"
                             : "bg-[#f2f4f3] text-ink rounded-[3px_12px_12px_12px]"
-                        }`}
+                          }`}
                       >
                         {m[1]}
                       </div>
@@ -894,20 +886,18 @@ function UserDashboardContent() {
                     <div
                       className="h-[150px] bg-cover bg-center"
                       style={{
-                        backgroundImage: `url('${
-                          idx % 2
+                        backgroundImage: `url('${idx % 2
                             ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=750&q=80"
                             : "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=750&q=80"
-                        }')`,
+                          }')`,
                       }}
                     />
                     <div className="p-[14px] flex flex-col flex-1">
                       <span
-                        className={`text-[9px] font-bold p-[5px_7px] rounded-[12px] w-max uppercase ${
-                          item.status === "Draft"
+                        className={`text-[9px] font-bold p-[5px_7px] rounded-[12px] w-max uppercase ${item.status === "Draft"
                             ? "bg-[#fff5df] text-[#a16d14]"
                             : "bg-[#eaf7ef] text-green"
-                        }`}
+                          }`}
                       >
                         {item.status}
                       </span>
@@ -1081,8 +1071,7 @@ function UserDashboardContent() {
                       Property matches
                     </b>
                     <p className="text-[10px] text-muted m-0 mt-[4px] max-w-[540px]">
-                      Receive updates when a new property matches an active
-                      alert.
+                      Receive updates when a new property matches an active alert.
                     </p>
                   </div>
                   <input
@@ -1099,8 +1088,7 @@ function UserDashboardContent() {
                       Saved property changes
                     </b>
                     <p className="text-[10px] text-muted m-0 mt-[4px] max-w-[540px]">
-                      Get important availability and price updates for saved
-                      homes.
+                      Get important availability and price updates for saved homes.
                     </p>
                   </div>
                   <input

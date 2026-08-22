@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Property } from "@/lib/properties-data";
-import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT } from "@/lib/auth-cache";
+import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT, toggleSavedPropertyIdDB } from "@/lib/auth-cache";
 
 export default function PropertyCard({ property }: { property: Property }) {
   const [isSaved, setIsSaved] = useState(false);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
 
-  const images = property.images && property.images.length > 0 
-    ? property.images 
+  const images = property.images && property.images.length > 0
+    ? property.images
     : [property.image];
 
   useEffect(() => {
@@ -99,14 +99,15 @@ export default function PropertyCard({ property }: { property: Property }) {
 
         {/* Save/Favorite Heart Button */}
         <button
-          onClick={handleSaveToggle}
+          onClick={async () => {
+            await toggleSavedPropertyIdDB(property.id);
+          }}
           aria-label={`Save ${property.title}`}
           title={isSaved ? "Remove from saved" : "Save property"}
-          className={`absolute z-20 right-3 top-3 border-0 rounded-full w-8 h-8 cursor-pointer flex items-center justify-center shadow-md transition-all duration-150 ${
-            isSaved
-              ? "bg-red-500 text-white scale-105"
-              : "bg-white/90 text-slate-700 hover:bg-white hover:scale-110"
-          }`}
+          className={`absolute z-20 right-3 top-3 border-0 rounded-full w-8 h-8 cursor-pointer flex items-center justify-center shadow-md transition-all duration-150 ${isSaved
+            ? "bg-red-500 text-white scale-105"
+            : "bg-white/90 text-slate-700 hover:bg-white hover:scale-110"
+            }`}
         >
           <span className="text-sm leading-none">{isSaved ? "♥" : "♡"}</span>
         </button>

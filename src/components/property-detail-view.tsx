@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { PROPERTIES as STATIC_PROPERTIES, Property } from "@/lib/properties-data";
-import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT } from "@/lib/auth-cache";
+import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT, toggleSavedPropertyIdDB } from "@/lib/auth-cache";
 import { useProperties, fetchPropertyById } from "@/lib/supabase-properties";
 import { createClient } from "@/utils/supabase/client";
 import dynamic from "next/dynamic";
@@ -197,7 +197,9 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             ▤ Media Gallery ({images.length})
           </button>
           <button
-            onClick={() => setIsSaved(toggleSavedPropertyId(property.id))}
+            onClick={async () => {
+              await toggleSavedPropertyIdDB(property.id);
+            }}
             className="border border-line bg-white rounded-[18px] px-[14px] py-[8px] text-[12px] font-bold cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
           >
             {isSaved ? "♥ Saved" : "♡ Save"}
@@ -298,11 +300,10 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-3 whitespace-nowrap transition-colors outline-none cursor-pointer ${
-                activeTab === tab.id
-                  ? "border-b-2 border-[#dc2626] text-[#dc2626]"
-                  : "border-b-2 border-transparent text-slate-600 hover:text-slate-900"
-              }`}
+              className={`pb-3 whitespace-nowrap transition-colors outline-none cursor-pointer ${activeTab === tab.id
+                ? "border-b-2 border-[#dc2626] text-[#dc2626]"
+                : "border-b-2 border-transparent text-slate-600 hover:text-slate-900"
+                }`}
             >
               {tab.label}
             </button>
@@ -394,11 +395,11 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               Located at {property.area}, {property.city}. This address is situated close to major business centers, transport links, top educational institutes, and premium lifestyle hubs.
             </p>
             <div className="mb-4">
-               <PropertyMap address={property.area} city={property.city} title={property.title} />
+              <PropertyMap address={property.area} city={property.city} title={property.title} />
             </div>
-            <a 
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.area + ", " + property.city)}`} 
-              target="_blank" 
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.area + ", " + property.city)}`}
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-[13px] shadow hover:bg-slate-800 transition-colors"
               style={{ color: "#ffffff" }}

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { PROPERTIES } from "@/lib/properties-data";
 import {
   getSavedPropertyIds,
-  toggleSavedPropertyId,
+  getSavedPropertyIdsDB,
+  toggleSavedPropertyIdDB,
   SAVED_CHANGE_EVENT,
 } from "@/lib/auth-cache";
 
@@ -14,6 +15,8 @@ export default function SavedPropertiesPage() {
   const [toastMsg, setToastMsg] = useState("");
 
   useEffect(() => {
+    // Load from Supabase on mount (syncs to localStorage automatically)
+    getSavedPropertyIdsDB().then(setSavedIds);
 
     const handleChange = () => setSavedIds(getSavedPropertyIds());
     window.addEventListener(SAVED_CHANGE_EVENT, handleChange);
@@ -27,8 +30,8 @@ export default function SavedPropertiesPage() {
     setTimeout(() => setToastMsg(""), 2500);
   };
 
-  const removeSaved = (id: string) => {
-    toggleSavedPropertyId(id);
+  const removeSaved = async (id: string) => {
+    await toggleSavedPropertyIdDB(id);
     showToast("Removed from saved spaces.");
   };
 
