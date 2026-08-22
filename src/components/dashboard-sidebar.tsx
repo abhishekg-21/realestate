@@ -9,7 +9,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
   user: [
     { label: "My Dashboard", href: "/dashboard" },
     { label: "Browse Properties", href: "/properties" },
-    { label: "My Listed Properties", href: "/dashboard/properties" },
+    { label: "", href: "/dashboard/properties" },
     { label: "Saved Properties", href: "/user-dashboard?view=saved" },
     { label: "My Enquiries", href: "/user-dashboard?view=messages" },
     { label: "Price Alerts", href: "/user-dashboard?view=alerts" },
@@ -115,9 +115,8 @@ export default function DashboardSidebar({
 
       {/* Sidebar */}
       <aside
-        className={`bg-[#051426] text-white p-[26px_20px] flex flex-col gap-[20px] w-[255px] shrink-0 min-h-screen max-md:min-h-0 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 transition-transform duration-200 ${
-          isOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full md:translate-x-0"
-        }`}
+        className={`bg-[#051426] text-white p-[26px_20px] flex flex-col gap-[20px] w-[255px] shrink-0 min-h-screen max-md:min-h-0 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 transition-transform duration-200 ${isOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full md:translate-x-0"
+          }`}
       >
         {/* Brand */}
         <Link href="/" className="font-bold tracking-[1.2px] text-[18px] flex items-center whitespace-nowrap max-md:hidden">
@@ -145,20 +144,18 @@ export default function DashboardSidebar({
               key={link.href}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-[11px] p-[11px_13px] rounded-[10px] text-[13px] font-semibold transition-colors ${
-                isActive(link.href)
+              className={`flex items-center gap-[11px] p-[11px_13px] rounded-[10px] text-[13px] font-semibold transition-colors ${isActive(link.href)
                   ? "bg-white/12 text-white"
                   : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
+                }`}
             >
               <i
-                className={`w-[8px] h-[8px] rounded-full inline-block shrink-0 ${
-                  link.dot === "green"
+                className={`w-[8px] h-[8px] rounded-full inline-block shrink-0 ${link.dot === "green"
                     ? "bg-green"
                     : isActive(link.href)
-                    ? "bg-gold"
-                    : "bg-white/25"
-                }`}
+                      ? "bg-gold"
+                      : "bg-white/25"
+                  }`}
               />
               {link.label}
             </Link>
