@@ -14,7 +14,11 @@ export default function SavedPropertiesPage() {
   const [toastMsg, setToastMsg] = useState("");
 
   useEffect(() => {
+    // Guard: localStorage is only available in the browser
+    if (typeof window === "undefined") return;
+
     setSavedIds(getSavedPropertyIds());
+
     const handleChange = () => setSavedIds(getSavedPropertyIds());
     window.addEventListener(SAVED_CHANGE_EVENT, handleChange);
     return () => window.removeEventListener(SAVED_CHANGE_EVENT, handleChange);
