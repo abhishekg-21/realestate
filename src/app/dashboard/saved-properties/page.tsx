@@ -54,22 +54,23 @@ export default function SavedPropertiesPage() {
     const { data, error } = await supabase
       .from("saved_properties")
       .select(`
-        id,
-        property_id,
-        property_submissions (
-          id,
-          title,
-          city,
-          state,
-          locality,
-          price,
-          price_period,
-          bedrooms,
-          area_sqft,
-          property_type,
-          intent
-        )
-      `)
+    id,
+    property_id,
+    property_submissions!saved_properties_property_id_fkey (
+      id,
+      title,
+      city,
+      state,
+      locality,
+      price,
+      price_period,
+      bedrooms,
+      area_sqft,
+      property_type,
+      intent,
+      status
+    )
+  `)
       .eq("user_id", user.id);
 
     if (error) {
@@ -78,9 +79,9 @@ export default function SavedPropertiesPage() {
       return;
     }
 
-    // Flatten joined rows
+    // Filter out any saved properties whose submission was deleted or not approved
     const props: SavedProperty[] = (data ?? [])
-      .filter((row: any) => row.property_submissions)
+      .filter((row: any) => row.property_submissions?.status === "approved")
       .map((row: any) => {
         const p = row.property_submissions;
         return {
@@ -96,7 +97,7 @@ export default function SavedPropertiesPage() {
           area_sqft: p.area_sqft,
           property_type: p.property_type,
           intent: p.intent,
-          image_url: null, // filled below
+          image_url: null,
         };
       });
 
