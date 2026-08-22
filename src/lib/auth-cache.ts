@@ -119,10 +119,15 @@ export async function getSavedPropertyIdsDB(): Promise<string[]> {
 
 // REPLACE the entire toggleSavedPropertyIdDB function:
 export async function toggleSavedPropertyIdDB(id: string): Promise<boolean> {
+  // Guard: never save a UUID as property_id — must be a slug
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id)) {
+    console.error("[toggleSavedPropertyIdDB] Received a UUID instead of a property slug:", id);
+    return false;
+  }
+
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Not logged in — fall back to localStorage only
   if (!user) return toggleSavedPropertyId(id);
 
   const { data: existing } = await supabase
@@ -130,10 +135,8 @@ export async function toggleSavedPropertyIdDB(id: string): Promise<boolean> {
     .select("id")
     .eq("user_id", user.id)
     .eq("property_id", id)
-    .single();
+    .maybeSingle(); // ← fixed
 
-  // Update localStorage directly (don't call toggleSavedPropertyId — it
-  // re-reads stale state and double-dispatches the event)
   const current = getSavedPropertyIds();
 
   if (existing) {
