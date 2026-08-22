@@ -6,7 +6,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { PROPERTIES as STATIC_PROPERTIES, Property } from "@/lib/properties-data";
 import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT } from "@/lib/auth-cache";
-import { useProperties } from "@/lib/supabase-properties";
+import { useProperties, fetchPropertyById } from "@/lib/supabase-properties";
 import { createClient } from "@/utils/supabase/client";
 import dynamic from "next/dynamic";
 import PropertyCard from "@/components/property-card";
@@ -38,13 +38,28 @@ function isVideoUrl(url?: string): boolean {
 
 export default function PropertyDetailView({ id }: { id?: string }) {
   const { properties, loading } = useProperties();
+  const [directProperty, setDirectProperty] = useState<Property | null>(null);
+  const [directLoading, setDirectLoading] = useState(false);
 
-  // Fallback to first property if id is not found or not provided
-  const property: Property =
+  useEffect(() => {
+    if (id && !properties.some((p) => p.id === id)) {
+      setDirectLoading(true);
+      fetchPropertyById(id)
+        .then((data) => {
+          if (data) setDirectProperty(data);
+        })
+        .finally(() => {
+          setDirectLoading(false);
+        });
+    }
+  }, [id, properties]);
+
+  // Resolve property
+  const property: Property | null =
     properties.find((p) => p.id === id) ||
+    directProperty ||
     STATIC_PROPERTIES.find((p) => p.id === id) ||
-    properties[0] ||
-    STATIC_PROPERTIES[0];
+    (!id ? properties[0] || STATIC_PROPERTIES[0] : null);
 
   const [isSaved, setIsSaved] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -80,7 +95,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
     };
   }, [property]);
 
-  if (loading && !property) {
+  if ((loading || directLoading) && !property) {
     return (
       <div className="min-h-screen bg-paper text-ink font-sans">
         <Navbar variant="light" />
@@ -91,6 +106,29 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             <div className="h-10 bg-gray-200 rounded w-1/2" />
             <div className="h-6 bg-gray-200 rounded w-1/3" />
             <div className="h-32 bg-gray-200 rounded w-full" />
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="min-h-screen bg-paper text-ink font-sans">
+        <Navbar variant="light" />
+        <div className="max-w-[1216px] mx-auto py-24 px-6 text-center space-y-4">
+          <h1 className="font-serif text-3xl font-bold text-slate-900">Property Not Found</h1>
+          <p className="text-slate-600 max-w-md mx-auto">
+            The property you are looking for is either no longer available or the link is incorrect.
+          </p>
+          <div className="pt-4">
+            <Link
+              href="/properties"
+              className="inline-block bg-[#07182d] text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors"
+            >
+              Browse All Properties →
+            </Link>
           </div>
         </div>
         <Footer />

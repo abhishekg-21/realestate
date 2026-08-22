@@ -79,35 +79,62 @@ function capitalize(str?: string): string {
 }
 
 /**
+ * Helper to ensure a media path is a fully qualified public URL
+ */
+function resolveMediaUrl(pathOrUrl?: string): string {
+  if (!pathOrUrl) return "";
+  const trimmed = pathOrUrl.trim();
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("/")
+  ) {
+    return trimmed;
+  }
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ebfijmvsqywngxdhgndo.supabase.co";
+  return `${supabaseUrl}/storage/v1/object/public/property-images/${trimmed}`;
+}
+
+/**
  * Converts a raw Supabase property row (with optional joined media) into the frontend Property interface
  */
 export function transformSupabaseProperty(row: any): Property {
   const priceNum = Number(row.price) || 0;
-  const purposeFormatted = capitalize(row.purpose || "buy");
+  const rawPurpose = row.intent || row.purpose || "buy";
+  let purposeFormatted = capitalize(rawPurpose);
+  if (purposeFormatted.toLowerCase() === "sale") purposeFormatted = "Buy";
+
   const typeFormatted = capitalize(
     row.property_type || row.type || "Apartment",
   );
 
   // Extract images and videos from joined property_media or property_submission_media
   const mediaList: string[] = [];
+
   if (Array.isArray(row.property_media)) {
     row.property_media.forEach((m: any) => {
-      if (m.media_url) mediaList.push(m.media_url);
+      const url = resolveMediaUrl(m.media_url || m.storage_path);
+      if (url) mediaList.push(url);
     });
   }
+
   if (Array.isArray(row.property_submission_media)) {
-    row.property_submission_media.forEach((m: any) => {
-      if (m.storage_path) {
-        // If it's a storage path, we might need public url, or if it's full url use it
-        mediaList.push(m.storage_path);
-      }
+    // Sort media by sort_order if present
+    const sortedMedia = [...row.property_submission_media].sort(
+      (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+    );
+    sortedMedia.forEach((m: any) => {
+      const url = resolveMediaUrl(m.storage_path || m.media_url);
+      if (url) mediaList.push(url);
     });
   }
 
   // Fallback default image if no media uploaded
   const defaultImg =
     "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=86";
-  const image = mediaList.length > 0 ? mediaList[0] : row.image || defaultImg;
+  const image = mediaList.length > 0 ? mediaList[0] : resolveMediaUrl(row.image) || defaultImg;
   const images = mediaList.length > 0 ? mediaList : [image, image, image];
 
   // Amenities list
@@ -137,7 +164,7 @@ export function transformSupabaseProperty(row: any): Property {
     id: row.id || "unknown",
     title: row.title || "Untitled Property",
     city: row.city || "India",
-    area: row.location || row.locality || row.city || "Prime Location",
+    area: row.location || row.locality || row.address || row.city || "Prime Location",
     type: typeFormatted,
     purpose: purposeFormatted,
     price: priceNum,
@@ -151,7 +178,7 @@ export function transformSupabaseProperty(row: any): Property {
     areaSq: row.area_sqft
       ? `${Number(row.area_sqft).toLocaleString("en-IN")} sq ft`
       : "Area on request",
-    tag: row.tag || (row.status === "published" ? "Verified" : "Just listed"),
+    tag: row.tag || (row.status === "approved" || row.status === "published" ? "Verified" : "Just listed"),
     date: formatRelativeDate(row.created_at),
     image,
     images,
@@ -165,13 +192,15 @@ export function transformSupabaseProperty(row: any): Property {
   };
 }
 
-function isRealProperty(prop: Property): boolean {
+/**
+ * Filter static demo listings (only applied to hardcoded mock properties)
+ */
+function isCleanStaticProperty(prop: Property): boolean {
   if (!prop.title || !prop.city) return false;
   const title = prop.title.toLowerCase().trim();
   const area = (prop.area || "").toLowerCase().trim();
   const city = (prop.city || "").toLowerCase().trim();
 
-  // Test / fake / placeholder keywords
   const testKeywords = [
     "test",
     "testing",
@@ -180,20 +209,8 @@ function isRealProperty(prop: Property): boolean {
     "qwerty",
     "demo",
     "sample",
-    "temp",
-    "aaa",
-    "bbb",
-    "ccc",
-    "1234",
     "fake",
     "junk",
-    "foo",
-    "bar",
-    "xyz",
-    "luxury 3 bhk home",
-    "sample property",
-    "test property",
-    "my property",
     "dummy",
   ];
 
@@ -208,55 +225,111 @@ function isRealProperty(prop: Property): boolean {
     }
   }
 
-  // Filter out unrealistic bed/bath ratios or dummy submissions (e.g. 10 beds 1 bath)
-  if (prop.beds > 8 && prop.baths <= 2) return false;
-  if (prop.beds > 12) return false;
-  if (prop.price <= 0) return false;
-
   return true;
 }
 
 /**
- * Fetches all live published properties from Supabase and merges them with clean real estate listings.
+ * Fetches a single property by ID from Supabase (checking approved submissions & properties table)
+ */
+export async function fetchPropertyById(id: string): Promise<Property | null> {
+  if (!id) return null;
+  try {
+    const supabase = createClient();
+
+    // 1. Check in property_submissions table
+    const { data: sub } = await supabase
+      .from("property_submissions")
+      .select("*, property_submission_media(*)")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (sub) {
+      return transformSupabaseProperty(sub);
+    }
+
+    // 2. Check in properties table
+    const { data: prop } = await supabase
+      .from("properties")
+      .select("*, property_media(*)")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (prop) {
+      return transformSupabaseProperty(prop);
+    }
+
+    // 3. Fallback to static properties
+    const staticMatch = STATIC_PROPERTIES.find((p) => p.id === id);
+    return staticMatch || null;
+  } catch (e) {
+    console.error("Error in fetchPropertyById:", e);
+    const staticMatch = STATIC_PROPERTIES.find((p) => p.id === id);
+    return staticMatch || null;
+  }
+}
+
+/**
+ * Fetches all live approved properties from Supabase and merges them with clean real estate listings.
  */
 export async function fetchAllProperties(): Promise<Property[]> {
   try {
     const supabase = createClient();
     const liveProperties: Property[] = [];
 
-    // 1. Fetch approved property submissions
-    const { data: approvedSubmissions } = await supabase
+    // 1. Fetch approved property submissions from Supabase
+    const { data: approvedSubmissions, error: subError } = await supabase
       .from("property_submissions")
       .select("*, property_submission_media(*)")
       .eq("status", "approved")
       .order("created_at", { ascending: false });
 
-    if (approvedSubmissions && approvedSubmissions.length > 0) {
-      approvedSubmissions.forEach((sub) => {
-        const transformed = transformSupabaseProperty(sub);
-        if (isRealProperty(transformed)) {
-          liveProperties.push(transformed);
+    if (subError) {
+      console.warn("Could not fetch approved submissions with joined media, trying standalone query:", subError.message);
+      // Fallback if relation join failed
+      const { data: standaloneSubs } = await supabase
+        .from("property_submissions")
+        .select("*")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false });
+
+      if (standaloneSubs && standaloneSubs.length > 0) {
+        for (const sub of standaloneSubs) {
+          const { data: subMedia } = await supabase
+            .from("property_submission_media")
+            .select("*")
+            .eq("submission_id", sub.id)
+            .order("sort_order", { ascending: true });
+          
+          liveProperties.push(transformSupabaseProperty({
+            ...sub,
+            property_submission_media: subMedia || []
+          }));
         }
+      }
+    } else if (approvedSubmissions && approvedSubmissions.length > 0) {
+      approvedSubmissions.forEach((sub) => {
+        liveProperties.push(transformSupabaseProperty(sub));
       });
     }
 
     // 2. Fetch published properties (if properties table exists)
-    const { data: publishedProperties } = await supabase
-      .from("properties")
-      .select("*, property_media(*)")
-      .eq("status", "published")
-      .order("created_at", { ascending: false });
+    try {
+      const { data: publishedProperties } = await supabase
+        .from("properties")
+        .select("*, property_media(*)")
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
 
-    if (publishedProperties && publishedProperties.length > 0) {
-      publishedProperties.forEach((prop) => {
-        const transformed = transformSupabaseProperty(prop);
-        if (isRealProperty(transformed)) {
-          liveProperties.push(transformed);
-        }
-      });
+      if (publishedProperties && publishedProperties.length > 0) {
+        publishedProperties.forEach((prop) => {
+          liveProperties.push(transformSupabaseProperty(prop));
+        });
+      }
+    } catch {
+      // properties table is optional
     }
 
-    const cleanStatic = STATIC_PROPERTIES.filter(isRealProperty);
+    const cleanStatic = STATIC_PROPERTIES.filter(isCleanStaticProperty);
 
     if (liveProperties.length === 0) {
       return cleanStatic;
@@ -273,10 +346,11 @@ export async function fetchAllProperties(): Promise<Property[]> {
         !existingTitles.has(p.title.toLowerCase().trim()),
     );
 
+    // Live database approved properties are placed first
     return [...liveProperties, ...uniqueStatic];
   } catch (e) {
     console.error("Error in fetchAllProperties:", e);
-    return STATIC_PROPERTIES.filter(isRealProperty);
+    return STATIC_PROPERTIES.filter(isCleanStaticProperty);
   }
 }
 
@@ -308,3 +382,4 @@ export function useProperties() {
 
   return { properties, loading, error, refetch: loadProperties };
 }
+
