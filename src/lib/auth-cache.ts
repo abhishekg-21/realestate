@@ -122,27 +122,42 @@ export async function toggleSavedPropertyIdDB(propertyId: string): Promise<boole
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
-  const { data: existing } = await supabase
-    .from("saved_properties")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("property_id", propertyId)
-    .maybeSingle();
-
   const current: string[] = JSON.parse(localStorage.getItem(SAVED_KEY) || "[]");
+  const alreadySaved = current.includes(propertyId);
 
-  if (existing) {
-    // Unsave
-    await supabase.from("saved_properties").delete().eq("id", existing.id);
+  if (alreadySaved) {
+    // Remove from DB
+    const { error } = await supabase
+      .from("saved_properties")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("property_id", propertyId);
+
+    if (error) {
+      console.error("[unsave] error:", error.message);
+      return true; // still saved, nothing changed
+    }
+
     const next = current.filter((i) => i !== propertyId);
     localStorage.setItem(SAVED_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));
     return false;
+
   } else {
-    // Save
-    await supabase
+    // Upsert — if row already exists in DB due to stale localStorage, 
+    // it won't throw 409, it just does nothing on conflict
+    const { error } = await supabase
       .from("saved_properties")
-      .insert({ user_id: user.id, property_id: propertyId });
+      .upsert(
+        { user_id: user.id, property_id: propertyId },
+        { onConflict: "user_id,property_id", ignoreDuplicates: true }
+      );
+
+    if (error) {
+      console.error("[save] error:", error.message);
+      return false;
+    }
+
     const next = [...current, propertyId];
     localStorage.setItem(SAVED_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event(SAVED_CHANGE_EVENT));

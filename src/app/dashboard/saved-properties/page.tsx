@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import {
   toggleSavedPropertyIdDB,
   SAVED_CHANGE_EVENT,
+  getSavedPropertyIdsDB,
 } from "@/lib/auth-cache";
 
 interface SavedProperty {
@@ -28,6 +29,10 @@ export default function SavedPropertiesPage() {
   const [savedProperties, setSavedProperties] = useState<SavedProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState("");
+
+  useEffect(() => {
+    getSavedPropertyIdsDB();
+  }, []);
 
   const showToast = (text: string) => {
     setToastMsg(text);
