@@ -11,7 +11,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "Browse Properties", href: "/properties" },
     { label: "My Listed Properties", href: "/dashboard/properties" },
     { label: "Saved Properties", href: "/user-dashboard?view=saved" },
-    { label: "My Enquiries", href: "/user-dashboard?view=messages" },
+    { label: "My Enquiries", href: "/user-dashboard?view=enquiries" },
     { label: "Price Alerts", href: "/user-dashboard?view=alerts" },
     { label: "Account Settings", href: "/user-dashboard?view=settings" },
   ],

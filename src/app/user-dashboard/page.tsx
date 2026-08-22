@@ -216,7 +216,7 @@ function UserDashboardContent() {
     overview: "Home base",
     saved: "Saved spaces",
     alerts: "Match alerts",
-    messages: "Conversations",
+    messages: "My Enquiries",
     sell: "Sell a property",
     enquiries: "My Enquiries",
     settings: "Account studio",
@@ -546,83 +546,161 @@ function UserDashboardContent() {
           </div>
         )}
 
-        {/* MESSAGES VIEW */}
-        {currentView === "messages" && (
-          <div>
-            <div className="flex items-end justify-between my-[30px] mb-[15px]">
-              <div>
-                <h1 className="font-serif text-[34px] max-sm:text-[28px] font-medium tracking-[-1.6px] m-0 text-ink">
-                  Conversations
-                </h1>
-                <p className="text-[12px] text-muted mt-[7px] mb-0">
-                  Keep enquiries and property discussions organised.
-                </p>
-              </div>
-              <button
-                onClick={() => setModalType("message")}
-                className="border border-[#b6c1c6] rounded-[7px] bg-white text-[#324453] p-[10px_13px] text-[12px] font-bold cursor-pointer hover:bg-gray-50 transition-colors"
-              >
-                New conversation
-              </button>
-            </div>
+        {/* ENQUIRIES / MESSAGES VIEW */}
+        {(currentView === "enquiries" || currentView === "messages") && (
+          <div className="w-full">
+            <style dangerouslySetInnerHTML={{ __html: `
+              .pn-enquiries{--pn-navy:#07182d;--pn-gold:#cb8d31;--pn-ink:#172633;--pn-muted:#6c7b86;--pn-line:#dde4e6;--pn-wa:#128c5b;--pn-wa-soft:#f3fbf6;--pn-mail:#236bc7;--pn-mail-soft:#f5f9ff;color:var(--pn-ink);font-family:'DM Sans',Arial,sans-serif;max-width:1120px;margin:0 auto;padding:8px 0 54px}
+              .pn-enquiries *{box-sizing:border-box}
+              .pn-enquiries h1,.pn-enquiries h2{font-family:'Playfair Display',Georgia,serif;font-weight:500;letter-spacing:-1.2px}
+              .pn-enquiries .pn-eyebrow{margin:0 0 8px;color:var(--pn-gold);font-size:10px;font-weight:700;letter-spacing:1.55px;text-transform:uppercase}
+              .pn-enquiries .pn-page-head{border-bottom:1px solid var(--pn-line);padding:0 0 26px;margin-bottom:35px}
+              .pn-enquiries h1{font-size:42px;line-height:1.08;margin:0}
+              .pn-enquiries .pn-page-head>p{margin:9px 0 0;color:var(--pn-muted);font-size:14px}
+              .pn-enquiries .pn-section-head{margin:0 0 19px}
+              .pn-enquiries .pn-section-head h2{font-size:27px;margin:0 0 7px}
+              .pn-enquiries .pn-section-head p{font-size:13px;line-height:1.6;color:var(--pn-muted);margin:0}
+              .pn-contact-stack{display:grid;gap:0}
+              .pn-contact-card{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:20px;align-items:center;border:1px solid var(--pn-line);min-height:166px;padding:27px 29px;background:#fff;box-shadow:0 7px 20px rgba(14,37,57,.045)}
+              .pn-contact-card.whatsapp{background:var(--pn-wa-soft);border-color:#cbe8d8}
+              .pn-contact-card.email{background:var(--pn-mail-soft);border-color:#d6e5fa}
+              .pn-contact-icon{height:58px;width:58px;border-radius:50%;display:grid;place-items:center}
+              .pn-contact-icon svg{width:27px;height:27px}
+              .whatsapp .pn-contact-icon{background:#dff4e8;color:var(--pn-wa)}
+              .email .pn-contact-icon{background:#e4efff;color:var(--pn-mail)}
+              .pn-contact-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:7px}
+              .whatsapp .pn-contact-label{color:#187450}
+              .email .pn-contact-label{color:#2967af}
+              .pn-contact-card h3{font-size:20px;line-height:1.2;margin:0 0 7px;color:var(--pn-ink)}
+              .pn-contact-card p{color:#61727b;font-size:13px;line-height:1.55;margin:0;max-width:500px}
+              .pn-contact-detail{display:block;font-size:14px;font-weight:700;margin-top:10px;text-decoration:none}
+              .pn-contact-detail:hover{text-decoration:underline}
+              .whatsapp .pn-contact-detail{color:#0a7350}
+              .email .pn-contact-detail{color:#1f61b0;overflow-wrap:anywhere}
+              .pn-contact-button{border:0;border-radius:7px;padding:12px 16px;font-size:12px;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-height:43px;transition:background 0.2s}
+              .whatsapp .pn-contact-button{background:var(--pn-wa);color:#fff !important}
+              .whatsapp .pn-contact-button:hover{background:#0c7049}
+              .email .pn-contact-button{background:var(--pn-mail);color:#fff !important}
+              .email .pn-contact-button:hover{background:#1959a7}
+              .pn-or{display:flex;align-items:center;justify-content:center;gap:13px;margin:25px 0;color:#8a969d;font-size:10px;font-weight:700;letter-spacing:1.3px}
+              .pn-or:before,.pn-or:after{content:'';height:1px;background:var(--pn-line);flex:1}
+              .pn-support-strip{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;background:#fff;border:1px solid var(--pn-line);margin-top:28px;padding:17px 21px}
+              .pn-support-icon{height:35px;width:35px;border-radius:50%;display:grid;place-items:center;background:#f6f1e8;color:var(--pn-gold)}
+              .pn-support-icon svg{width:18px;height:18px}
+              .pn-support-strip b{display:block;font-size:13px;color:var(--pn-ink)}
+              .pn-support-strip p{font-size:11px;color:var(--pn-muted);margin:4px 0 0}
+              .pn-support-phone{color:var(--pn-navy);font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap}
+              .pn-support-phone:hover{text-decoration:underline}
+              @media(max-width:760px){
+                .pn-enquiries{padding:0 0 35px}
+                .pn-enquiries h1{font-size:35px}
+                .pn-contact-card{grid-template-columns:55px 1fr;padding:22px;gap:15px}
+                .pn-contact-icon{height:48px;width:48px}
+                .pn-contact-icon svg{height:23px;width:23px}
+                .pn-contact-button{grid-column:1/-1;width:100%;margin-top:2px}
+                .pn-support-strip{grid-template-columns:35px 1fr}
+                .pn-support-phone{grid-column:1/-1;padding:5px 0 0 51px}
+              }
+              @media(max-width:420px){
+                .pn-enquiries h1{font-size:32px}
+                .pn-contact-card{padding:18px}
+                .pn-contact-card h3{font-size:18px}
+                .pn-contact-card p{font-size:12px}
+                .pn-support-strip{padding:16px}
+              }
+            `}} />
 
-            <div className="grid grid-cols-[245px_1fr] max-md:grid-cols-1 border border-line bg-white min-h-[390px] rounded">
-              <aside className="border-r max-md:border-r-0 max-md:border-b border-line max-md:flex max-md:overflow-x-auto">
-                {messages.map((t, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveThread(i)}
-                    className={`w-full max-md:min-w-[160px] max-md:w-auto border-0 border-b border-[#edf0f1] text-left p-[14px] cursor-pointer transition-colors ${i === activeThread
-                        ? "bg-[#f2f5f4] border-l-4 border-l-gold max-md:border-l-0 max-md:border-b-4 max-md:border-b-gold"
-                        : "bg-white hover:bg-gray-50"
-                      }`}
-                  >
-                    <b className="text-[12px] font-bold text-ink block">{t.name}</b>
-                    <span className="text-[10px] text-[#75838d] block mt-[4px] truncate">
-                      {t.topic}
-                    </span>
-                  </button>
-                ))}
-              </aside>
+            <main className="pn-enquiries" aria-labelledby="pn-enquiries-title">
+              <header className="pn-page-head">
+                <p className="pn-eyebrow">PropertiesNexus support</p>
+                <h1 id="pn-enquiries-title">My Enquiries</h1>
+                <p>Connect with our team for any property related assistance.</p>
+              </header>
 
-              <section className="p-[20px] flex flex-col justify-between max-sm:min-h-[285px]">
-                <div>
-                  <h2 className="text-[14px] font-bold m-0 text-ink">{activeThreadData.name}</h2>
-                  <p className="text-[11px] text-muted my-[4px] mb-[22px]">
-                    Regarding: {activeThreadData.topic}
-                  </p>
-                  <div className="flex flex-col gap-[12px] mb-[20px]">
-                    {activeThreadData.messages.map((m, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-[10px_12px] text-[12px] leading-[1.45] max-w-[75%] ${m[0] === "you"
-                            ? "bg-[#143957] text-white rounded-[12px_3px_12px_12px] ml-auto"
-                            : "bg-[#f2f4f3] text-ink rounded-[3px_12px_12px_12px]"
-                          }`}
-                      >
-                        {m[1]}
-                      </div>
-                    ))}
-                  </div>
+              <section aria-labelledby="pn-conversation-title">
+                <div className="pn-section-head">
+                  <h2 id="pn-conversation-title">Start Conversation With Us</h2>
+                  <p>Choose your preferred way to get in touch with our property experts.</p>
                 </div>
 
-                <form onSubmit={handleSendMessage} className="flex gap-[8px] mt-auto pt-4 border-t border-line">
-                  <input
-                    type="text"
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Write a message"
-                    className="flex-1 border border-line p-[10px] rounded-[7px] text-[12px] outline-0 bg-white text-ink"
-                  />
-                  <button
-                    type="submit"
-                    className="border-0 bg-navy hover:bg-navy2 !text-white rounded-[7px] px-[14px] text-[12px] font-bold cursor-pointer transition-colors"
-                  >
-                    Send
-                  </button>
-                </form>
+                <div className="pn-contact-stack">
+                  <article className="pn-contact-card whatsapp" aria-labelledby="pn-whatsapp-heading">
+                    <div className="pn-contact-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.35L3.5 20.5l1.55-4.38A8.4 8.4 0 1 1 20.5 11.6Z" />
+                        <path d="M8.5 8.2c.2-.48.42-.5.7-.51h.43c.13 0 .34.05.43.28l.72 1.75c.08.2.04.36-.04.5l-.31.48c-.1.12-.2.25-.09.45.11.2.5.83 1.08 1.34.75.67 1.37.87 1.58.97.2.1.32.08.44-.05l.55-.64c.14-.17.29-.14.49-.07l1.84.87c.22.11.36.17.41.27.05.1.05.6-.15 1.16-.2.56-1.13 1.07-1.56 1.13-.4.06-.91.09-1.47-.1-.34-.11-.77-.25-1.33-.49-2.33-1-3.86-3.31-3.98-3.46-.12-.15-.95-1.26-.95-2.4 0-1.15.6-1.71.82-1.94Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="pn-contact-label">WhatsApp</span>
+                      <h3 id="pn-whatsapp-heading">Chat with us on WhatsApp</h3>
+                      <p>Get instant support from our property advisors.<br />We usually reply within a few minutes.</p>
+                      <a
+                        className="pn-contact-detail"
+                        href="https://wa.me/919136331992?text=Hello%20PropertiesNexus%2C%20I%20have%20a%20property%20enquiry."
+                        aria-label="Chat with PropertiesNexus on WhatsApp at 91363 31992"
+                      >
+                        91363 31992
+                      </a>
+                    </div>
+                    <a
+                      className="pn-contact-button"
+                      href="https://wa.me/919136331992?text=Hello%20PropertiesNexus%2C%20I%20have%20a%20property%20enquiry."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Start a WhatsApp chat with PropertiesNexus"
+                    >
+                      Start WhatsApp Chat
+                    </a>
+                  </article>
+
+                  <div className="pn-or" role="separator" aria-label="or"><span>OR</span></div>
+
+                  <article className="pn-contact-card email" aria-labelledby="pn-email-heading">
+                    <div className="pn-contact-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                        <path d="m4 7 8 6 8-6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="pn-contact-label">Email</span>
+                      <h3 id="pn-email-heading">Email us your enquiry</h3>
+                      <p>Share your requirements with us and our team will get back to you soon.</p>
+                      <a
+                        className="pn-contact-detail"
+                        href="mailto:propertiesnexuss@gmail.com?subject=Property%20Enquiry%20-%20PropertiesNexus"
+                        aria-label="Email PropertiesNexus at propertiesnexuss@gmail.com"
+                      >
+                        propertiesnexuss@gmail.com
+                      </a>
+                    </div>
+                    <a
+                      className="pn-contact-button"
+                      href="mailto:propertiesnexuss@gmail.com?subject=Property%20Enquiry%20-%20PropertiesNexus"
+                      aria-label="Send a property enquiry by email"
+                    >
+                      Send Email Enquiry
+                    </a>
+                  </article>
+                </div>
               </section>
-            </div>
+
+              <aside className="pn-support-strip" aria-label="Direct phone support">
+                <span className="pn-support-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v2.2a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.64-3.08 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 3.36 2 2 0 0 1 4.1 1.2h2.2a2 2 0 0 1 2 1.72c.12.9.34 1.78.65 2.63a2 2 0 0 1-.45 2.1L7.57 8.6a16 16 0 0 0 6 6l.95-.94a2 2 0 0 1 2.1-.45c.85.31 1.73.53 2.63.65A2 2 0 0 1 22 16.92Z" />
+                  </svg>
+                </span>
+                <div>
+                  <b>Need immediate assistance?</b>
+                  <p>Call our support team and we'll be happy to help you.</p>
+                </div>
+                <a className="pn-support-phone" href="tel:+919136331992" aria-label="Call PropertiesNexus support at +91 91363 31992">
+                  +91 91363 31992
+                </a>
+              </aside>
+            </main>
           </div>
         )}
 
@@ -703,163 +781,6 @@ function UserDashboardContent() {
               )}
             </div>
           </div>
-        )}
-
-        {/* ENQUIRIES VIEW */}
-        {currentView === "enquiries" && (
-          <main aria-labelledby="pn-enquiries-title">
-            {/* Page Header */}
-            <header className="border-b border-[#dde4e6] pb-[26px] mb-[35px] mt-[8px]">
-              <p className="m-0 mb-[8px] text-[#cb8d31] text-[10px] font-bold tracking-[1.55px] uppercase">
-                PropertiesNexus support
-              </p>
-              <h1
-                id="pn-enquiries-title"
-                className="font-serif text-[42px] max-md:text-[35px] max-sm:text-[32px] font-medium tracking-[-1.2px] m-0 text-ink"
-              >
-                My Enquiries
-              </h1>
-              <p className="mt-[9px] mb-0 text-[#6c7b86] text-[14px]">
-                Connect with our team for any property related assistance.
-              </p>
-            </header>
-
-            {/* Start Conversation Section */}
-            <section aria-labelledby="pn-conversation-title">
-              <div className="mb-[19px]">
-                <h2
-                  id="pn-conversation-title"
-                  className="font-serif text-[27px] font-medium tracking-[-1.2px] m-0 mb-[7px] text-ink"
-                >
-                  Start Conversation With Us
-                </h2>
-                <p className="text-[13px] leading-[1.6] text-[#6c7b86] m-0">
-                  Choose your preferred way to get in touch with our property experts.
-                </p>
-              </div>
-
-              <div className="flex flex-col">
-                {/* WhatsApp Card */}
-                <article
-                  className="grid grid-cols-[72px_minmax(0,1fr)_auto] max-md:grid-cols-[55px_1fr] gap-[20px] max-md:gap-[15px] items-center border border-[#cbe8d8] min-h-[166px] p-[27px_29px] max-md:p-[22px] max-sm:p-[18px] bg-[#f3fbf6] shadow-[0_7px_20px_rgba(14,37,57,0.045)]"
-                  aria-labelledby="pn-whatsapp-heading"
-                >
-                  <div
-                    className="h-[58px] w-[58px] max-md:h-[48px] max-md:w-[48px] rounded-full grid place-items-center bg-[#dff4e8] text-[#128c5b]"
-                    aria-hidden="true"
-                  >
-                    <svg width="27" height="27" className="max-md:w-[23px] max-md:h-[23px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.35L3.5 20.5l1.55-4.38A8.4 8.4 0 1 1 20.5 11.6Z" />
-                      <path d="M8.5 8.2c.2-.48.42-.5.7-.51h.43c.13 0 .34.05.43.28l.72 1.75c.08.2.04.36-.04.5l-.31.48c-.1.12-.2.25-.09.45.11.2.5.83 1.08 1.34.75.67 1.37.87 1.58.97.2.1.32.08.44-.05l.55-.64c.14-.17.29-.14.49-.07l1.84.87c.22.11.36.17.41.27.05.1.05.6-.15 1.16-.2.56-1.13 1.07-1.56 1.13-.4.06-.91.09-1.47-.1-.34-.11-.77-.25-1.33-.49-2.33-1-3.86-3.31-3.98-3.46-.12-.15-.95-1.26-.95-2.4 0-1.15.6-1.71.82-1.94Z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold tracking-[1.4px] uppercase mb-[7px] text-[#187450]">
-                      WhatsApp
-                    </span>
-                    <h3 id="pn-whatsapp-heading" className="text-[20px] max-sm:text-[18px] font-bold leading-[1.2] m-0 mb-[7px] text-ink">
-                      Chat with us on WhatsApp
-                    </h3>
-                    <p className="text-[#61727b] text-[13px] max-sm:text-[12px] leading-[1.55] m-0 max-w-[500px]">
-                      Get instant support from our property advisors.<br />
-                      We usually reply within a few minutes.
-                    </p>
-                    <Link
-                      href="https://wa.me/919136331992?text=Hello%20PropertiesNexus%2C%20I%20have%20a%20property%20enquiry."
-                      className="block text-[14px] font-bold mt-[10px] text-[#0a7350] hover:underline"
-                      aria-label="Chat with PropertiesNexus on WhatsApp at 91363 31992"
-                    >
-                      91363 31992
-                    </Link>
-                  </div>
-                  <Link
-                    href="https://wa.me/919136331992?text=Hello%20PropertiesNexus%2C%20I%20have%20a%20property%20enquiry."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="border-0 rounded-[7px] bg-[#128c5b] hover:bg-[#0c7049] !text-white px-[16px] py-[12px] text-[12px] font-bold whitespace-nowrap inline-flex items-center justify-center min-h-[43px] transition-colors max-md:col-span-full max-md:w-full max-md:mt-[2px]"
-                    aria-label="Start a WhatsApp chat with PropertiesNexus"
-                  >
-                    Start WhatsApp Chat
-                  </Link>
-                </article>
-
-                {/* OR Divider */}
-                <div
-                  className="flex items-center justify-center gap-[13px] my-[25px] text-[#8a969d] text-[10px] font-bold tracking-[1.3px] before:content-[''] before:h-[1px] before:bg-[#dde4e6] before:flex-1 after:content-[''] after:h-[1px] after:bg-[#dde4e6] after:flex-1"
-                  role="separator"
-                  aria-label="or"
-                >
-                  <span>OR</span>
-                </div>
-
-                {/* Email Card */}
-                <article
-                  className="grid grid-cols-[72px_minmax(0,1fr)_auto] max-md:grid-cols-[55px_1fr] gap-[20px] max-md:gap-[15px] items-center border border-[#d6e5fa] min-h-[166px] p-[27px_29px] max-md:p-[22px] max-sm:p-[18px] bg-[#f5f9ff] shadow-[0_7px_20px_rgba(14,37,57,0.045)]"
-                  aria-labelledby="pn-email-heading"
-                >
-                  <div
-                    className="h-[58px] w-[58px] max-md:h-[48px] max-md:w-[48px] rounded-full grid place-items-center bg-[#e4efff] text-[#236bc7]"
-                    aria-hidden="true"
-                  >
-                    <svg width="27" height="27" className="max-md:w-[23px] max-md:h-[23px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="5" width="18" height="14" rx="2" />
-                      <path d="m4 7 8 6 8-6" />
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold tracking-[1.4px] uppercase mb-[7px] text-[#2967af]">
-                      Email
-                    </span>
-                    <h3 id="pn-email-heading" className="text-[20px] max-sm:text-[18px] font-bold leading-[1.2] m-0 mb-[7px] text-ink">
-                      Email us your enquiry
-                    </h3>
-                    <p className="text-[#61727b] text-[13px] max-sm:text-[12px] leading-[1.55] m-0 max-w-[500px]">
-                      Share your requirements with us and our team will get back to you soon.
-                    </p>
-                    <Link
-                      href="mailto:propertiesnexuss@gmail.com?subject=Property%20Enquiry%20-%20PropertiesNexus"
-                      className="block text-[14px] font-bold mt-[10px] text-[#1f61b0] hover:underline break-all"
-                      aria-label="Email PropertiesNexus at propertiesnexuss@gmail.com"
-                    >
-                      propertiesnexuss@gmail.com
-                    </Link>
-                  </div>
-                  <Link
-                    href="mailto:propertiesnexuss@gmail.com?subject=Property%20Enquiry%20-%20PropertiesNexus"
-                    className="border-0 rounded-[7px] bg-[#236bc7] hover:bg-[#1959a7] !text-white px-[16px] py-[12px] text-[12px] font-bold whitespace-nowrap inline-flex items-center justify-center min-h-[43px] transition-colors max-md:col-span-full max-md:w-full max-md:mt-[2px]"
-                    aria-label="Send a property enquiry by email"
-                  >
-                    Send Email Enquiry
-                  </Link>
-                </article>
-              </div>
-            </section>
-
-            {/* Phone Support Strip */}
-            <aside
-              className="grid grid-cols-[auto_1fr_auto] max-md:grid-cols-[35px_1fr] items-center gap-[16px] bg-white border border-[#dde4e6] mt-[28px] p-[17px_21px] max-sm:p-[16px]"
-              aria-label="Direct phone support"
-            >
-              <span className="h-[35px] w-[35px] rounded-full grid place-items-center bg-[#f6f1e8] text-[#cb8d31]" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v2.2a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.64-3.08 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 3.36 2 2 0 0 1 4.1 1.2h2.2a2 2 0 0 1 2 1.72c.12.9.34 1.78.65 2.63a2 2 0 0 1-.45 2.1L7.57 8.6a16 16 0 0 0 6 6l.95-.94a2 2 0 0 1 2.1-.45c.85.31 1.73.53 2.63.65A2 2 0 0 1 22 16.92Z" />
-                </svg>
-              </span>
-              <div>
-                <b className="block text-[13px] text-ink">Need immediate assistance?</b>
-                <p className="text-[11px] text-[#6c7b86] m-0 mt-[4px]">
-                  Call our support team and we&apos;ll be happy to help you.
-                </p>
-              </div>
-              <Link
-                href="tel:+919136331992"
-                className="text-ink text-[14px] font-bold no-underline whitespace-nowrap hover:underline max-md:col-span-full max-md:pl-[51px] max-md:pt-[5px]"
-                aria-label="Call PropertiesNexus support at +91 91363 31992"
-              >
-                +91 91363 31992
-              </Link>
-            </aside>
-          </main>
         )}
 
         {/* SETTINGS VIEW */}
