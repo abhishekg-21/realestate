@@ -12,7 +12,6 @@ import {
   AUTH_CHANGE_EVENT,
   SAVED_CHANGE_EVENT,
 } from "@/lib/auth-cache";
-import { createClient } from "@/utils/supabase/client";
 
 interface AlertItem {
   name: string;
@@ -40,47 +39,51 @@ function UserDashboardContent() {
   const router = useRouter();
   const currentView = searchParams.get("view") || "overview";
 
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [nameInput, setNameInput] = useState("");
-  const [emailInput, setEmailInput] = useState("");
-  const [phoneInput, setPhoneInput] = useState("");
-  const [locationInput, setLocationInput] = useState("");
+  const [userName, setUserName] = useState("Aarav Shah");
+  const [userEmail, setUserEmail] = useState("aarav@example.com");
+  const [nameInput, setNameInput] = useState("Aarav Shah");
+  const [emailInput, setEmailInput] = useState("aarav@example.com");
+  const [phoneInput, setPhoneInput] = useState("+91 98765 43210");
+  const [locationInput, setLocationInput] = useState("Mumbai, India");
   const [userAvatar, setUserAvatar] = useState("");
   const [avatarInput, setAvatarInput] = useState("");
-  const [profileLoading, setProfileLoading] = useState(true);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
 
+  useEffect(() => {
+    const loadState = () => {
+      const u = getCachedUser();
+      if (u) {
+        setUserName(u.name);
+        setNameInput(u.name);
+        if (u.email) setUserEmail(u.email);
+        if (u.avatar && u.avatar.startsWith("data:image")) {
+          setUserAvatar(u.avatar);
+          setAvatarInput(u.avatar);
+        }
+      }
+      setSavedIds(getSavedPropertyIds());
+    };
+    loadState();
+    window.addEventListener(AUTH_CHANGE_EVENT, loadState);
+    window.addEventListener(SAVED_CHANGE_EVENT, loadState);
+    return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, loadState);
+      window.removeEventListener(SAVED_CHANGE_EVENT, loadState);
+    };
+  }, []);
   const [alerts, setAlerts] = useState<AlertItem[]>([
-    {
-      name: "3-bedroom homes in Mumbai",
-      detail: "Buy · Apartment or villa · ₹ 2 Cr to ₹ 10 Cr",
-      on: true,
-    },
-    {
-      name: "Villas in Goa",
-      detail: "Rent · 3+ bedrooms · Any budget",
-      on: true,
-    },
+    { name: "3-bedroom homes in Mumbai", detail: "Buy · Apartment or villa · ₹ 2 Cr to ₹ 10 Cr", on: true },
+    { name: "Villas in Goa", detail: "Rent · 3+ bedrooms · Any budget", on: true },
   ]);
   const [listings, setListings] = useState<ListingItem[]>([
-    {
-      title: "Bandra Atelier",
-      type: "Apartment",
-      city: "Mumbai",
-      price: "₹ 98k / mo",
-      beds: "2",
-      status: "Live",
-    },
+    { title: "Bandra Atelier", type: "Apartment", city: "Mumbai", price: "₹ 98k / mo", beds: "2", status: "Live" },
   ]);
   const [messages, setMessages] = useState<MessageThread[]>([
     {
       name: "Maya · Property advisor",
       topic: "Skyline Residences",
       messages: [
-        [
-          "advisor",
-          "Hello Aarav, I can help arrange a viewing for Skyline Residences.",
-        ],
+        ["advisor", "Hello Aarav, I can help arrange a viewing for Skyline Residences."],
         ["you", "Thank you. I would like to see it this weekend."],
       ],
     },
@@ -90,9 +93,7 @@ function UserDashboardContent() {
   const [toastMsg, setToastMsg] = useState("");
 
   // Modals state
-  const [modalType, setModalType] = useState<
-    "alert" | "listing" | "message" | null
-  >(null);
+  const [modalType, setModalType] = useState<"alert" | "listing" | "message" | null>(null);
   const [alertName, setAlertName] = useState("");
   const [alertPurpose, setAlertPurpose] = useState("Buy");
   const [alertType, setAlertType] = useState("Apartment");
@@ -104,91 +105,6 @@ function UserDashboardContent() {
   const [listBeds, setListBeds] = useState("2");
   const [msgTopic, setMsgTopic] = useState("");
   const [msgText, setMsgText] = useState("");
-  const [savedIds, setSavedIds] = useState<string[]>([]);
-
-  const savedProperties = PROPERTIES.filter((p) => savedIds.includes(p.id));
-  const activeThreadData = messages[activeThread] || messages[0];
-
-  const viewTitles: Record<string, string> = {
-    overview: "Home base",
-    saved: "Saved spaces",
-    alerts: "Match alerts",
-    messages: "Conversations",
-    sell: "Sell a property",
-    settings: "Account studio",
-  };
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      const supabase = createClient();
-
-      // 1. Get authenticated user from Supabase
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        // 2. Fetch their profile row from the profiles table
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select(
-            "full_name, phone, agency_name, bio, verification_status, logo_url",
-          )
-          .eq("id", user.id)
-          .single();
-
-        const fullName =
-          profile?.full_name ||
-          user.user_metadata?.full_name ||
-          user.email?.split("@")[0] ||
-          "";
-        const phone = profile?.phone || user.user_metadata?.phone || "";
-        const email = user.email || "";
-
-        // 3. Update all display state
-        setUserName(fullName);
-        setNameInput(fullName);
-        setUserEmail(email);
-        setEmailInput(email);
-        setPhoneInput(phone);
-        // Location isn't in your DB schema yet — use cache or default
-        setLocationInput("");
-
-        // 4. Avatar from cache (stored as base64 locally)
-        const cached = getCachedUser();
-        if (cached?.avatar?.startsWith("data:image")) {
-          setUserAvatar(cached.avatar);
-          setAvatarInput(cached.avatar);
-        }
-
-        // 5. Keep cache in sync
-        setCachedUser({
-          name: fullName,
-          email,
-          role: profile?.verification_status || cached?.role || "buyer",
-          avatar: cached?.avatar || "",
-          location: cached?.location || "",
-        });
-      }
-
-      setProfileLoading(false);
-      setSavedIds(getSavedPropertyIds());
-    };
-
-    loadProfile();
-
-    window.addEventListener(AUTH_CHANGE_EVENT, loadProfile);
-    window.addEventListener(SAVED_CHANGE_EVENT, () =>
-      setSavedIds(getSavedPropertyIds()),
-    );
-
-    return () => {
-      window.removeEventListener(AUTH_CHANGE_EVENT, loadProfile);
-      window.removeEventListener(SAVED_CHANGE_EVENT, () =>
-        setSavedIds(getSavedPropertyIds()),
-      );
-    };
-  }, []);
 
   const showToast = (text: string) => {
     setToastMsg(text);
@@ -226,45 +142,21 @@ function UserDashboardContent() {
     }
   };
 
-  const handleSaveName = async () => {
-    if (!nameInput.trim()) return;
-
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      showToast("Not logged in.");
-      return;
+  const handleSaveName = () => {
+    if (nameInput.trim()) {
+      const updatedName = nameInput.trim();
+      setUserName(updatedName);
+      setUserEmail(emailInput);
+      if (avatarInput) setUserAvatar(avatarInput);
+      setCachedUser({
+        name: updatedName,
+        email: emailInput,
+        role: getCachedUser()?.role || "buyer",
+        avatar: avatarInput,
+        // In a real app we'd save phone and location here too
+      });
+      showToast("Profile updated successfully.");
     }
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: nameInput.trim(),
-        phone: phoneInput,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
-
-    if (error) {
-      showToast("Failed to save: " + error.message);
-      return;
-    }
-
-    setUserName(nameInput.trim());
-    setUserEmail(emailInput);
-    if (avatarInput) setUserAvatar(avatarInput);
-
-    setCachedUser({
-      name: nameInput.trim(),
-      email: emailInput,
-      role: getCachedUser()?.role || "buyer",
-      avatar: avatarInput,
-    });
-
-    showToast("Profile updated successfully.");
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -282,11 +174,7 @@ function UserDashboardContent() {
   const handleCreateAlert = (e: React.FormEvent) => {
     e.preventDefault();
     setAlerts([
-      {
-        name: alertName,
-        detail: `${alertPurpose} · ${alertType} · ${alertArea}`,
-        on: true,
-      },
+      { name: alertName, detail: `${alertPurpose} · ${alertType} · ${alertArea}`, on: true },
       ...alerts,
     ]);
     setModalType(null);
@@ -298,14 +186,7 @@ function UserDashboardContent() {
   const handleCreateListing = (e: React.FormEvent) => {
     e.preventDefault();
     setListings([
-      {
-        title: listTitle,
-        type: listType,
-        city: listCity,
-        price: listPrice,
-        beds: listBeds,
-        status: "Draft",
-      },
+      { title: listTitle, type: listType, city: listCity, price: listPrice, beds: listBeds, status: "Draft" },
       ...listings,
     ]);
     setModalType(null);
@@ -318,11 +199,7 @@ function UserDashboardContent() {
   const handleCreateMessage = (e: React.FormEvent) => {
     e.preventDefault();
     setMessages([
-      {
-        name: "PropertiesNexus Advisor",
-        topic: msgTopic,
-        messages: [["you", msgText]],
-      },
+      { name: "PropertiesNexus Advisor", topic: msgTopic, messages: [["you", msgText]] },
       ...messages,
     ]);
     setModalType(null);
@@ -330,6 +207,19 @@ function UserDashboardContent() {
     setMsgText("");
     setActiveThread(0);
     showToast("Your enquiry has been sent.");
+  };
+
+  const savedProperties = PROPERTIES.filter((p) => savedIds.includes(p.id));
+  const activeThreadData = messages[activeThread] || messages[0];
+
+  const viewTitles: Record<string, string> = {
+    overview: "Home base",
+    saved: "Saved spaces",
+    alerts: "Match alerts",
+    messages: "Conversations",
+    sell: "Sell a property",
+    enquiries: "My Enquiries",
+    settings: "Account studio",
   };
 
   return (
@@ -342,6 +232,7 @@ function UserDashboardContent() {
         <nav className="flex gap-[22px] ml-[24px] text-[12px] font-bold text-[#546471] max-md:hidden">
           <Link href="/properties">Properties</Link>
           <Link href="/#areas">Locations</Link>
+          <button onClick={() => switchView("enquiries")} className="border-0 bg-transparent text-[#546471] font-bold text-[12px] cursor-pointer hover:text-ink">My Enquiries</button>
         </nav>
         <div className="ml-auto flex items-center gap-[11px]">
           <button
@@ -356,11 +247,7 @@ function UserDashboardContent() {
             className="border border-line bg-white rounded-[21px] p-[5px_10px_5px_5px] flex items-center gap-[7px] text-[11px] font-bold cursor-pointer hover:bg-gray-50 transition-colors"
           >
             {userAvatar ? (
-              <img
-                src={userAvatar}
-                alt="Profile"
-                className="h-[27px] w-[27px] rounded-full object-cover"
-              />
+              <img src={userAvatar} alt="Profile" className="h-[27px] w-[27px] rounded-full object-cover" />
             ) : (
               <span className="h-[27px] w-[27px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[13px]">
                 {userName.charAt(0)}
@@ -373,87 +260,10 @@ function UserDashboardContent() {
 
       {/* Main Container */}
       <div className="max-w-[1280px] w-full p-[37px_clamp(20px,4vw,52px)_70px] max-md:p-[25px_16px_55px] mx-auto flex-1">
+
         {/* OVERVIEW VIEW */}
         {currentView === "overview" && (
           <div>
-            {/* At a glance — summary cards */}
-            <div className="flex justify-between items-end mb-[14px]">
-              <div>
-                <p className="m-0 mb-[5px] text-[#a4681c] text-[10px] font-bold tracking-[1.5px] uppercase">
-                  Account overview
-                </p>
-                <h2 className="font-serif text-[28px] font-medium tracking-[-1px] m-0">
-                  At a glance
-                </h2>
-              </div>
-              <span className="text-[11px] text-[#798791]">
-                Your private account summary
-              </span>
-            </div>
-            <div className="grid grid-cols-4 max-md:grid-cols-2 gap-[14px] max-sm:gap-[9px] mb-[25px]">
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#eaf1ff] text-[#2c68d9] text-[14px]">
-                  ◷
-                </span>
-                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
-                  Property sessions
-                </p>
-                <b className="block font-serif text-[25px] font-medium text-ink">
-                  1
-                </b>
-                <small className="block mt-[4px] text-[#85929a] text-[10px]">
-                  Current signed-in session
-                </small>
-              </article>
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e] text-[14px]">
-                  ◌
-                </span>
-                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
-                  Member since
-                </p>
-                <b className="block font-serif text-[20px] font-medium text-ink">
-                  {new Date().toLocaleString("en-IN", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </b>
-                <small className="block mt-[4px] text-[#85929a] text-[10px]">
-                  PropertiesNexus account
-                </small>
-              </article>
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#e2faed] text-[#078b58] text-[14px]">
-                  ✓
-                </span>
-                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
-                  Account status
-                </p>
-                <b className="block font-serif text-[25px] font-medium text-ink">
-                  Active
-                </b>
-                <small className="block mt-[4px] text-[#85929a] text-[10px]">
-                  Verified account
-                </small>
-              </article>
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#fff2df] text-[#aa701d] text-[14px]">
-                  ▦
-                </span>
-                <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
-                  Properties listed
-                </p>
-                <b className="block font-serif text-[25px] font-medium text-ink">
-                  {listings.length}
-                </b>
-                <small className="block mt-[4px] text-[#85929a] text-[10px]">
-                  {listings.length
-                    ? `${listings.filter((l) => l.status === "Live").length} live · ${listings.filter((l) => l.status !== "Live").length} draft`
-                    : "No active listings"}
-                </small>
-              </article>
-            </div>
-
             <div className="bg-gradient-to-r from-[#f8ecda] via-[#fff8ed] to-[#ecf2f1] p-[28px_30px] max-sm:p-[23px] border border-[#eadbc5] rounded relative overflow-hidden">
               <p className="text-[10px] uppercase tracking-[1.5px] font-bold text-[#a4681c] m-0 mb-[12px]">
                 Your next address, considered
@@ -462,8 +272,7 @@ function UserDashboardContent() {
                 Welcome back, {userName.split(" ")[0]}.
               </h1>
               <p className="text-[13px] text-[#596a75] max-w-[500px] leading-[1.65] my-[10px] mb-[20px]">
-                Keep your saved homes, property conversations and selling plans
-                together in one thoughtful place.
+                Keep your saved homes, property conversations and selling plans together in one thoughtful place.
               </p>
               <button
                 onClick={() => switchView("saved")}
@@ -493,9 +302,7 @@ function UserDashboardContent() {
                   <b className="block font-serif text-[25px] font-medium my-[13px] mb-[2px] text-ink">
                     {savedIds.length}
                   </b>
-                  <span className="text-[10px] text-[#73818c]">
-                    Saved spaces
-                  </span>
+                  <span className="text-[10px] text-[#73818c]">Saved spaces</span>
                 </div>
               </article>
               <article className="bg-white border border-line p-[17px] min-h-[125px] rounded flex flex-col justify-between">
@@ -506,9 +313,7 @@ function UserDashboardContent() {
                   <b className="block font-serif text-[25px] font-medium my-[13px] mb-[2px] text-ink">
                     {messages.length}
                   </b>
-                  <span className="text-[10px] text-[#73818c]">
-                    Open conversations
-                  </span>
+                  <span className="text-[10px] text-[#73818c]">Open conversations</span>
                 </div>
               </article>
               <article className="bg-white border border-line p-[17px] min-h-[125px] rounded flex flex-col justify-between max-md:col-span-2 max-sm:col-span-1">
@@ -519,9 +324,7 @@ function UserDashboardContent() {
                   <b className="block font-serif text-[25px] font-medium my-[13px] mb-[2px] text-ink">
                     {alerts.filter((a) => a.on).length}
                   </b>
-                  <span className="text-[10px] text-[#73818c]">
-                    Active match alerts
-                  </span>
+                  <span className="text-[10px] text-[#73818c]">Active match alerts</span>
                 </div>
               </article>
             </div>
@@ -529,9 +332,7 @@ function UserDashboardContent() {
             <div className="grid grid-cols-[1.2fr_0.8fr] max-lg:grid-cols-1 gap-[15px] mt-[15px]">
               <section className="bg-white border border-line p-[20px] rounded">
                 <div className="flex justify-between items-center mb-[16px]">
-                  <h2 className="text-[15px] m-0 font-bold text-ink">
-                    Move forward with confidence
-                  </h2>
+                  <h2 className="text-[15px] m-0 font-bold text-ink">Next best actions</h2>
                   <button
                     onClick={() => switchView("alerts")}
                     className="text-[#a36a1c] text-[11px] font-bold border-0 bg-transparent cursor-pointer hover:underline"
@@ -545,12 +346,9 @@ function UserDashboardContent() {
                       01
                     </span>
                     <div>
-                      <b className="text-[12px] font-bold text-ink">
-                        Refine your saved areas
-                      </b>
+                      <b className="text-[12px] font-bold text-ink">Refine your saved areas</b>
                       <p className="text-[10px] text-[#788691] m-0 mt-[3px]">
-                        Set a match alert and get notified when something
-                        relevant appears.
+                        Set a match alert and get notified when something relevant appears.
                       </p>
                     </div>
                     <button
@@ -565,12 +363,9 @@ function UserDashboardContent() {
                       02
                     </span>
                     <div>
-                      <b className="text-[12px] font-bold text-ink">
-                        Arrange a private viewing
-                      </b>
+                      <b className="text-[12px] font-bold text-ink">Arrange a private viewing</b>
                       <p className="text-[10px] text-[#788691] m-0 mt-[3px]">
-                        Choose a saved property and send your request to an
-                        advisor.
+                        Choose a saved property and send your request to an advisor.
                       </p>
                     </div>
                     <button
@@ -585,12 +380,9 @@ function UserDashboardContent() {
                       03
                     </span>
                     <div>
-                      <b className="text-[12px] font-bold text-ink">
-                        Prepare to sell
-                      </b>
+                      <b className="text-[12px] font-bold text-ink">Prepare to sell</b>
                       <p className="text-[10px] text-[#788691] m-0 mt-[3px]">
-                        Start a draft listing when you are ready to reach
-                        buyers.
+                        Start a draft listing when you are ready to reach buyers.
                       </p>
                     </div>
                     <button
@@ -605,31 +397,23 @@ function UserDashboardContent() {
 
               <section className="bg-white border border-line p-[20px] rounded">
                 <div className="flex justify-between items-center mb-[16px]">
-                  <h2 className="text-[15px] m-0 font-bold text-ink">
-                    Latest activity
-                  </h2>
+                  <h2 className="text-[15px] m-0 font-bold text-ink">Latest activity</h2>
                 </div>
                 <div className="grid gap-[15px]">
                   <div className="pl-[18px] text-[12px] leading-[1.45] text-ink relative">
                     <span className="absolute left-0 top-[5px] h-[8px] w-[8px] rounded-full bg-gold" />
                     A new listing aligns with your Mumbai alert.
-                    <small className="block text-[10px] text-[#87949c] mt-[3px]">
-                      Today
-                    </small>
+                    <small className="block text-[10px] text-[#87949c] mt-[3px]">Today</small>
                   </div>
                   <div className="pl-[18px] text-[12px] leading-[1.45] text-ink relative">
                     <span className="absolute left-0 top-[5px] h-[8px] w-[8px] rounded-full bg-gold" />
                     Your viewing enquiry was received by the property advisor.
-                    <small className="block text-[10px] text-[#87949c] mt-[3px]">
-                      Yesterday
-                    </small>
+                    <small className="block text-[10px] text-[#87949c] mt-[3px]">Yesterday</small>
                   </div>
                   <div className="pl-[18px] text-[12px] leading-[1.45] text-ink relative">
                     <span className="absolute left-0 top-[5px] h-[8px] w-[8px] rounded-full bg-gold" />
                     A saved villa in Goa has a new price.
-                    <small className="block text-[10px] text-[#87949c] mt-[3px]">
-                      3 days ago
-                    </small>
+                    <small className="block text-[10px] text-[#87949c] mt-[3px]">3 days ago</small>
                   </div>
                 </div>
               </section>
@@ -670,10 +454,7 @@ function UserDashboardContent() {
                       style={{ backgroundImage: `url('${p.image}')` }}
                     />
                     <div className="min-w-0 max-sm:col-start-2">
-                      <Link
-                        href={`/properties/${p.id}`}
-                        className="hover:text-gold transition-colors block"
-                      >
+                      <Link href={`/properties/${p.id}`} className="hover:text-gold transition-colors block">
                         <h3 className="text-[13px] font-bold m-0 mb-[4px] text-ink truncate">
                           {p.title}
                         </h3>
@@ -696,13 +477,8 @@ function UserDashboardContent() {
                 ))
               ) : (
                 <div className="border border-dashed border-[#bdc8cc] p-[38px] text-center text-[12px] text-muted rounded bg-white">
-                  No saved spaces yet.
-                  <br />
-                  <br />
-                  <Link
-                    href="/properties"
-                    className="inline-block bg-navy !text-white font-bold px-4 py-2 rounded"
-                  >
+                  No saved spaces yet.<br /><br />
+                  <Link href="/properties" className="inline-block bg-navy !text-white font-bold px-4 py-2 rounded">
                     Explore properties
                   </Link>
                 </div>
@@ -739,9 +515,7 @@ function UserDashboardContent() {
                     className="border border-line bg-white p-[17px] rounded flex justify-between items-center gap-[8px]"
                   >
                     <div>
-                      <h3 className="text-[13px] font-bold m-0 mb-[5px] text-ink">
-                        {a.name}
-                      </h3>
+                      <h3 className="text-[13px] font-bold m-0 mb-[5px] text-ink">{a.name}</h3>
                       <p className="text-[11px] text-muted m-0">{a.detail}</p>
                     </div>
                     <div className="flex items-center gap-[10px]">
@@ -759,9 +533,7 @@ function UserDashboardContent() {
                 ))
               ) : (
                 <div className="border border-dashed border-[#bdc8cc] p-[38px] text-center text-[12px] text-muted rounded bg-white">
-                  No match alerts yet.
-                  <br />
-                  <br />
+                  No match alerts yet.<br /><br />
                   <button
                     onClick={() => setModalType("alert")}
                     className="bg-navy !text-white font-bold px-4 py-2 rounded border-0 cursor-pointer"
@@ -800,15 +572,12 @@ function UserDashboardContent() {
                   <button
                     key={i}
                     onClick={() => setActiveThread(i)}
-                    className={`w-full max-md:min-w-[160px] max-md:w-auto border-0 border-b border-[#edf0f1] text-left p-[14px] cursor-pointer transition-colors ${
-                      i === activeThread
+                    className={`w-full max-md:min-w-[160px] max-md:w-auto border-0 border-b border-[#edf0f1] text-left p-[14px] cursor-pointer transition-colors ${i === activeThread
                         ? "bg-[#f2f5f4] border-l-4 border-l-gold max-md:border-l-0 max-md:border-b-4 max-md:border-b-gold"
                         : "bg-white hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
-                    <b className="text-[12px] font-bold text-ink block">
-                      {t.name}
-                    </b>
+                    <b className="text-[12px] font-bold text-ink block">{t.name}</b>
                     <span className="text-[10px] text-[#75838d] block mt-[4px] truncate">
                       {t.topic}
                     </span>
@@ -818,9 +587,7 @@ function UserDashboardContent() {
 
               <section className="p-[20px] flex flex-col justify-between max-sm:min-h-[285px]">
                 <div>
-                  <h2 className="text-[14px] font-bold m-0 text-ink">
-                    {activeThreadData.name}
-                  </h2>
+                  <h2 className="text-[14px] font-bold m-0 text-ink">{activeThreadData.name}</h2>
                   <p className="text-[11px] text-muted my-[4px] mb-[22px]">
                     Regarding: {activeThreadData.topic}
                   </p>
@@ -828,11 +595,10 @@ function UserDashboardContent() {
                     {activeThreadData.messages.map((m, idx) => (
                       <div
                         key={idx}
-                        className={`p-[10px_12px] text-[12px] leading-[1.45] max-w-[75%] ${
-                          m[0] === "you"
+                        className={`p-[10px_12px] text-[12px] leading-[1.45] max-w-[75%] ${m[0] === "you"
                             ? "bg-[#143957] text-white rounded-[12px_3px_12px_12px] ml-auto"
                             : "bg-[#f2f4f3] text-ink rounded-[3px_12px_12px_12px]"
-                        }`}
+                          }`}
                       >
                         {m[1]}
                       </div>
@@ -840,10 +606,7 @@ function UserDashboardContent() {
                   </div>
                 </div>
 
-                <form
-                  onSubmit={handleSendMessage}
-                  className="flex gap-[8px] mt-auto pt-4 border-t border-line"
-                >
+                <form onSubmit={handleSendMessage} className="flex gap-[8px] mt-auto pt-4 border-t border-line">
                   <input
                     type="text"
                     value={replyText}
@@ -872,8 +635,7 @@ function UserDashboardContent() {
                   Sell a property
                 </h1>
                 <p className="text-[12px] text-muted mt-[7px] mb-0">
-                  Build your listing at your pace, then bring it to the right
-                  audience.
+                  Build your listing at your pace, then bring it to the right audience.
                 </p>
               </div>
               <button
@@ -887,46 +649,33 @@ function UserDashboardContent() {
             <div className="grid grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-[14px]">
               {listings.length > 0 ? (
                 listings.map((item, idx) => (
-                  <article
-                    key={idx}
-                    className="bg-white border border-line rounded overflow-hidden flex flex-col"
-                  >
+                  <article key={idx} className="bg-white border border-line rounded overflow-hidden flex flex-col">
                     <div
                       className="h-[150px] bg-cover bg-center"
                       style={{
-                        backgroundImage: `url('${
-                          idx % 2
+                        backgroundImage: `url('${idx % 2
                             ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=750&q=80"
                             : "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=750&q=80"
-                        }')`,
+                          }')`,
                       }}
                     />
                     <div className="p-[14px] flex flex-col flex-1">
                       <span
-                        className={`text-[9px] font-bold p-[5px_7px] rounded-[12px] w-max uppercase ${
-                          item.status === "Draft"
+                        className={`text-[9px] font-bold p-[5px_7px] rounded-[12px] w-max uppercase ${item.status === "Draft"
                             ? "bg-[#fff5df] text-[#a16d14]"
                             : "bg-[#eaf7ef] text-green"
-                        }`}
+                          }`}
                       >
                         {item.status}
                       </span>
-                      <h3 className="text-[13px] font-bold my-[9px] mb-[4px] text-ink">
-                        {item.title}
-                      </h3>
+                      <h3 className="text-[13px] font-bold my-[9px] mb-[4px] text-ink">{item.title}</h3>
                       <p className="text-[10px] text-muted m-0 mb-[10px]">
                         {item.type} · {item.city} · {item.beds} Bed
                       </p>
-                      <b className="text-[12px] font-bold text-ink mt-auto">
-                        {item.price}
-                      </b>
+                      <b className="text-[12px] font-bold text-ink mt-auto">{item.price}</b>
                       <div className="flex gap-[8px] mt-[13px] pt-[10px] border-t border-line">
                         <button
-                          onClick={() =>
-                            showToast(
-                              "The full listing editor will be connected to secure property management.",
-                            )
-                          }
+                          onClick={() => showToast("The full listing editor will be connected to secure property management.")}
                           className="border border-line bg-white p-[7px_9px] text-[10px] font-bold cursor-pointer rounded hover:bg-gray-50 flex-1"
                         >
                           Edit
@@ -943,9 +692,7 @@ function UserDashboardContent() {
                 ))
               ) : (
                 <div className="col-span-full border border-dashed border-[#bdc8cc] p-[38px] text-center text-[12px] text-muted rounded bg-white">
-                  No property drafts or live listings yet.
-                  <br />
-                  <br />
+                  No property drafts or live listings yet.<br /><br />
                   <button
                     onClick={() => setModalType("listing")}
                     className="bg-navy !text-white font-bold px-4 py-2 rounded border-0 cursor-pointer"
@@ -956,6 +703,163 @@ function UserDashboardContent() {
               )}
             </div>
           </div>
+        )}
+
+        {/* ENQUIRIES VIEW */}
+        {currentView === "enquiries" && (
+          <main aria-labelledby="pn-enquiries-title">
+            {/* Page Header */}
+            <header className="border-b border-[#dde4e6] pb-[26px] mb-[35px] mt-[8px]">
+              <p className="m-0 mb-[8px] text-[#cb8d31] text-[10px] font-bold tracking-[1.55px] uppercase">
+                PropertiesNexus support
+              </p>
+              <h1
+                id="pn-enquiries-title"
+                className="font-serif text-[42px] max-md:text-[35px] max-sm:text-[32px] font-medium tracking-[-1.2px] m-0 text-ink"
+              >
+                My Enquiries
+              </h1>
+              <p className="mt-[9px] mb-0 text-[#6c7b86] text-[14px]">
+                Connect with our team for any property related assistance.
+              </p>
+            </header>
+
+            {/* Start Conversation Section */}
+            <section aria-labelledby="pn-conversation-title">
+              <div className="mb-[19px]">
+                <h2
+                  id="pn-conversation-title"
+                  className="font-serif text-[27px] font-medium tracking-[-1.2px] m-0 mb-[7px] text-ink"
+                >
+                  Start Conversation With Us
+                </h2>
+                <p className="text-[13px] leading-[1.6] text-[#6c7b86] m-0">
+                  Choose your preferred way to get in touch with our property experts.
+                </p>
+              </div>
+
+              <div className="flex flex-col">
+                {/* WhatsApp Card */}
+                <article
+                  className="grid grid-cols-[72px_minmax(0,1fr)_auto] max-md:grid-cols-[55px_1fr] gap-[20px] max-md:gap-[15px] items-center border border-[#cbe8d8] min-h-[166px] p-[27px_29px] max-md:p-[22px] max-sm:p-[18px] bg-[#f3fbf6] shadow-[0_7px_20px_rgba(14,37,57,0.045)]"
+                  aria-labelledby="pn-whatsapp-heading"
+                >
+                  <div
+                    className="h-[58px] w-[58px] max-md:h-[48px] max-md:w-[48px] rounded-full grid place-items-center bg-[#dff4e8] text-[#128c5b]"
+                    aria-hidden="true"
+                  >
+                    <svg width="27" height="27" className="max-md:w-[23px] max-md:h-[23px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.35L3.5 20.5l1.55-4.38A8.4 8.4 0 1 1 20.5 11.6Z" />
+                      <path d="M8.5 8.2c.2-.48.42-.5.7-.51h.43c.13 0 .34.05.43.28l.72 1.75c.08.2.04.36-.04.5l-.31.48c-.1.12-.2.25-.09.45.11.2.5.83 1.08 1.34.75.67 1.37.87 1.58.97.2.1.32.08.44-.05l.55-.64c.14-.17.29-.14.49-.07l1.84.87c.22.11.36.17.41.27.05.1.05.6-.15 1.16-.2.56-1.13 1.07-1.56 1.13-.4.06-.91.09-1.47-.1-.34-.11-.77-.25-1.33-.49-2.33-1-3.86-3.31-3.98-3.46-.12-.15-.95-1.26-.95-2.4 0-1.15.6-1.71.82-1.94Z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold tracking-[1.4px] uppercase mb-[7px] text-[#187450]">
+                      WhatsApp
+                    </span>
+                    <h3 id="pn-whatsapp-heading" className="text-[20px] max-sm:text-[18px] font-bold leading-[1.2] m-0 mb-[7px] text-ink">
+                      Chat with us on WhatsApp
+                    </h3>
+                    <p className="text-[#61727b] text-[13px] max-sm:text-[12px] leading-[1.55] m-0 max-w-[500px]">
+                      Get instant support from our property advisors.<br />
+                      We usually reply within a few minutes.
+                    </p>
+                    <Link
+                      href="https://wa.me/919136331992?text=Hello%20PropertiesNexus%2C%20I%20have%20a%20property%20enquiry."
+                      className="block text-[14px] font-bold mt-[10px] text-[#0a7350] hover:underline"
+                      aria-label="Chat with PropertiesNexus on WhatsApp at 91363 31992"
+                    >
+                      91363 31992
+                    </Link>
+                  </div>
+                  <Link
+                    href="https://wa.me/919136331992?text=Hello%20PropertiesNexus%2C%20I%20have%20a%20property%20enquiry."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border-0 rounded-[7px] bg-[#128c5b] hover:bg-[#0c7049] !text-white px-[16px] py-[12px] text-[12px] font-bold whitespace-nowrap inline-flex items-center justify-center min-h-[43px] transition-colors max-md:col-span-full max-md:w-full max-md:mt-[2px]"
+                    aria-label="Start a WhatsApp chat with PropertiesNexus"
+                  >
+                    Start WhatsApp Chat
+                  </Link>
+                </article>
+
+                {/* OR Divider */}
+                <div
+                  className="flex items-center justify-center gap-[13px] my-[25px] text-[#8a969d] text-[10px] font-bold tracking-[1.3px] before:content-[''] before:h-[1px] before:bg-[#dde4e6] before:flex-1 after:content-[''] after:h-[1px] after:bg-[#dde4e6] after:flex-1"
+                  role="separator"
+                  aria-label="or"
+                >
+                  <span>OR</span>
+                </div>
+
+                {/* Email Card */}
+                <article
+                  className="grid grid-cols-[72px_minmax(0,1fr)_auto] max-md:grid-cols-[55px_1fr] gap-[20px] max-md:gap-[15px] items-center border border-[#d6e5fa] min-h-[166px] p-[27px_29px] max-md:p-[22px] max-sm:p-[18px] bg-[#f5f9ff] shadow-[0_7px_20px_rgba(14,37,57,0.045)]"
+                  aria-labelledby="pn-email-heading"
+                >
+                  <div
+                    className="h-[58px] w-[58px] max-md:h-[48px] max-md:w-[48px] rounded-full grid place-items-center bg-[#e4efff] text-[#236bc7]"
+                    aria-hidden="true"
+                  >
+                    <svg width="27" height="27" className="max-md:w-[23px] max-md:h-[23px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="m4 7 8 6 8-6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold tracking-[1.4px] uppercase mb-[7px] text-[#2967af]">
+                      Email
+                    </span>
+                    <h3 id="pn-email-heading" className="text-[20px] max-sm:text-[18px] font-bold leading-[1.2] m-0 mb-[7px] text-ink">
+                      Email us your enquiry
+                    </h3>
+                    <p className="text-[#61727b] text-[13px] max-sm:text-[12px] leading-[1.55] m-0 max-w-[500px]">
+                      Share your requirements with us and our team will get back to you soon.
+                    </p>
+                    <Link
+                      href="mailto:propertiesnexuss@gmail.com?subject=Property%20Enquiry%20-%20PropertiesNexus"
+                      className="block text-[14px] font-bold mt-[10px] text-[#1f61b0] hover:underline break-all"
+                      aria-label="Email PropertiesNexus at propertiesnexuss@gmail.com"
+                    >
+                      propertiesnexuss@gmail.com
+                    </Link>
+                  </div>
+                  <Link
+                    href="mailto:propertiesnexuss@gmail.com?subject=Property%20Enquiry%20-%20PropertiesNexus"
+                    className="border-0 rounded-[7px] bg-[#236bc7] hover:bg-[#1959a7] !text-white px-[16px] py-[12px] text-[12px] font-bold whitespace-nowrap inline-flex items-center justify-center min-h-[43px] transition-colors max-md:col-span-full max-md:w-full max-md:mt-[2px]"
+                    aria-label="Send a property enquiry by email"
+                  >
+                    Send Email Enquiry
+                  </Link>
+                </article>
+              </div>
+            </section>
+
+            {/* Phone Support Strip */}
+            <aside
+              className="grid grid-cols-[auto_1fr_auto] max-md:grid-cols-[35px_1fr] items-center gap-[16px] bg-white border border-[#dde4e6] mt-[28px] p-[17px_21px] max-sm:p-[16px]"
+              aria-label="Direct phone support"
+            >
+              <span className="h-[35px] w-[35px] rounded-full grid place-items-center bg-[#f6f1e8] text-[#cb8d31]" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v2.2a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.64-3.08 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 3.36 2 2 0 0 1 4.1 1.2h2.2a2 2 0 0 1 2 1.72c.12.9.34 1.78.65 2.63a2 2 0 0 1-.45 2.1L7.57 8.6a16 16 0 0 0 6 6l.95-.94a2 2 0 0 1 2.1-.45c.85.31 1.73.53 2.63.65A2 2 0 0 1 22 16.92Z" />
+                </svg>
+              </span>
+              <div>
+                <b className="block text-[13px] text-ink">Need immediate assistance?</b>
+                <p className="text-[11px] text-[#6c7b86] m-0 mt-[4px]">
+                  Call our support team and we&apos;ll be happy to help you.
+                </p>
+              </div>
+              <Link
+                href="tel:+919136331992"
+                className="text-ink text-[14px] font-bold no-underline whitespace-nowrap hover:underline max-md:col-span-full max-md:pl-[51px] max-md:pt-[5px]"
+                aria-label="Call PropertiesNexus support at +91 91363 31992"
+              >
+                +91 91363 31992
+              </Link>
+            </aside>
+          </main>
         )}
 
         {/* SETTINGS VIEW */}
@@ -974,47 +878,28 @@ function UserDashboardContent() {
 
             <div className="grid gap-[15px]">
               <section className="border border-line bg-white p-[22px] rounded">
-                <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">
-                  Profile
-                </h2>
-                <p className="text-[11px] text-muted m-0 mb-[16px]">
-                  Your visible account details.
-                </p>
+                <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">Profile</h2>
+                <p className="text-[11px] text-muted m-0 mb-[16px]">Your visible account details.</p>
                 <div className="grid grid-cols-[auto_1fr] max-sm:grid-cols-1 gap-[15px] items-start">
                   <div className="flex flex-col gap-[7px]">
-                    <span className="block text-[11px] font-bold text-ink">
-                      Profile picture
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink">Profile picture</span>
                     <label className="cursor-pointer shrink-0 block relative group">
                       <div className="h-[70px] w-[70px] rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center relative shadow-sm">
                         {avatarInput ? (
-                          <img
-                            src={avatarInput}
-                            alt="Avatar Preview"
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={avatarInput} alt="Avatar Preview" className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-slate-400 text-3xl">👤</span>
                         )}
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-white text-xs font-bold">
-                            Edit
-                          </span>
+                          <span className="text-white text-xs font-bold">Edit</span>
                         </div>
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarUpload}
-                        className="hidden"
-                      />
+                      <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                     </label>
                   </div>
                   <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[12px]">
                     <label className="block">
-                      <span className="block text-[11px] font-bold text-ink mb-[7px]">
-                        Display name
-                      </span>
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Display name</span>
                       <input
                         type="text"
                         value={nameInput}
@@ -1023,9 +908,7 @@ function UserDashboardContent() {
                       />
                     </label>
                     <label className="block">
-                      <span className="block text-[11px] font-bold text-ink mb-[7px]">
-                        Email address
-                      </span>
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Email address</span>
                       <input
                         type="email"
                         value={emailInput}
@@ -1034,9 +917,7 @@ function UserDashboardContent() {
                       />
                     </label>
                     <label className="block">
-                      <span className="block text-[11px] font-bold text-ink mb-[7px]">
-                        Phone number
-                      </span>
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Phone number</span>
                       <input
                         type="tel"
                         value={phoneInput}
@@ -1045,9 +926,7 @@ function UserDashboardContent() {
                       />
                     </label>
                     <label className="block">
-                      <span className="block text-[11px] font-bold text-ink mb-[7px]">
-                        Location
-                      </span>
+                      <span className="block text-[11px] font-bold text-ink mb-[7px]">Location</span>
                       <input
                         type="text"
                         value={locationInput}
@@ -1068,21 +947,14 @@ function UserDashboardContent() {
               </section>
 
               <section className="border border-line bg-white p-[22px] rounded">
-                <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">
-                  Notifications
-                </h2>
-                <p className="text-[11px] text-muted m-0 mb-[16px]">
-                  Choose the updates you would like to receive.
-                </p>
+                <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">Notifications</h2>
+                <p className="text-[11px] text-muted m-0 mb-[16px]">Choose the updates you would like to receive.</p>
 
                 <div className="flex justify-between items-center py-[15px] border-b border-[#edf0f1]">
                   <div>
-                    <b className="block text-[12px] font-bold text-ink">
-                      Property matches
-                    </b>
+                    <b className="block text-[12px] font-bold text-ink">Property matches</b>
                     <p className="text-[10px] text-muted m-0 mt-[4px] max-w-[540px]">
-                      Receive updates when a new property matches an active
-                      alert.
+                      Receive updates when a new property matches an active alert.
                     </p>
                   </div>
                   <input
@@ -1095,12 +967,9 @@ function UserDashboardContent() {
 
                 <div className="flex justify-between items-center py-[15px] border-b border-[#edf0f1]">
                   <div>
-                    <b className="block text-[12px] font-bold text-ink">
-                      Saved property changes
-                    </b>
+                    <b className="block text-[12px] font-bold text-ink">Saved property changes</b>
                     <p className="text-[10px] text-muted m-0 mt-[4px] max-w-[540px]">
-                      Get important availability and price updates for saved
-                      homes.
+                      Get important availability and price updates for saved homes.
                     </p>
                   </div>
                   <input
@@ -1113,9 +982,7 @@ function UserDashboardContent() {
 
                 <div className="flex justify-between items-center py-[15px]">
                   <div>
-                    <b className="block text-[12px] font-bold text-ink">
-                      PropertiesNexus weekly edit
-                    </b>
+                    <b className="block text-[12px] font-bold text-ink">PropertiesNexus weekly edit</b>
                     <p className="text-[10px] text-muted m-0 mt-[4px] max-w-[540px]">
                       A concise roundup of noteworthy new addresses.
                     </p>
@@ -1129,19 +996,12 @@ function UserDashboardContent() {
               </section>
 
               <section className="border border-line bg-white p-[22px] rounded">
-                <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">
-                  Account safety
-                </h2>
+                <h2 className="text-[15px] font-bold m-0 mb-[5px] text-ink">Account safety</h2>
                 <p className="text-[11px] text-muted m-0 mb-[16px]">
-                  Your password and secure verification will be connected once
-                  live account authentication is enabled.
+                  Your password and secure verification will be connected once live account authentication is enabled.
                 </p>
                 <button
-                  onClick={() =>
-                    showToast(
-                      "Security controls will be available with secure authentication.",
-                    )
-                  }
+                  onClick={() => showToast("Security controls will be available with secure authentication.")}
                   className="border border-[#b6c1c6] rounded-[7px] bg-white text-[#324453] p-[10px_13px] text-[12px] font-bold cursor-pointer hover:bg-gray-50 transition-colors"
                 >
                   Review security options
@@ -1150,6 +1010,7 @@ function UserDashboardContent() {
             </div>
           </div>
         )}
+
       </div>
 
       {/* MODALS */}
@@ -1165,17 +1026,13 @@ function UserDashboardContent() {
 
             {modalType === "alert" && (
               <form onSubmit={handleCreateAlert}>
-                <h2 className="font-serif text-xl font-bold m-0 mb-[7px] text-ink">
-                  Create a match alert
-                </h2>
+                <h2 className="font-serif text-xl font-bold m-0 mb-[7px] text-ink">Create a match alert</h2>
                 <p className="text-[11px] text-muted m-0 leading-[1.55]">
                   Tell us what you are looking for and we will keep watch.
                 </p>
                 <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[12px] my-[17px]">
                   <label className="col-span-full">
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Alert name
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Alert name</span>
                     <input
                       required
                       value={alertName}
@@ -1185,9 +1042,7 @@ function UserDashboardContent() {
                     />
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Purpose
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Purpose</span>
                     <select
                       value={alertPurpose}
                       onChange={(e) => setAlertPurpose(e.target.value)}
@@ -1198,9 +1053,7 @@ function UserDashboardContent() {
                     </select>
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Property type
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Property type</span>
                     <select
                       value={alertType}
                       onChange={(e) => setAlertType(e.target.value)}
@@ -1212,9 +1065,7 @@ function UserDashboardContent() {
                     </select>
                   </label>
                   <label className="col-span-full">
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Location or area
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Location or area</span>
                     <input
                       required
                       value={alertArea}
@@ -1224,10 +1075,7 @@ function UserDashboardContent() {
                     />
                   </label>
                 </div>
-                <button
-                  type="submit"
-                  className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer"
-                >
+                <button type="submit" className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
                   Save alert
                 </button>
               </form>
@@ -1235,18 +1083,13 @@ function UserDashboardContent() {
 
             {modalType === "listing" && (
               <form onSubmit={handleCreateListing}>
-                <h2 className="font-serif text-xl font-bold m-0 mb-[7px] text-ink">
-                  Add a property
-                </h2>
+                <h2 className="font-serif text-xl font-bold m-0 mb-[7px] text-ink">Add a property</h2>
                 <p className="text-[11px] text-muted m-0 leading-[1.55]">
-                  Start your listing now. You can add photos and verification
-                  details when publishing.
+                  Start your listing now. You can add photos and verification details when publishing.
                 </p>
                 <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-[12px] my-[17px]">
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Property title
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Property title</span>
                     <input
                       required
                       value={listTitle}
@@ -1256,9 +1099,7 @@ function UserDashboardContent() {
                     />
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Property type
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Property type</span>
                     <select
                       value={listType}
                       onChange={(e) => setListType(e.target.value)}
@@ -1272,9 +1113,7 @@ function UserDashboardContent() {
                     </select>
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      City
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">City</span>
                     <input
                       required
                       value={listCity}
@@ -1284,9 +1123,7 @@ function UserDashboardContent() {
                     />
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Asking price
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Asking price</span>
                     <input
                       required
                       value={listPrice}
@@ -1296,9 +1133,7 @@ function UserDashboardContent() {
                     />
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Bedrooms
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Bedrooms</span>
                     <select
                       value={listBeds}
                       onChange={(e) => setListBeds(e.target.value)}
@@ -1312,9 +1147,7 @@ function UserDashboardContent() {
                     </select>
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Contact number
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Contact number</span>
                     <input
                       required
                       placeholder="+91 00000 00000"
@@ -1322,10 +1155,7 @@ function UserDashboardContent() {
                     />
                   </label>
                 </div>
-                <button
-                  type="submit"
-                  className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer"
-                >
+                <button type="submit" className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
                   Save as draft
                 </button>
               </form>
@@ -1333,17 +1163,13 @@ function UserDashboardContent() {
 
             {modalType === "message" && (
               <form onSubmit={handleCreateMessage}>
-                <h2 className="font-serif text-xl font-bold m-0 mb-[7px] text-ink">
-                  Start a conversation
-                </h2>
+                <h2 className="font-serif text-xl font-bold m-0 mb-[7px] text-ink">Start a conversation</h2>
                 <p className="text-[11px] text-muted m-0 leading-[1.55]">
                   Send an advisor a property enquiry.
                 </p>
                 <div className="grid gap-[12px] my-[17px]">
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Property or topic
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Property or topic</span>
                     <input
                       required
                       value={msgTopic}
@@ -1353,9 +1179,7 @@ function UserDashboardContent() {
                     />
                   </label>
                   <label>
-                    <span className="block text-[11px] font-bold text-ink mb-[6px]">
-                      Message
-                    </span>
+                    <span className="block text-[11px] font-bold text-ink mb-[6px]">Message</span>
                     <textarea
                       required
                       rows={4}
@@ -1366,10 +1190,7 @@ function UserDashboardContent() {
                     />
                   </label>
                 </div>
-                <button
-                  type="submit"
-                  className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer"
-                >
+                <button type="submit" className="w-full bg-navy !text-white font-bold p-[11px] rounded-[7px] border-0 cursor-pointer">
                   Send enquiry
                 </button>
               </form>
@@ -1390,13 +1211,7 @@ function UserDashboardContent() {
 
 export default function UserDashboardPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-8 font-serif text-xl">
-          Loading Account Home Base...
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="p-8 font-serif text-xl">Loading Account Home Base...</div>}>
       <UserDashboardContent />
     </Suspense>
   );
