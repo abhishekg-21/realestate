@@ -8,6 +8,7 @@ import PropertyCard from "@/components/property-card";
 import { Property } from "@/lib/properties-data";
 import { useProperties } from "@/lib/supabase-properties";
 import dynamic from "next/dynamic";
+import { getSavedPropertyIdsDB } from "@/lib/auth-cache";
 
 const PropertiesMapView = dynamic(
   () => import("@/components/properties-map-view"),
@@ -82,6 +83,7 @@ function PropertiesExplorerContent() {
 
   // Sync state if url params change
   useEffect(() => {
+    getSavedPropertyIdsDB();
     if (initialQuery) setQueryInput(initialQuery);
     if (initialPurpose && initialPurpose !== "Buy or rent")
       setPurposes([initialPurpose]);
@@ -230,6 +232,9 @@ function PropertiesExplorerContent() {
     });
 
   return (
+
+
+
     <div className="min-h-screen bg-paper text-ink font-sans">
       <Navbar variant="light" />
 
@@ -278,9 +283,8 @@ function PropertiesExplorerContent() {
       <main className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto grid grid-cols-[290px_1fr] max-md:grid-cols-1 gap-[35px] py-[35px] pb-[80px]">
         {/* Sidebar Filters */}
         <aside
-          className={`bg-white border border-line p-[24px] rounded-[14px] self-start sticky top-[95px] max-md:fixed max-md:inset-0 max-md:z-50 max-md:overflow-y-auto max-md:rounded-none max-md:top-0 shadow-sm ${
-            mobileFiltersOpen ? "max-md:block" : "max-md:hidden"
-          }`}
+          className={`bg-white border border-line p-[24px] rounded-[14px] self-start sticky top-[95px] max-md:fixed max-md:inset-0 max-md:z-50 max-md:overflow-y-auto max-md:rounded-none max-md:top-0 shadow-sm ${mobileFiltersOpen ? "max-md:block" : "max-md:hidden"
+            }`}
         >
           <div className="hidden max-md:flex justify-between items-center mb-6 pb-4 border-b border-line">
             <h2 className="font-serif text-xl font-bold m-0">Filters</h2>
@@ -406,11 +410,10 @@ function PropertiesExplorerContent() {
                   key={p.label}
                   type="button"
                   onClick={() => applyPricePreset(p.min, p.max)}
-                  className={`text-[10px] font-semibold px-2 py-1 rounded border transition-colors ${
-                    minPrice === p.min && maxPrice === p.max
+                  className={`text-[10px] font-semibold px-2 py-1 rounded border transition-colors ${minPrice === p.min && maxPrice === p.max
                       ? "bg-navy !text-white border-navy"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   {p.label}
                 </button>
@@ -603,6 +606,7 @@ export default function PropertiesPage() {
         </div>
       }
     >
+
       <PropertiesExplorerContent />
     </Suspense>
   );

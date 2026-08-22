@@ -2,6 +2,8 @@
 
 import { useParams } from "next/navigation";
 import PropertyDetailView from "@/components/property-detail-view";
+import { useEffect } from "react";
+import { getSavedPropertyIdsDB } from "@/lib/auth-cache";
 
 export default function PropertyIdPage() {
   const params = useParams();
@@ -11,6 +13,11 @@ export default function PropertyIdPage() {
       : Array.isArray(params?.id)
         ? params.id[0]
         : undefined;
+
+  useEffect(() => {
+    getSavedPropertyIdsDB();
+  }, []);
+
 
   return <PropertyDetailView id={id} />;
 }
