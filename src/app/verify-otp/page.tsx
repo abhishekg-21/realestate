@@ -103,6 +103,9 @@ function VerifyOTPContent() {
   };
 
   const handleResend = async () => {
+    // Extra guard — don't even call the API if countdown isn't done
+    if (!canResend) return;
+
     setResending(true);
     setMsg("");
 
@@ -115,19 +118,30 @@ function VerifyOTPContent() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setMsg(data.error || "Failed to resend OTP.");
+      if (res.status === 429) {
+        // Supabase rate limit hit
+        setMsg("Too many requests. Please wait a few minutes before trying again.");
         setMsgType("error");
-      } else {
-        setMsg("A new code has been sent to your email.");
-        setMsgType("success");
-        setCountdown(60);
+        // Set a longer cooldown of 5 minutes
+        setCountdown(300);
         setCanResend(false);
-        setOtp(["", "", "", "", "", ""]);
-        inputRefs.current[0]?.focus();
+        return;
       }
+
+      if (!res.ok) {
+        setMsg(data.error || "Failed to resend. Please try again.");
+        setMsgType("error");
+        return;
+      }
+
+      setMsg("A new code has been sent to your email.");
+      setMsgType("success");
+      setCountdown(60);
+      setCanResend(false);
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     } catch {
-      setMsg("Failed to resend. Please try again.");
+      setMsg("Failed to resend. Please check your connection.");
       setMsgType("error");
     } finally {
       setResending(false);
@@ -205,7 +219,11 @@ function VerifyOTPContent() {
           ) : (
             <p className="text-[11px] text-muted">
               Resend code in{" "}
-              <span className="font-bold text-ink">{countdown}s</span>
+              <span className="font-bold text-ink">
+                {countdown >= 60
+                  ? `${Math.floor(countdown / 60)}m ${countdown % 60}s`
+                  : `${countdown}s`}
+              </span>
             </p>
           )}
         </div>

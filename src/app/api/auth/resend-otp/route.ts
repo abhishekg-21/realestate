@@ -13,13 +13,25 @@ export async function POST(request: Request) {
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         );
 
-        // resend with type "signup" triggers a new OTP for unconfirmed users
         const { error } = await supabase.auth.resend({
             type: "signup",
             email,
         });
 
         if (error) {
+            // Supabase rate limit error
+            if (
+                error.message.toLowerCase().includes("rate limit") ||
+                error.message.toLowerCase().includes("too many") ||
+                error.message.toLowerCase().includes("after") ||
+                error.status === 429
+            ) {
+                return NextResponse.json(
+                    { error: "Too many attempts. Please wait a few minutes before requesting a new code." },
+                    { status: 429 }
+                );
+            }
+
             return NextResponse.json({ error: error.message }, { status: 400 });
         }
 
