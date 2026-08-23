@@ -9,46 +9,42 @@ export async function POST(request: Request) {
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } },
+      { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Check if user already exists
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const alreadyExists = existingUsers?.users?.some((u) => u.email === email);
-    if (alreadyExists) {
-      return NextResponse.json(
-        { error: "An account with this email already exists." },
-        { status: 400 },
-      );
-    }
-
-    // Create the user — Supabase will send OTP automatically
-    // because email confirmation is enabled in your dashboard settings
-    const { data: signUpData, error: signUpError } =
+    // Create user with email_confirm: false so OTP is required
+    const { data: newUser, error: createError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: false, // false = requires OTP verification
+        email_confirm: false,
         user_metadata: { full_name: fullName, phone, role },
       });
 
-    if (signUpError || !signUpData?.user) {
+    if (createError) {
+      // Handle duplicate email gracefully
+      if (createError.message.toLowerCase().includes("already")) {
+        return NextResponse.json(
+          { error: "An account with this email already exists." },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
-        { error: signUpError?.message ?? "Failed to create account." },
-        { status: 400 },
+        { error: createError.message },
+        { status: 400 }
       );
     }
 
-    const userId = signUpData.user.id;
+    const userId = newUser.user.id;
 
-    // Create profile row immediately
+    // Create profile immediately using service role
     await supabaseAdmin.from("profiles").upsert({
       id: userId,
       full_name: fullName,
@@ -68,28 +64,40 @@ export async function POST(request: Request) {
           storage_path: "",
           file_name: doc.fileName,
           verification_status: "pending",
-        })),
+        }))
       );
     }
 
-    // Send OTP via Supabase (this triggers the email template with {{ .Token }})
-    const { error: otpError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "signup",
+    // ✅ This triggers Supabase to send the OTP email
+    // Uses the anon client so Supabase sends via its own SMTP with {{ .Token }}
+    const supabaseAnon = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const { error: otpError } = await supabaseAnon.auth.signUp({
       email,
       password,
+      options: {
+        data: { full_name: fullName, phone, role },
+      },
     });
 
-    if (otpError) {
-      console.error("OTP send error:", otpError.message);
-      // Don't fail — user is created, they can request resend
+    // signUp on existing-but-unconfirmed user triggers OTP resend
+    // Ignore "User already registered" — the OTP still sends
+    if (otpError && !otpError.message.includes("already registered")) {
+      console.error("OTP trigger error:", otpError.message);
     }
 
-    return NextResponse.json({ success: true, user: { id: userId } });
+    return NextResponse.json({
+      success: true,
+      user: { id: userId },
+    });
   } catch (err: any) {
     console.error("Registration error:", err);
     return NextResponse.json(
       { error: err.message || "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

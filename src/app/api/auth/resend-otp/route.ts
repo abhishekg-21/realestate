@@ -4,7 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 export async function POST(request: Request) {
     try {
         const { email } = await request.json();
-
         if (!email) {
             return NextResponse.json({ error: "Email is required." }, { status: 400 });
         }
@@ -14,6 +13,7 @@ export async function POST(request: Request) {
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         );
 
+        // resend with type "signup" triggers a new OTP for unconfirmed users
         const { error } = await supabase.auth.resend({
             type: "signup",
             email,
@@ -25,6 +25,9 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true });
     } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json(
+            { error: err.message || "Failed to resend OTP." },
+            { status: 500 }
+        );
     }
 }
