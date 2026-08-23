@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { setCachedUser } from "@/lib/auth-cache";
+import { createClient } from "@/utils/supabase/client";
 
 function VerifyOTPContent() {
   const searchParams = useSearchParams();
@@ -83,8 +84,29 @@ function VerifyOTPContent() {
         return;
       }
 
+      // Now sign in to create a real Supabase session
+      // Password was set during registration — we need it here
+      // So pass it via sessionStorage (set it in register page before redirecting)
+      const tempPassword = sessionStorage.getItem("pn_temp_pw");
+
+      if (tempPassword) {
+        const supabase = createClient();
+        const { data: signInData, error: signInError } =
+          await supabase.auth.signInWithPassword({ email, password: tempPassword });
+
+        sessionStorage.removeItem("pn_temp_pw"); // clean up immediately
+
+        if (signInError) {
+          // Verification succeeded but auto-login failed — redirect to login
+          setMsg("Verified! Please sign in to continue.");
+          setMsgType("success");
+          setTimeout(() => router.push("/login?message=Email verified. Please sign in."), 1500);
+          return;
+        }
+      }
+
       setCachedUser({
-        name: data.user?.email?.split("@")[0] || "User",
+        name: data.user?.name || email.split("@")[0],
         email: data.user?.email || email,
         role: data.role || "buyer",
       });

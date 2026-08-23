@@ -151,6 +151,7 @@ export default function RegisterPage() {
       setMsgType("success");
       setLoading(false);
       setTimeout(() => {
+        sessionStorage.setItem("pn_temp_pw", password);
         router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
       }, 2000);
     } catch (err: any) {
@@ -235,8 +236,8 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setSelectedRole(r.value)}
                 className={`flex flex-col text-left p-[14px] rounded-xl border-2 transition-all cursor-pointer ${selectedRole === r.value
-                    ? "border-[#d49a38] bg-amber-50/40 shadow-sm"
-                    : "border-slate-200 bg-white hover:border-slate-300"
+                  ? "border-[#d49a38] bg-amber-50/40 shadow-sm"
+                  : "border-slate-200 bg-white hover:border-slate-300"
                   }`}
               >
                 <div className="flex items-center gap-2 mb-1">

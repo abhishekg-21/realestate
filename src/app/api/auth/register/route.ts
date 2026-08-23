@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendOTPEmail } from "@/lib/mailer";
+
+function generateOTP(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +13,15 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "Email and password are required." },
+        { status: 400 }
+      );
+    }
+
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
         { status: 400 }
       );
     }
@@ -19,32 +32,45 @@ export async function POST(request: Request) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Create user with email_confirm: false so OTP is required
-    const { data: newUser, error: createError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: false,
-        user_metadata: { full_name: fullName, phone, role },
-      });
+    // Check if email already exists and is confirmed
+    const { data: existingList } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingList?.users?.find((u) => u.email === email);
 
-    if (createError) {
-      // Handle duplicate email gracefully
-      if (createError.message.toLowerCase().includes("already")) {
-        return NextResponse.json(
-          { error: "An account with this email already exists." },
-          { status: 400 }
-        );
-      }
+    if (existingUser?.email_confirmed_at) {
       return NextResponse.json(
-        { error: createError.message },
+        { error: "An account with this email already exists." },
         { status: 400 }
       );
     }
 
-    const userId = newUser.user.id;
+    let userId: string;
 
-    // Create profile immediately using service role
+    if (existingUser) {
+      // User exists but unconfirmed — reuse their ID
+      userId = existingUser.id;
+      // Update password in case they're retrying registration
+      await supabaseAdmin.auth.admin.updateUserById(userId, { password });
+    } else {
+      // Create new user — email_confirm false, we handle OTP ourselves
+      const { data: newUser, error: createError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: false,
+          user_metadata: { full_name: fullName, phone, role },
+        });
+
+      if (createError || !newUser?.user) {
+        return NextResponse.json(
+          { error: createError?.message || "Failed to create account." },
+          { status: 400 }
+        );
+      }
+
+      userId = newUser.user.id;
+    }
+
+    // Upsert profile
     await supabaseAdmin.from("profiles").upsert({
       id: userId,
       full_name: fullName,
@@ -53,7 +79,7 @@ export async function POST(request: Request) {
       verification_status: role === "buyer" ? "approved" : "pending",
     });
 
-    // Store pending doc metadata
+    // Store pending docs
     if (pendingDocs?.length > 0) {
       await supabaseAdmin.from("user_verification_documents").insert(
         pendingDocs.map((doc: any) => ({
@@ -68,26 +94,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // ✅ This triggers Supabase to send the OTP email
-    // Uses the anon client so Supabase sends via its own SMTP with {{ .Token }}
-    const supabaseAnon = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Generate OTP and store in DB
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-    const { error: otpError } = await supabaseAnon.auth.signUp({
+    // Delete any previous unused OTPs for this email
+    await supabaseAdmin
+      .from("email_otps")
+      .delete()
+      .eq("email", email);
+
+    await supabaseAdmin.from("email_otps").insert({
       email,
-      password,
-      options: {
-        data: { full_name: fullName, phone, role },
-      },
+      otp,
+      expires_at: expiresAt,
+      used: false,
     });
 
-    // signUp on existing-but-unconfirmed user triggers OTP resend
-    // Ignore "User already registered" — the OTP still sends
-    if (otpError && !otpError.message.includes("already registered")) {
-      console.error("OTP trigger error:", otpError.message);
-    }
+    // Send OTP via Nodemailer
+    await sendOTPEmail(email, otp, fullName);
 
     return NextResponse.json({
       success: true,
@@ -96,7 +121,7 @@ export async function POST(request: Request) {
   } catch (err: any) {
     console.error("Registration error:", err);
     return NextResponse.json(
-      { error: err.message || "Internal server error" },
+      { error: err.message || "Internal server error." },
       { status: 500 }
     );
   }
