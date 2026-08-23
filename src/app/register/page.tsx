@@ -151,7 +151,7 @@ export default function RegisterPage() {
       setMsgType("success");
       setLoading(false);
       setTimeout(() => {
-        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
       }, 2000);
     } catch (err: any) {
       setMsg(err.message || "Unexpected error.");
@@ -234,11 +234,10 @@ export default function RegisterPage() {
                 key={r.value}
                 type="button"
                 onClick={() => setSelectedRole(r.value)}
-                className={`flex flex-col text-left p-[14px] rounded-xl border-2 transition-all cursor-pointer ${
-                  selectedRole === r.value
+                className={`flex flex-col text-left p-[14px] rounded-xl border-2 transition-all cursor-pointer ${selectedRole === r.value
                     ? "border-[#d49a38] bg-amber-50/40 shadow-sm"
                     : "border-slate-200 bg-white hover:border-slate-300"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[22px]">{r.icon}</span>
@@ -630,9 +629,8 @@ export default function RegisterPage() {
 
       {msg && (
         <p
-          className={`text-[12px] leading-[1.5] text-center my-[14px] font-semibold ${
-            msgType === "success" ? "text-emerald-600" : "text-red-600"
-          }`}
+          className={`text-[12px] leading-[1.5] text-center my-[14px] font-semibold ${msgType === "success" ? "text-emerald-600" : "text-red-600"
+            }`}
           aria-live="polite"
         >
           {msg}
