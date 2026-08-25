@@ -55,10 +55,10 @@ export default function Footer() {
             <div>
               <h3 className="font-serif text-[18px] font-medium mb-6 text-white">Company</h3>
               <ul className="space-y-4 text-[14px] text-[#adbac7]">
-                <li><Link href="/about" className="hover:text-gold transition-colors">About Us</Link></li>
+                <li><Link href="/" className="hover:text-gold transition-colors">About Us</Link></li>
                 <li><Link href="/careers" className="hover:text-gold transition-colors">Careers</Link></li>
                 <li><Link href="/press" className="hover:text-gold transition-colors">Press & Media</Link></li>
-                <li><Link href="/journal/[id]" className="hover:text-gold transition-colors">Real Estate Blog</Link></li>
+                <li><Link href="/blog" className="hover:text-gold transition-colors">Real Estate Blog</Link></li>
               </ul>
             </div>
 
