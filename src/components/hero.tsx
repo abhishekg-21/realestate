@@ -73,7 +73,7 @@ export default function Hero() {
           </label>
 
 
-          <label className="flex gap-[8px] items-center px-[15px] max-md:px-[5px] border-r max-md:border-r-0 border-[#e4e6e8] text-[#718090]">
+          <label className="hidden md:flex gap-[8px] items-center px-[15px] border-r border-[#e4e6e8] text-[#718090]">
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
