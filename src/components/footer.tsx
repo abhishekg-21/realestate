@@ -58,7 +58,7 @@ export default function Footer() {
                 <li><Link href="/" className="hover:text-gold transition-colors">About Us</Link></li>
                 <li><Link href="/careers" className="hover:text-gold transition-colors">Careers</Link></li>
                 <li><Link href="/press" className="hover:text-gold transition-colors">Press & Media</Link></li>
-                <li><Link href="/blogs" className="hover:text-gold transition-colors">Real Estate</Link></li>
+                <li><Link href="/journal" className="hover:text-gold transition-colors">Real Estate Blogs</Link></li>
               </ul>
             </div>
 
