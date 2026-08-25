@@ -795,8 +795,8 @@ function UserDashboardContent() {
                     key={i}
                     onClick={() => setActiveThread(i)}
                     className={`w-full max-md:min-w-[160px] max-md:w-auto border-0 border-b border-[#edf0f1] text-left p-[14px] cursor-pointer transition-colors ${i === activeThread
-                        ? "bg-[#f2f5f4] border-l-4 border-l-gold max-md:border-l-0 max-md:border-b-4 max-md:border-b-gold"
-                        : "bg-white hover:bg-gray-50"
+                      ? "bg-[#f2f5f4] border-l-4 border-l-gold max-md:border-l-0 max-md:border-b-4 max-md:border-b-gold"
+                      : "bg-white hover:bg-gray-50"
                       }`}
                   >
                     <b className="text-[12px] font-bold text-ink block">
@@ -822,8 +822,8 @@ function UserDashboardContent() {
                       <div
                         key={idx}
                         className={`p-[10px_12px] text-[12px] leading-[1.45] max-w-[75%] ${m[0] === "you"
-                            ? "bg-[#143957] text-white rounded-[12px_3px_12px_12px] ml-auto"
-                            : "bg-[#f2f4f3] text-ink rounded-[3px_12px_12px_12px]"
+                          ? "bg-[#143957] text-white rounded-[12px_3px_12px_12px] ml-auto"
+                          : "bg-[#f2f4f3] text-ink rounded-[3px_12px_12px_12px]"
                           }`}
                       >
                         {m[1]}
@@ -887,16 +887,16 @@ function UserDashboardContent() {
                       className="h-[150px] bg-cover bg-center"
                       style={{
                         backgroundImage: `url('${idx % 2
-                            ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=750&q=80"
-                            : "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=750&q=80"
+                          ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=750&q=80"
+                          : "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=750&q=80"
                           }')`,
                       }}
                     />
                     <div className="p-[14px] flex flex-col flex-1">
                       <span
                         className={`text-[9px] font-bold p-[5px_7px] rounded-[12px] w-max uppercase ${item.status === "Draft"
-                            ? "bg-[#fff5df] text-[#a16d14]"
-                            : "bg-[#eaf7ef] text-green"
+                          ? "bg-[#fff5df] text-[#a16d14]"
+                          : "bg-[#eaf7ef] text-green"
                           }`}
                       >
                         {item.status}

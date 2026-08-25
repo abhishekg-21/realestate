@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Property } from "@/lib/properties-data";
 import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT, toggleSavedPropertyIdDB } from "@/lib/auth-cache";
-import { Heart } from "lucide-react";
 
 export default function PropertyCard({ property }: { property: Property }) {
   const [isSaved, setIsSaved] = useState(false);
@@ -100,21 +99,29 @@ export default function PropertyCard({ property }: { property: Property }) {
 
         {/* Save/Favorite Heart Button */}
         <button
-          onClick={async () => {
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             await toggleSavedPropertyIdDB(property.id);
           }}
-          className="flex items-center gap-2 border border-line bg-white rounded-[18px] px-[14px] py-[8px] text-[12px] font-bold cursor-pointer hover:bg-gray-50 transition-all shadow-sm"
+          aria-label={`Save ${property.title}`}
+          title={isSaved ? "Remove from saved" : "Save property"}
+          className={`absolute z-20 right-3 top-3 border-0 rounded-full w-9 h-9 cursor-pointer flex items-center justify-center shadow-md transition-all duration-150 ${isSaved
+              ? "bg-white text-red-500 scale-105"
+              : "bg-white/90 text-slate-400 hover:text-red-400 hover:bg-white hover:scale-110"
+            }`}
         >
-          <Heart
-            size={17}
-            strokeWidth={2}
-            className={`transition-all duration-200 ${isSaved
-                ? "fill-red-500 text-red-500"
-                : "text-gray-600 hover:text-red-500"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            className={`w-[18px] h-[18px] transition-all duration-200 ${isSaved ? "fill-red-500 stroke-red-500" : "fill-transparent stroke-current"
               }`}
-          />
-
-          {isSaved ? "Saved" : "Save"}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
         </button>
       </div>
 

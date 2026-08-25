@@ -10,7 +10,7 @@ import { useProperties, fetchPropertyById } from "@/lib/supabase-properties";
 import { createClient } from "@/utils/supabase/client";
 import dynamic from "next/dynamic";
 import PropertyCard from "@/components/property-card";
-import { ChevronDown, ChevronUp, Heart } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const PropertyMap = dynamic(() => import("@/components/property-map"), { ssr: false });
 
@@ -197,20 +197,29 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             ▤ Media Gallery ({images.length})
           </button>
           <button
-            onClick={async () => {
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
               await toggleSavedPropertyIdDB(property.id);
             }}
-            className={`border border-line rounded-[18px] px-[14px] py-[8px] text-[12px] font-bold cursor-pointer transition-all duration-200 shadow-sm flex items-center gap-1.5 ${isSaved
-                ? "bg-red-50 text-red-500 border-red-200"
-                : "bg-white text-gray-700 hover:bg-gray-50"
+            aria-label={`Save ${property.title}`}
+            title={isSaved ? "Remove from saved" : "Save property"}
+            className={`absolute z-20 right-3 top-3 border-0 rounded-full w-9 h-9 cursor-pointer flex items-center justify-center shadow-md transition-all duration-150 ${isSaved
+                ? "bg-white text-red-500 scale-105"
+                : "bg-white/90 text-slate-400 hover:text-red-400 hover:bg-white hover:scale-110"
               }`}
           >
-            <Heart
-              size={15}
-              strokeWidth={2.2}
-              className={isSaved ? "fill-red-500 text-red-500" : ""}
-            />
-            {isSaved ? "Saved" : "Save"}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              className={`w-[18px] h-[18px] transition-all duration-200 ${isSaved ? "fill-red-500 stroke-red-500" : "fill-transparent stroke-current"
+                }`}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
           </button>
         </div>
       </section>
