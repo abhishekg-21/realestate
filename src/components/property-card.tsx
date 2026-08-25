@@ -103,15 +103,18 @@ export default function PropertyCard({ property }: { property: Property }) {
           onClick={async () => {
             await toggleSavedPropertyIdDB(property.id);
           }}
-          aria-label={isSaved ? "Remove from saved properties" : "Save property"}
-          className={`flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-md transition-all duration-200 cursor-pointer hover:scale-110 ${isSaved ? "text-red-500" : "text-gray-700"
-            }`}
+          className="flex items-center gap-2 border border-line bg-white rounded-[18px] px-[14px] py-[8px] text-[12px] font-bold cursor-pointer hover:bg-gray-50 transition-all shadow-sm"
         >
           <Heart
-            size={20}
+            size={17}
             strokeWidth={2}
-            className={isSaved ? "fill-red-500" : ""}
+            className={`transition-all duration-200 ${isSaved
+                ? "fill-red-500 text-red-500"
+                : "text-gray-600 hover:text-red-500"
+              }`}
           />
+
+          {isSaved ? "Saved" : "Save"}
         </button>
       </div>
 
