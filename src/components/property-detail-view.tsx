@@ -201,8 +201,8 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               await toggleSavedPropertyIdDB(property.id);
             }}
             className={`border border-line rounded-[18px] px-[14px] py-[8px] text-[12px] font-bold cursor-pointer transition-all duration-200 shadow-sm flex items-center gap-1.5 ${isSaved
-              ? "bg-red-50 text-red-500 border-red-200"
-              : "bg-white text-gray-700 hover:bg-gray-50"
+                ? "bg-red-50 text-red-500 border-red-200"
+                : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
           >
             <Heart
