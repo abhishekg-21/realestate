@@ -19,13 +19,13 @@ export default function Hero() {
       return;
     }
     setResultMsg(trimPlace ? `We are preparing properties in ${trimPlace}.` : "Searching properties...");
-    
+
     // Redirect to /properties with query params after a brief moment or directly
     const params = new URLSearchParams();
     if (trimPlace) params.set("query", trimPlace);
     if (purpose !== "Buy or rent") params.set("purpose", purpose);
     if (type !== "Any type") params.set("type", type);
-    
+
     router.push(`/properties?${params.toString()}`);
   };
 
@@ -60,7 +60,7 @@ export default function Hero() {
             />
           </label>
 
-          <label className="flex gap-[8px] items-center px-[15px] max-md:px-[5px] border-r max-md:border-r-0 max-md:border-b max-md:border-[#e4e6e8] max-md:pb-[10px] border-[#e4e6e8] text-[#718090]">
+          <label className="hidden md:flex gap-[8px] items-center px-[15px] border-r border-[#e4e6e8] text-[#718090]">
             <select
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
@@ -71,6 +71,7 @@ export default function Hero() {
               <option>Rent</option>
             </select>
           </label>
+
 
           <label className="flex gap-[8px] items-center px-[15px] max-md:px-[5px] border-r max-md:border-r-0 border-[#e4e6e8] text-[#718090]">
             <select
@@ -99,7 +100,7 @@ export default function Hero() {
           <Link href="/properties?query=Goa&type=Villa" className="underline underline-offset-3 hover:text-white">Villas in Goa</Link>
           <Link href="/properties" className="underline underline-offset-3 hover:text-white">New launches</Link>
         </div>
-        
+
         {resultMsg && (
           <p className="text-[12px] text-[#f5bd45] mt-2 font-medium animate-pulse" aria-live="polite">
             {resultMsg}
