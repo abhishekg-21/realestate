@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Property } from "@/lib/properties-data";
 import { isPropertySaved, toggleSavedPropertyId, SAVED_CHANGE_EVENT, toggleSavedPropertyIdDB } from "@/lib/auth-cache";
+import { Heart } from "lucide-react";
 
 export default function PropertyCard({ property }: { property: Property }) {
   const [isSaved, setIsSaved] = useState(false);
@@ -102,14 +103,15 @@ export default function PropertyCard({ property }: { property: Property }) {
           onClick={async () => {
             await toggleSavedPropertyIdDB(property.id);
           }}
-          aria-label={`Save ${property.title}`}
-          title={isSaved ? "Remove from saved" : "Save property"}
-          className={`absolute z-20 right-3 top-3 border-0 rounded-full w-8 h-8 cursor-pointer flex items-center justify-center shadow-md transition-all duration-150 ${isSaved
-            ? "bg-red-500 text-white scale-105"
-            : "bg-white/90 text-slate-700 hover:bg-white hover:scale-110"
+          aria-label={isSaved ? "Remove from saved properties" : "Save property"}
+          className={`flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-md transition-all duration-200 cursor-pointer hover:scale-110 ${isSaved ? "text-red-500" : "text-gray-700"
             }`}
         >
-          <span className="text-sm leading-none">{isSaved ? "♥" : "♡"}</span>
+          <Heart
+            size={20}
+            strokeWidth={2}
+            className={isSaved ? "fill-red-500" : ""}
+          />
         </button>
       </div>
 
