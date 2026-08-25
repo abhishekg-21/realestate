@@ -20,7 +20,7 @@ export default function Footer() {
     <>
       <footer className="bg-[#041222] text-white pt-[70px] pb-[30px]" id="contact">
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto">
-          
+
           <div className="grid grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-1 gap-10 pb-[60px] border-b border-white/10">
             {/* Brand Column */}
             <div className="col-span-1 max-lg:col-span-2 max-md:col-span-1">
@@ -58,7 +58,7 @@ export default function Footer() {
                 <li><Link href="/about" className="hover:text-gold transition-colors">About Us</Link></li>
                 <li><Link href="/careers" className="hover:text-gold transition-colors">Careers</Link></li>
                 <li><Link href="/press" className="hover:text-gold transition-colors">Press & Media</Link></li>
-                <li><Link href="/blog" className="hover:text-gold transition-colors">Real Estate Blog</Link></li>
+                <li><Link href="/journal/[id]" className="hover:text-gold transition-colors">Real Estate Blog</Link></li>
               </ul>
             </div>
 
