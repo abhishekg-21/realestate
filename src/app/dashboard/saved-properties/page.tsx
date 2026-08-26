@@ -104,16 +104,27 @@ export default function SavedPropertiesPage() {
       const propertyIds = props.map((p) => p.id);
       const { data: mediaRows } = await supabase
         .from("property_submission_media")
-        .select("submission_id, storage_path")  // ✅ correct column
+        .select("submission_id, storage_path")
         .in("submission_id", propertyIds)
-        .order("sort_order", { ascending: true }); // ✅ correct column
+        .order("sort_order", { ascending: true });
 
       const mediaMap: Record<string, string> = {};
       for (const m of mediaRows ?? []) {
         if (!mediaMap[m.submission_id]) {
+          let path = m.storage_path;
+          let bucket = "property-media";
+
+          // If it's a full URL, extract the bucket and relative path from it
+          const match = path.match(/\/object\/public\/([^/]+)\/(.+)/);
+          if (match) {
+            bucket = match[1];   // e.g. "property-images"
+            path = match[2];     // e.g. "e604952f-.../2a32e24f-....jpeg"
+          }
+
           const { data: urlData } = supabase.storage
-            .from("property-media")             // ✅ correct bucket
-            .getPublicUrl(m.storage_path);
+            .from(bucket)
+            .getPublicUrl(path);
+
           mediaMap[m.submission_id] = urlData.publicUrl;
         }
       }
