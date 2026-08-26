@@ -1,4 +1,3 @@
-// src/app/dashboard/saved-properties/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,14 +14,15 @@ interface SavedProperty {
   id: string;
   title: string;
   city: string;
-  area: string;
-  display_price: string;
+  state: string;
+  locality: string | null;
   price: number | null;
-  beds: number | null;
-  baths: number | null;
-  area_sq: string | null;
-  purpose: string | null;
-  type: string;
+  price_period: string | null;  // ✅ exists in DB
+  bedrooms: number | null;      // ✅ correct column name
+  bathrooms: number | null;     // ✅ correct column name
+  area_sqft: number | null;     // ✅ correct column name
+  property_type: string;        // ✅ correct column name
+  intent: string;               // ✅ correct column name
   image_url: string | null;
 }
 
@@ -45,35 +45,29 @@ export default function SavedPropertiesPage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    // Join saved_properties → property_submissions (your main listings table)
-    // Adjust table/column names below if your approved listings table differs
-    // Replace the supabase query in loadSaved():
+    if (!user) { setLoading(false); return; }
 
     const { data, error } = await supabase
       .from("saved_properties")
       .select(`
-    id,
-    property_id,
-    property_submissions!saved_properties_property_id_fkey (
-      id,
-      title,
-      city,
-      area,
-      display_price,
-      price,
-      beds,
-      baths,
-      area_sq,
-      purpose,
-      type,
-      status
-    )
-  `)
+        id,
+        property_id,
+        property_submissions!saved_properties_property_id_fkey (
+          id,
+          title,
+          city,
+          state,
+          locality,
+          price,
+          price_period,
+          bedrooms,
+          bathrooms,
+          area_sqft,
+          property_type,
+          intent,
+          status
+        )
+      `)
       .eq("user_id", user.id);
 
     if (error) {
@@ -82,7 +76,6 @@ export default function SavedPropertiesPage() {
       return;
     }
 
-    // Filter out any saved properties whose submission was deleted or not approved
     const props: SavedProperty[] = (data ?? [])
       .filter((row: any) => row.property_submissions?.status === "approved")
       .map((row: any) => {
@@ -92,40 +85,35 @@ export default function SavedPropertiesPage() {
           id: p.id,
           title: p.title,
           city: p.city,
-          area: p.area,
-          display_price: p.display_price,
+          state: p.state,
+          locality: p.locality,
           price: p.price,
-          beds: p.beds,
-          baths: p.baths,
-          area_sq: p.area_sq,
-          purpose: p.purpose,
-          type: p.type,
+          price_period: p.price_period,
+          bedrooms: p.bedrooms,
+          bathrooms: p.bathrooms,
+          area_sqft: p.area_sqft,
+          property_type: p.property_type,
+          intent: p.intent,
           image_url: null,
         };
       });
 
-    // Fetch first media image for each property
+    // Fetch first image using storage_path → getPublicUrl
     if (props.length > 0) {
       const propertyIds = props.map((p) => p.id);
-      // If your media table uses 'url' directly (not storage_path):
       const { data: mediaRows } = await supabase
         .from("property_submission_media")
-        .select("submission_id, url")   // ← change 'storage_path' to 'url' if needed
+        .select("submission_id, storage_path")  // ✅ correct column
         .in("submission_id", propertyIds)
-        .order("sort_order", { ascending: true });
+        .order("sort_order", { ascending: true }); // ✅ correct column
 
-      // And update the map accordingly:
       const mediaMap: Record<string, string> = {};
       for (const m of mediaRows ?? []) {
         if (!mediaMap[m.submission_id]) {
-          // If storing full URL directly:
-          mediaMap[m.submission_id] = m.url;
-
-          // If storing storage_path, keep getPublicUrl:
-          // const { data: urlData } = supabase.storage
-          //   .from("property-media")
-          //   .getPublicUrl(m.storage_path);
-          // mediaMap[m.submission_id] = urlData.publicUrl;
+          const { data: urlData } = supabase.storage
+            .from("property-media")             // ✅ correct bucket
+            .getPublicUrl(m.storage_path);
+          mediaMap[m.submission_id] = urlData.publicUrl;
         }
       }
 
@@ -151,20 +139,17 @@ export default function SavedPropertiesPage() {
   };
 
   const formatPrice = (p: SavedProperty) => {
-    if (!p.display_price) {
-      if (!p.price) return "Price on request";
-      const crore = p.price / 10000000;
-      const lakh = p.price / 100000;
-      return crore >= 1
-        ? `₹ ${crore.toFixed(2)} Cr`
-        : `₹ ${lakh.toFixed(2)} L`;
-    }
-    return p.display_price;
+    if (!p.price) return "Price on request";
+    const crore = p.price / 10000000;
+    const lakh = p.price / 100000;
+    const formatted = crore >= 1
+      ? `₹ ${crore.toFixed(2)} Cr`
+      : `₹ ${lakh.toFixed(2)} L`;
+    return p.price_period ? `${formatted} / ${p.price_period}` : formatted;
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-paper font-sans">
-      {/* Header */}
       <header className="h-[74px] max-md:h-[63px] bg-white border-b border-line flex items-center px-[clamp(20px,4vw,52px)] max-md:px-[16px] gap-[20px]">
         <span className="text-[12px] text-[#74828d] max-sm:hidden">
           My account / Saved spaces
@@ -183,7 +168,6 @@ export default function SavedPropertiesPage() {
         </div>
       </header>
 
-      {/* Main */}
       <div className="max-w-[1280px] w-full p-[37px_clamp(20px,4vw,52px)_70px] max-md:p-[25px_16px_55px] mx-auto flex-1">
         <div className="flex items-end justify-between mb-[24px]">
           <div>
@@ -213,38 +197,32 @@ export default function SavedPropertiesPage() {
                 key={p.id}
                 className="grid grid-cols-[95px_1fr_auto] max-sm:grid-cols-[72px_1fr] gap-[13px] items-center border border-[#e3e8e9] p-[10px] rounded bg-white relative"
               >
-                {/* Image */}
                 <Link
                   href={`/properties/${p.id}`}
                   className="h-[66px] w-[95px] max-sm:h-[57px] max-sm:w-[72px] bg-cover bg-center rounded block shrink-0 bg-slate-100"
                   style={p.image_url ? { backgroundImage: `url('${p.image_url}')` } : {}}
                 />
 
-                {/* Details */}
                 <div className="min-w-0 max-sm:col-start-2">
-                  <Link
-                    href={`/properties/${p.id}`}
-                    className="hover:text-gold transition-colors block"
-                  >
+                  <Link href={`/properties/${p.id}`} className="hover:text-gold transition-colors block">
                     <h3 className="text-[13px] font-bold m-0 mb-[4px] text-ink truncate">
                       {p.title}
                     </h3>
                   </Link>
                   <p className="m-0 text-[10px] text-muted truncate">
-                    {p.area}, {p.city} ·{" "}
-                    {p.beds ? `${p.beds} Bed` : p.type} ·{" "}
-                    {p.area_sq ?? "—"}
+                    {p.locality ? `${p.locality}, ` : ""}{p.city} ·{" "}
+                    {p.bedrooms ? `${p.bedrooms} Bed` : p.property_type} ·{" "}
+                    {p.area_sqft ? `${p.area_sqft.toLocaleString()} sq ft` : "—"}
                   </p>
                   <b className="text-[12px] font-bold block my-[7px] text-ink">
                     {formatPrice(p)}
                   </b>
                 </div>
 
-                {/* Remove */}
                 <button
                   onClick={() => removeSaved(p.id)}
                   title="Remove"
-                  className="border-0 bg-white text-[#9aa5ab] text-[20px] font-bold cursor-pointer hover:text-red transition-colors max-sm:absolute max-sm:right-[9px] max-sm:top-[9px]"
+                  className="border-0 bg-white text-[#9aa5ab] text-[20px] font-bold cursor-pointer hover:text-red-500 transition-colors max-sm:absolute max-sm:right-[9px] max-sm:top-[9px]"
                 >
                   ×
                 </button>
@@ -255,17 +233,13 @@ export default function SavedPropertiesPage() {
           <div className="border border-dashed border-[#bdc8cc] p-[38px] text-center text-[12px] text-muted rounded bg-white">
             No saved spaces yet.
             <br /><br />
-            <Link
-              href="/properties"
-              className="inline-block bg-navy !text-white font-bold px-4 py-2 rounded"
-            >
+            <Link href="/properties" className="inline-block bg-navy !text-white font-bold px-4 py-2 rounded">
               Explore properties
             </Link>
           </div>
         )}
       </div>
 
-      {/* Toast */}
       {toastMsg && (
         <div className="fixed bottom-[20px] right-[20px] bg-[#143b60] text-white p-[12px_15px] rounded-[7px] text-[12px] shadow-[0_8px_22px_rgba(0,0,0,0.2)] z-50 animate-bounce">
           {toastMsg}
