@@ -1,3 +1,4 @@
+// src/app/dashboard/saved-properties/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,19 +11,19 @@ import {
 } from "@/lib/auth-cache";
 
 interface SavedProperty {
-  saved_row_id: string; // id from saved_properties table
-  id: string;           // properties.id (UUID)
+  saved_row_id: string;
+  id: string;
   title: string;
   city: string;
-  state: string;
-  locality: string | null;
+  area: string;
+  display_price: string;
   price: number | null;
-  price_period: string | null;
-  bedrooms: number | null;
-  area_sqft: number | null;
-  property_type: string;
-  intent: string;
-  image_url: string | null; // first media item
+  beds: number | null;
+  baths: number | null;
+  area_sq: string | null;
+  purpose: string | null;
+  type: string;
+  image_url: string | null;
 }
 
 export default function SavedPropertiesPage() {
@@ -51,6 +52,8 @@ export default function SavedPropertiesPage() {
 
     // Join saved_properties → property_submissions (your main listings table)
     // Adjust table/column names below if your approved listings table differs
+    // Replace the supabase query in loadSaved():
+
     const { data, error } = await supabase
       .from("saved_properties")
       .select(`
@@ -60,14 +63,14 @@ export default function SavedPropertiesPage() {
       id,
       title,
       city,
-      state,
-      locality,
+      area,
+      display_price,
       price,
-      price_period,
-      bedrooms,
-      area_sqft,
-      property_type,
-      intent,
+      beds,
+      baths,
+      area_sq,
+      purpose,
+      type,
       status
     )
   `)
@@ -89,14 +92,14 @@ export default function SavedPropertiesPage() {
           id: p.id,
           title: p.title,
           city: p.city,
-          state: p.state,
-          locality: p.locality,
+          area: p.area,
+          display_price: p.display_price,
           price: p.price,
-          price_period: p.price_period,
-          bedrooms: p.bedrooms,
-          area_sqft: p.area_sqft,
-          property_type: p.property_type,
-          intent: p.intent,
+          beds: p.beds,
+          baths: p.baths,
+          area_sq: p.area_sq,
+          purpose: p.purpose,
+          type: p.type,
           image_url: null,
         };
       });
@@ -104,20 +107,25 @@ export default function SavedPropertiesPage() {
     // Fetch first media image for each property
     if (props.length > 0) {
       const propertyIds = props.map((p) => p.id);
+      // If your media table uses 'url' directly (not storage_path):
       const { data: mediaRows } = await supabase
         .from("property_submission_media")
-        .select("submission_id, storage_path")
+        .select("submission_id, url")   // ← change 'storage_path' to 'url' if needed
         .in("submission_id", propertyIds)
         .order("sort_order", { ascending: true });
 
-      // Build a map: submission_id → first image URL
+      // And update the map accordingly:
       const mediaMap: Record<string, string> = {};
       for (const m of mediaRows ?? []) {
         if (!mediaMap[m.submission_id]) {
-          const { data: urlData } = supabase.storage
-            .from("property-media")
-            .getPublicUrl(m.storage_path);
-          mediaMap[m.submission_id] = urlData.publicUrl;
+          // If storing full URL directly:
+          mediaMap[m.submission_id] = m.url;
+
+          // If storing storage_path, keep getPublicUrl:
+          // const { data: urlData } = supabase.storage
+          //   .from("property-media")
+          //   .getPublicUrl(m.storage_path);
+          // mediaMap[m.submission_id] = urlData.publicUrl;
         }
       }
 
@@ -143,14 +151,15 @@ export default function SavedPropertiesPage() {
   };
 
   const formatPrice = (p: SavedProperty) => {
-    if (!p.price) return "Price on request";
-    const crore = p.price / 10000000;
-    const lakh = p.price / 100000;
-    const formatted =
-      crore >= 1
+    if (!p.display_price) {
+      if (!p.price) return "Price on request";
+      const crore = p.price / 10000000;
+      const lakh = p.price / 100000;
+      return crore >= 1
         ? `₹ ${crore.toFixed(2)} Cr`
         : `₹ ${lakh.toFixed(2)} L`;
-    return p.price_period ? `${formatted} / ${p.price_period}` : formatted;
+    }
+    return p.display_price;
   };
 
   return (
@@ -222,9 +231,9 @@ export default function SavedPropertiesPage() {
                     </h3>
                   </Link>
                   <p className="m-0 text-[10px] text-muted truncate">
-                    {p.locality ? `${p.locality}, ` : ""}{p.city} ·{" "}
-                    {p.bedrooms ? `${p.bedrooms} Bed` : p.property_type} ·{" "}
-                    {p.area_sqft ? `${p.area_sqft.toLocaleString()} sq ft` : "—"}
+                    {p.area}, {p.city} ·{" "}
+                    {p.beds ? `${p.beds} Bed` : p.type} ·{" "}
+                    {p.area_sq ?? "—"}
                   </p>
                   <b className="text-[12px] font-bold block my-[7px] text-ink">
                     {formatPrice(p)}
