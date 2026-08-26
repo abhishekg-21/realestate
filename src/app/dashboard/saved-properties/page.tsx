@@ -1,3 +1,4 @@
+//  src/app/dashboard/saved-properties/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -119,6 +120,7 @@ export default function SavedPropertiesPage() {
 
       props.forEach((p) => {
         p.image_url = mediaMap[p.id] ?? null;
+        console.log("[SavedPage] image_url for", p.id, "→", p.image_url);
       });
     }
 
