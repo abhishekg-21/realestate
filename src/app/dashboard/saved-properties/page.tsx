@@ -9,6 +9,8 @@ import {
   SAVED_CHANGE_EVENT,
   getSavedPropertyIdsDB,
 } from "@/lib/auth-cache";
+import { useSearchParams, useRouter } from "next/navigation";
+
 
 interface SavedProperty {
   saved_row_id: string;
@@ -39,6 +41,25 @@ export default function SavedPropertiesPage() {
   const showToast = (text: string) => {
     setToastMsg(text);
     setTimeout(() => setToastMsg(""), 2500);
+  };
+
+  const searchParams = useSearchParams();
+  const currentView = searchParams.get("view") || "overview";
+  const switchView = (view: string) => {
+    router.push(`/user-dashboard?view=${view}`);
+  };
+  const [userAvatar, setUserAvatar] = useState("");
+  const router = useRouter();
+  const [userName, setUserName] = useState("");
+
+
+  const viewTitles: Record<string, string> = {
+    overview: "Home base",
+    saved: "Saved spaces",
+    alerts: "Match alerts",
+    messages: "Conversations",
+    sell: "Sell a property",
+    settings: "Account studio",
   };
 
   const loadSaved = async () => {
@@ -165,19 +186,37 @@ export default function SavedPropertiesPage() {
     <div className="flex flex-col min-h-screen bg-paper font-sans">
       <header className="h-[74px] max-md:h-[63px] bg-white border-b border-line flex items-center px-[clamp(20px,4vw,52px)] max-md:px-[16px] gap-[20px]">
         <span className="text-[12px] text-[#74828d] max-sm:hidden">
-          My account / Saved spaces
+          My account / {viewTitles[currentView] || "Home base"}
         </span>
         <nav className="flex gap-[22px] ml-[24px] text-[12px] font-bold text-[#546471] max-md:hidden">
           <Link href="/properties">Properties</Link>
           <Link href="/#areas">Locations</Link>
         </nav>
-        <div className="ml-auto">
-          <Link
-            href="/user-dashboard"
-            className="border border-line bg-white rounded-[7px] px-[12px] h-[34px] text-[11px] font-bold text-[#50606d] flex items-center hover:bg-gray-50 transition-colors"
+        <div className="ml-auto flex items-center gap-[11px]">
+          <button
+            onClick={() => showToast("You have 3 new updates.")}
+            className="h-[34px] w-[34px] rounded-full border border-line bg-white text-[#50606d] cursor-pointer flex items-center justify-center font-bold"
+            title="Notifications"
           >
-            ← Dashboard
-          </Link>
+            🔔
+          </button>
+          <button
+            onClick={() => switchView("settings")}
+            className="border border-line bg-white rounded-[21px] p-[5px_10px_5px_5px] flex items-center gap-[7px] text-[11px] font-bold cursor-pointer hover:bg-gray-50 transition-colors"
+          >
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt="Profile"
+                className="h-[27px] w-[27px] rounded-full object-cover"
+              />
+            ) : (
+              <span className="h-[27px] w-[27px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[13px]">
+                {userName.charAt(0)}
+              </span>
+            )}
+            <span className="max-sm:hidden">{userName.split(" ")[0]}</span>
+          </button>
         </div>
       </header>
 
