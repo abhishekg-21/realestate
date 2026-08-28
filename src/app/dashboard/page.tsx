@@ -190,7 +190,7 @@ function UserDashboardContent() {
   };
 
   const switchView = (view: string) => {
-    router.push(`/user-dashboard?view=${view}`);
+    router.push(`/dashboard?view=${view}`);
   };
 
   const removeSaved = (id: string) => {
