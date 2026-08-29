@@ -77,10 +77,19 @@ export default async function JournalArticlePage({ params }: Props) {  // ← as
           .content p{font-size:15px}
           .content h2{font-size:28px}
         }
+          .fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  width: min(1160px, calc(100% - 48px));
+  margin: 0 auto;
+  background: var(--paper);
+}
       `}</style>
 
-            {/* Header */}
-            <header className="fixed top-0 left-0 right-0 w-full z-[9999] wrap nav">
+            <header className="wrap nav fixed-header">
                 <Link className="logo" href="/">
                     <span className="mark">
                         <i /><i /><i />
