@@ -29,21 +29,57 @@ export default function Navbar({ variant }: NavbarProps) {
 
   const isDark = variant === "dark" || (!variant && pathname === "/");
 
-  const loadUserState = async () => {
-    // 1. Check local account cache first for instant UI response
-    const cached = getCachedUser();
-    if (cached) {
-      setUser(cached);
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+    setProfileMenuOpen(false);
+  }, [pathname]);
+
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
-    // 2. Always verify against Supabase active session & profiles table in background
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const loadUserState = async () => {
+    const cached = getCachedUser();
+    if (cached) setUser(cached);
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user) {
-        let role = session.user.user_metadata?.role || cached?.role || "buyer";
-        let name = session.user.user_metadata?.full_name || cached?.name || session.user.email?.split("@")[0] || "User";
+        let role =
+          session.user.user_metadata?.role || cached?.role || "buyer";
+        let name =
+          session.user.user_metadata?.full_name ||
+          cached?.name ||
+          session.user.email?.split("@")[0] ||
+          "User";
         try {
-          const { data: dbProfile } = await supabase.from("profiles").select("role, full_name").eq("id", session.user.id).single();
+          const { data: dbProfile } = await supabase
+            .from("profiles")
+            .select("role, full_name")
+            .eq("id", session.user.id)
+            .single();
           if (dbProfile?.role) role = dbProfile.role;
           if (dbProfile?.full_name) name = dbProfile.full_name;
         } catch { }
@@ -60,27 +96,25 @@ export default function Navbar({ variant }: NavbarProps) {
     } catch {
       if (!cached) setUser(null);
     }
-
     setSavedCount(getSavedPropertyIds().length);
   };
 
   useEffect(() => {
     loadUserState();
-
     const handleAuthChange = () => loadUserState();
-    const handleSavedChange = () => setSavedCount(getSavedPropertyIds().length);
-
+    const handleSavedChange = () =>
+      setSavedCount(getSavedPropertyIds().length);
     window.addEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
     window.addEventListener(SAVED_CHANGE_EVENT, handleSavedChange);
-
-    // Close dropdown on outside click
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setProfileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       window.removeEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
       window.removeEventListener(SAVED_CHANGE_EVENT, handleSavedChange);
@@ -112,11 +146,12 @@ export default function Navbar({ variant }: NavbarProps) {
     <>
       <header
         className={`fixed top-0 left-0 right-0 w-full z-[9999] ${isDark
-          ? "border-b border-white/20 text-white bg-navy/90 backdrop-blur-md"
-          : "border-b border-line text-ink bg-white/90 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
+            ? "border-b border-white/20 text-white bg-navy/90 backdrop-blur-md"
+            : "border-b border-line text-ink bg-white/90 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
           }`}
       >
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto h-[83px] max-md:h-[67px] flex items-center gap-6">
+          {/* Logo */}
           <Link
             href="/"
             className="font-bold tracking-[1.2px] text-lg flex items-center whitespace-nowrap"
@@ -135,28 +170,20 @@ export default function Navbar({ variant }: NavbarProps) {
             </span>
           </Link>
 
+          {/* Desktop nav links */}
           <nav
             className={`hidden md:flex items-center gap-[29px] border-l pl-6 text-[13px] font-semibold ${isDark
-              ? "border-white/25 text-white/90"
-              : "border-line text-[#596875]"
+                ? "border-white/25 text-white/90"
+                : "border-line text-[#596875]"
               }`}
           >
-            <Link
-              href="/properties?view=map"
-              className="hover:opacity-100 transition-opacity"
-            >
+            <Link href="/properties?view=map" className="hover:opacity-100 transition-opacity">
               Map
             </Link>
-            <Link
-              href="/properties"
-              className="hover:opacity-100 transition-opacity"
-            >
+            <Link href="/properties" className="hover:opacity-100 transition-opacity">
               Properties
             </Link>
-            <Link
-              href="/guidance"
-              className="hover:opacity-100 transition-opacity"
-            >
+            <Link href="/guidance" className="hover:opacity-100 transition-opacity">
               Guidance
             </Link>
             <Link
@@ -167,15 +194,15 @@ export default function Navbar({ variant }: NavbarProps) {
             </Link>
           </nav>
 
+          {/* Right side actions */}
           <div className="ml-auto flex items-center gap-[10px] text-[13px] max-md:text-[11px] font-bold">
             {user ? (
-              /* AUTHENTICATED NAVBAR USER ACTIONS */
               <>
                 <Link
                   href="/dashboard"
                   className={`hidden sm:inline-block px-3.5 py-2 rounded-[24px] transition-colors font-bold text-[13px] ${isDark
-                    ? "bg-white/15 text-white hover:bg-white/25 border border-white/20"
-                    : "bg-[#f3f5f7] text-[#1c2b39] hover:bg-[#e8eaed] border border-line"
+                      ? "bg-white/15 text-white hover:bg-white/25 border border-white/20"
+                      : "bg-[#f3f5f7] text-[#1c2b39] hover:bg-[#e8eaed] border border-line"
                     }`}
                 >
                   My Dashboard
@@ -192,8 +219,8 @@ export default function Navbar({ variant }: NavbarProps) {
                 <button
                   onClick={() => router.push("/user-dashboard?view=alerts")}
                   className={`h-[36px] w-[36px] rounded-full flex items-center justify-center relative transition-colors cursor-pointer ${isDark
-                    ? "border border-white/30 bg-white/10 text-white hover:bg-white/20"
-                    : "border border-line bg-white text-[#50606d] hover:bg-gray-50"
+                      ? "border border-white/30 bg-white/10 text-white hover:bg-white/20"
+                      : "border border-line bg-white text-[#50606d] hover:bg-gray-50"
                     }`}
                   title="Active alerts & updates"
                 >
@@ -203,13 +230,13 @@ export default function Navbar({ variant }: NavbarProps) {
                   )}
                 </button>
 
-                {/* Account Avatar Dropdown Container */}
+                {/* Avatar Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                     className={`flex items-center gap-[8px] p-[4px_11px_4px_5px] rounded-[22px] border transition-all cursor-pointer ${isDark
-                      ? "border-white/35 bg-white/12 text-white hover:bg-white/20"
-                      : "border-line bg-white text-ink hover:bg-gray-50 shadow-sm"
+                        ? "border-white/35 bg-white/12 text-white hover:bg-white/20"
+                        : "border-line bg-white text-ink hover:bg-gray-50 shadow-sm"
                       }`}
                   >
                     <span className="h-[28px] w-[28px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[13px] shrink-0 shadow-sm">
@@ -224,7 +251,6 @@ export default function Navbar({ variant }: NavbarProps) {
                   {/* Profile Dropdown Menu */}
                   {profileMenuOpen && (
                     <div className="absolute right-0 top-[calc(100%+10px)] w-[250px] bg-white text-ink border border-line rounded-[12px] shadow-[0_15px_35px_rgba(7,24,45,0.18)] p-[8px] z-50 animate-fadeIn font-sans">
-                      {/* User Info Header */}
                       <div className="p-[10px_12px] border-b border-[#edf0f1] mb-[6px] bg-[#f8fafb] rounded-[8px]">
                         <b className="block text-[13px] text-ink truncate">{user.name}</b>
                         <span className="block text-[11px] text-muted truncate mt-[2px]">
@@ -235,60 +261,35 @@ export default function Navbar({ variant }: NavbarProps) {
                         </span>
                       </div>
 
-                      {/* Dropdown Links */}
                       <div className="flex flex-col text-[12px] font-semibold text-[#40515e]">
                         {user.role === "super_admin" ? (
                           <>
-                            <Link
-                              href="/super-admin"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors text-[#9a6a1a] font-bold"
-                            >
-                              <span className="w-[6px] h-[6px] rounded-full bg-gold" />
+                            <Link href="/super-admin" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors text-[#9a6a1a] font-bold">
+                              <span className="w-[6px] h-[6px] rounded-full bg-gold shrink-0" />
                               Admin Console ⚡
                             </Link>
-                            <Link
-                              href="/super-admin/approvals"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors"
-                            >
-                              <span className="w-[6px] h-[6px] rounded-full bg-green" />
+                            <Link href="/super-admin/approvals" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
+                              <span className="w-[6px] h-[6px] rounded-full bg-green shrink-0" />
                               Pending Approvals
                             </Link>
-                            <Link
-                              href="/super-admin/users"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors"
-                            >
-                              <span className="w-[6px] h-[6px] rounded-full bg-[#52749a]" />
+                            <Link href="/super-admin/users" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
+                              <span className="w-[6px] h-[6px] rounded-full bg-[#52749a] shrink-0" />
                               User Management
                             </Link>
-                            <Link
-                              href="/super-admin/settings"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors"
-                            >
-                              <span className="w-[6px] h-[6px] rounded-full bg-[#83919c]" />
+                            <Link href="/super-admin/settings" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
+                              <span className="w-[6px] h-[6px] rounded-full bg-[#83919c] shrink-0" />
                               Platform Settings
                             </Link>
                           </>
                         ) : (
                           <>
-                            <Link
-                              href="/dashboard"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors font-bold text-ink"
-                            >
-                              <span className="w-[6px] h-[6px] rounded-full bg-gold" />
+                            <Link href="/dashboard" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors font-bold text-ink">
+                              <span className="w-[6px] h-[6px] rounded-full bg-gold shrink-0" />
                               My Dashboard
                             </Link>
-                            <Link
-                              href="/user-dashboard?view=saved"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center justify-between p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors"
-                            >
+                            <Link href="/user-dashboard?view=saved" onClick={() => setProfileMenuOpen(false)} className="flex items-center justify-between p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
                               <span className="flex items-center gap-[10px]">
-                                <span className="w-[6px] h-[6px] rounded-full bg-[#e86a58]" />
+                                <span className="w-[6px] h-[6px] rounded-full bg-[#e86a58] shrink-0" />
                                 Saved spaces
                               </span>
                               {savedCount > 0 && (
@@ -297,20 +298,12 @@ export default function Navbar({ variant }: NavbarProps) {
                                 </span>
                               )}
                             </Link>
-                            <Link
-                              href="/user-dashboard?view=messages"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors"
-                            >
-                              <span className="w-[6px] h-[6px] rounded-full bg-green" />
+                            <Link href="/user-dashboard?view=messages" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
+                              <span className="w-[6px] h-[6px] rounded-full bg-green shrink-0" />
                               Conversations
                             </Link>
-                            <Link
-                              href="/user-dashboard?view=settings"
-                              onClick={() => setProfileMenuOpen(false)}
-                              className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors"
-                            >
-                              <span className="w-[6px] h-[6px] rounded-full bg-[#83919c]" />
+                            <Link href="/user-dashboard?view=settings" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-[10px] p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
+                              <span className="w-[6px] h-[6px] rounded-full bg-[#83919c] shrink-0" />
                               Account Studio
                             </Link>
                           </>
@@ -330,7 +323,6 @@ export default function Navbar({ variant }: NavbarProps) {
                 </div>
               </>
             ) : (
-              /* SIGNED OUT NAVBAR ACTIONS */
               <>
                 <Link
                   href={pathname === "/" ? "#agents" : "/#agents"}
@@ -342,8 +334,8 @@ export default function Navbar({ variant }: NavbarProps) {
                 <Link
                   href="/login"
                   className={`whitespace-nowrap px-4 py-2 max-md:py-1.5 max-md:px-3 rounded-full border transition-colors ${isDark
-                    ? "border-white/40 text-white hover:bg-white/10"
-                    : "border-line text-ink hover:bg-gray-50"
+                      ? "border-white/40 text-white hover:bg-white/10"
+                      : "border-line text-ink hover:bg-gray-50"
                     }`}
                 >
                   Log in
@@ -357,174 +349,170 @@ export default function Navbar({ variant }: NavbarProps) {
               </>
             )}
 
+            {/* Hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden ml-1 p-1 text-lg"
+              className={`md:hidden ml-1 p-2 rounded-lg transition-colors text-lg ${isDark ? "hover:bg-white/10" : "hover:bg-gray-100"
+                }`}
               aria-label="Toggle Menu"
+              aria-expanded={mobileOpen}
             >
-              ☰
+              {mobileOpen ? "✕" : "☰"}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu Overlay — full-screen with scroll */}
       {mobileOpen && (
-        <div
-          className={`md:hidden fixed top-[67px] left-0 right-0 z-50 p-6 shadow-2xl border-b ${isDark
-            ? "bg-navy text-white border-white/20"
-            : "bg-white text-ink border-line"
-            }`}
-        >
-          {user ? (
-            <div className="flex flex-col gap-3">
-              {/* Mobile User Header */}
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/15 mb-2">
-                <span className="h-[38px] w-[38px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[16px] shrink-0">
-                  {user.avatar || user.name.charAt(0)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <b className="block text-sm truncate">{user.name}</b>
-                  <span className="block text-xs opacity-75 truncate">{user.email}</span>
+        <>
+          {/* Backdrop */}
+          <div
+            className="md:hidden fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+          />
+
+          {/* Drawer */}
+          <div
+            className={`md:hidden fixed top-[67px] left-0 right-0 bottom-0 z-[9999] overflow-y-auto p-6 shadow-2xl border-b ${isDark
+                ? "bg-[#07182d] text-white border-white/20"
+                : "bg-white text-ink border-line"
+              }`}
+          >
+            {user ? (
+              <div className="flex flex-col gap-3">
+                {/* Mobile User Header */}
+                <div
+                  className={`flex items-center gap-3 p-3 rounded-lg mb-2 ${isDark
+                      ? "bg-white/10 border border-white/15"
+                      : "bg-[#f5f7f8] border border-line"
+                    }`}
+                >
+                  <span className="h-[38px] w-[38px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[16px] shrink-0">
+                    {user.avatar || user.name.charAt(0)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <b className="block text-sm truncate">{user.name}</b>
+                    <span className={`block text-xs truncate ${isDark ? "opacity-75" : "text-muted"}`}>
+                      {user.email}
+                    </span>
+                  </div>
+                </div>
+
+                {user.role === "super_admin" ? (
+                  <>
+                    <Link href="/super-admin" onClick={() => setMobileOpen(false)} className="py-2 font-bold text-sm text-gold flex items-center justify-between">
+                      <span>Admin Console ⚡</span>
+                      <span className="text-xs">→</span>
+                    </Link>
+                    <Link href="/super-admin/approvals" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                      <span>Pending Approvals</span>
+                      <span className="text-xs text-gold">→</span>
+                    </Link>
+                    <Link href="/super-admin/users" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                      <span>User Management</span>
+                      <span className="text-xs text-gold">→</span>
+                    </Link>
+                    <Link href="/super-admin/settings" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                      <span>Platform Settings</span>
+                      <span className="text-xs text-gold">→</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="py-2 font-bold text-sm flex items-center justify-between">
+                      <span>My Dashboard</span>
+                      <span className="text-xs text-gold">→</span>
+                    </Link>
+                    <Link href="/user-dashboard?view=saved" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                      <span>Saved spaces ({savedCount})</span>
+                      <span className="text-xs text-gold">→</span>
+                    </Link>
+                    <Link href="/user-dashboard?view=messages" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                      <span>Conversations</span>
+                      <span className="text-xs text-gold">→</span>
+                    </Link>
+                    <Link href="/user-dashboard?view=settings" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                      <span>Account Studio</span>
+                      <span className="text-xs text-gold">→</span>
+                    </Link>
+                  </>
+                )}
+
+                <hr className={`my-2 ${isDark ? "border-white/15" : "border-line"}`} />
+
+                {/* Mobile nav links */}
+                <Link href="/properties?view=map" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                  <span>Map</span>
+                  <span className="text-xs opacity-50">→</span>
+                </Link>
+                <Link href="/properties" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                  <span>Properties</span>
+                  <span className="text-xs opacity-50">→</span>
+                </Link>
+                <Link href="/guidance" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                  <span>Guidance</span>
+                  <span className="text-xs opacity-50">→</span>
+                </Link>
+
+                <hr className={`my-2 ${isDark ? "border-white/15" : "border-line"}`} />
+
+                <button
+                  onClick={handleSignOut}
+                  className="text-left py-2 font-bold text-sm text-red flex items-center gap-2 border-0 bg-transparent cursor-pointer"
+                >
+                  🚪 Sign out
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1 font-semibold text-sm">
+                <Link href="/properties?view=map" onClick={() => setMobileOpen(false)} className="py-2.5 flex items-center justify-between border-b border-line/50">
+                  <span>Map</span>
+                  <span className="text-xs opacity-40">→</span>
+                </Link>
+                <Link href="/properties" onClick={() => setMobileOpen(false)} className="py-2.5 flex items-center justify-between border-b border-line/50">
+                  <span>Properties</span>
+                  <span className="text-xs opacity-40">→</span>
+                </Link>
+                <Link href="/guidance" onClick={() => setMobileOpen(false)} className="py-2.5 flex items-center justify-between border-b border-line/50">
+                  <span>Guidance</span>
+                  <span className="text-xs opacity-40">→</span>
+                </Link>
+                <Link href={pathname === "/" ? "#agents" : "/#agents"} onClick={() => setMobileOpen(false)} className="py-2.5 flex items-center justify-between border-b border-line/50">
+                  <span>For partners</span>
+                  <span className="text-xs opacity-40">→</span>
+                </Link>
+
+                <div className="mt-4 flex flex-col gap-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className={`w-full text-center py-3 rounded-xl border font-bold text-[13px] transition-colors ${isDark
+                        ? "border-white/30 text-white hover:bg-white/10"
+                        : "border-line text-ink hover:bg-gray-50"
+                      }`}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full text-center py-3 rounded-xl bg-[#1c2b39] !text-white font-bold text-[13px] hover:bg-[#2c3f52] transition-colors"
+                  >
+                    Create account
+                  </Link>
+                  <Link
+                    href="/business-signup"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full text-center py-3 rounded-xl border border-gold text-gold font-bold text-[13px] hover:bg-gold/5 transition-colors"
+                  >
+                    Partner sign up
+                  </Link>
                 </div>
               </div>
-
-              {user.role === "super_admin" ? (
-                <>
-                  <Link
-                    href="/super-admin"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-bold text-sm text-gold flex items-center justify-between"
-                  >
-                    <span>Admin Console ⚡</span>
-                    <span className="text-xs">→</span>
-                  </Link>
-                  <Link
-                    href="/super-admin/approvals"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
-                  >
-                    <span>Pending Approvals</span>
-                    <span className="text-xs text-gold">→</span>
-                  </Link>
-                  <Link
-                    href="/super-admin/users"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
-                  >
-                    <span>User Management</span>
-                    <span className="text-xs text-gold">→</span>
-                  </Link>
-                  <Link
-                    href="/super-admin/settings"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
-                  >
-                    <span>Platform Settings</span>
-                    <span className="text-xs text-gold">→</span>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-bold text-sm flex items-center justify-between"
-                  >
-                    <span>My Dashboard</span>
-                    <span className="text-xs text-gold">→</span>
-                  </Link>
-                  <Link
-                    href="/user-dashboard?view=saved"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
-                  >
-                    <span>Saved spaces ({savedCount})</span>
-                    <span className="text-xs text-gold">→</span>
-                  </Link>
-                  <Link
-                    href="/user-dashboard?view=messages"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
-                  >
-                    <span>Conversations</span>
-                    <span className="text-xs text-gold">→</span>
-                  </Link>
-                  <Link
-                    href="/user-dashboard?view=settings"
-                    onClick={() => setMobileOpen(false)}
-                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
-                  >
-                    <span>Account Studio</span>
-                    <span className="text-xs text-gold">→</span>
-                  </Link>
-                </>
-              )}
-              <hr className={`my-2 ${isDark ? "border-white/15" : "border-line"}`} />
-              <button
-                onClick={handleSignOut}
-                className="text-left py-1.5 font-bold text-sm text-red flex items-center gap-2 border-0 bg-transparent cursor-pointer"
-              >
-                🚪 Sign out
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4 font-semibold text-sm">
-              <Link
-                href="/properties?view=map"
-                onClick={() => setMobileOpen(false)}
-                className="py-1"
-              >
-                Map
-              </Link>
-              <Link
-                href="/properties"
-                onClick={() => setMobileOpen(false)}
-                className="py-1"
-              >
-                Properties
-              </Link>
-              <Link
-                href="/guidance"
-                onClick={() => setMobileOpen(false)}
-                className="py-1"
-              >
-                Guidance
-              </Link>
-              <Link
-                href={pathname === "/" ? "#agents" : "/#agents"}
-                onClick={() => setMobileOpen(false)}
-                className="py-1"
-              >
-                For partners
-              </Link>
-              <hr
-                className={`my-1 ${isDark ? "border-white/10" : "border-line"}`}
-              />
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="py-1"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setMobileOpen(false)}
-                className="py-1"
-              >
-                Create user account
-              </Link>
-              <Link
-                href="/business-signup"
-                onClick={() => setMobileOpen(false)}
-                className="py-1 font-bold text-gold"
-              >
-                Partner sign up
-              </Link>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* Toast Notice */}
