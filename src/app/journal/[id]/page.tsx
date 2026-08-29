@@ -76,33 +76,60 @@ export default async function JournalArticlePage({ params }: Props) {  // ← as
           .aside{position:static;margin:0 0 32px}
           .content p{font-size:15px}
           .content h2{font-size:28px}
-        }
-          .fixed-header {
+          .site-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  width: 100%;
   z-index: 9999;
-  width: min(1160px, calc(100% - 48px));
-  margin: 0 auto;
   background: var(--paper);
+  border-bottom: 1px solid var(--line);
 }
+
+.site-header .nav {
+  height: 80px;
+}
+
+main {
+  padding-top: 80px;
+}
+
+@media (max-width: 760px) {
+  .site-header .nav {
+    height: 67px;
+  }
+
+  main {
+    padding-top: 67px;
+  }
+}
+
+        }
       `}</style>
 
-            <header className="wrap nav fixed-header">
-                <Link className="logo" href="/">
-                    <span className="mark">
-                        <i /><i /><i />
-                    </span>
-                    Properties<span>Nexus</span>
-                </Link>
-                <nav className="links">
-                    <Link href="/properties">Properties</Link>
-                    <Link href="/#areas">Locations</Link>
-                    <Link href="/journal">Journal</Link>
-                </nav>
-                <Link className="back" href="/journal">← Back to Journal</Link>
+            {/* Header */}
+            <header className="site-header">
+                <div className="wrap nav">
+                    <Link className="logo" href="/">
+                        <span className="mark">
+                            <i /><i /><i />
+                        </span>
+                        Properties<span>Nexus</span>
+                    </Link>
+
+                    <nav className="links">
+                        <Link href="/properties">Properties</Link>
+                        <Link href="/#areas">Locations</Link>
+                        <Link href="/journal">Journal</Link>
+                    </nav>
+
+                    <Link className="back" href="/journal">
+                        ← Back to Journal
+                    </Link>
+                </div>
             </header>
+
 
             <main>
                 {/* Article header */}
