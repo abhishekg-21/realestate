@@ -48,7 +48,7 @@ export default function Home() {
 
   return (
     // pb-20 on mobile / pb-16 on desktop to clear the floating bottom bar
-    <div className="min-h-screen overflow-x-hidden bg-paper text-ink font-sans pb-20 sm:pb-16">
+    <div className="min-h-screen overflow-x-hidden bg-paper text-ink font-sans sm:pb-16">
 
       {/* ================= HERO ================= */}
       {/*
