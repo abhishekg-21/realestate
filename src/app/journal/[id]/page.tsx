@@ -1,4 +1,4 @@
-//  src\app\journal\[id]\page.tsx
+// src/app/journal/[id]/page.tsx
 
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -6,11 +6,12 @@ import Link from "next/link";
 import { PN_JOURNAL } from "@/lib/blog-data";
 
 interface Props {
-    params: { id: string };
+    params: Promise<{ id: string }>;  // ← Promise now
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const article = PN_JOURNAL[params.id];
+    const { id } = await params;  // ← await
+    const article = PN_JOURNAL[id];
     if (!article) return { title: "Journal | PropertiesNexus" };
     return { title: `${article.title} | PropertiesNexus` };
 }
@@ -19,8 +20,9 @@ export async function generateStaticParams() {
     return Object.keys(PN_JOURNAL).map((id) => ({ id }));
 }
 
-export default function JournalArticlePage({ params }: Props) {
-    const article = PN_JOURNAL[params.id];
+export default async function JournalArticlePage({ params }: Props) {  // ← async
+    const { id } = await params;  // ← await
+    const article = PN_JOURNAL[id];
     if (!article) notFound();
 
     return (
