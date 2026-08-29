@@ -1,3 +1,5 @@
+//  src\lib\blog-data.ts
+
 export interface Article {
     category: string;
     title: string;

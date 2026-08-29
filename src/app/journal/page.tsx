@@ -1,3 +1,5 @@
+//  src\app\journal\page.tsx
+
 import Link from "next/link";
 import { PN_JOURNAL } from "@/lib/blog-data";
 

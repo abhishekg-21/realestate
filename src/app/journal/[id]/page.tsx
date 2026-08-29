@@ -1,3 +1,5 @@
+//  src\app\journal\[id]\page.tsx
+
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
