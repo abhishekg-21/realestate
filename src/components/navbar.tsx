@@ -371,143 +371,161 @@ export default function Navbar({ variant }: NavbarProps) {
       {/* Mobile Menu Dropdown */}
       {mobileOpen && (
         <div
-          className={`
-      fixed left-0 right-0 top-[72px] z-[9998]
-      max-h-[calc(100vh-72px)] overflow-y-auto
-      border-b p-5 shadow-2xl
-      lg:hidden
-      sm:top-[72px]
-      ${isDark
-              ? "border-white/20 bg-navy text-white"
-              : "border-line bg-white text-ink"
-            }
-    `}
+          className={`md:hidden fixed top-[67px] left-0 right-0 z-50 p-6 shadow-2xl border-b ${isDark
+            ? "bg-navy text-white border-white/20"
+            : "bg-white text-ink border-line"
+            }`}
         >
-          <div className="mx-auto flex max-w-[1216px] flex-col gap-3">
-            <Link
-              href="/properties?view=map"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-            >
-              Map
-            </Link>
+          {user ? (
+            <div className="flex flex-col gap-3">
+              {/* Mobile User Header */}
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/15 mb-2">
+                <span className="h-[38px] w-[38px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[16px] shrink-0">
+                  {user.avatar || user.name.charAt(0)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <b className="block text-sm truncate">{user.name}</b>
+                  <span className="block text-xs opacity-75 truncate">{user.email}</span>
+                </div>
+              </div>
 
-            <Link
-              href="/properties"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-            >
-              Properties
-            </Link>
-
-            <Link
-              href="/guidance"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-            >
-              Guidance
-            </Link>
-
-            <Link
-              href={pathname === "/" ? "#agents" : "/#agents"}
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-            >
-              For partners
-            </Link>
-
-            {user && (
-              <>
-                <div
-                  className={`my-1 border-t ${isDark ? "border-white/10" : "border-line"
-                    }`}
-                />
-
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-bold hover:bg-white/10"
-                >
-                  My Dashboard
-                </Link>
-
-                <Link
-                  href="/dashboard/add-property"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-                >
-                  List property
-                </Link>
-
-                <Link
-                  href="/user-dashboard?view=saved"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-                >
-                  Saved spaces ({savedCount})
-                </Link>
-
-                <Link
-                  href="/user-dashboard?view=messages"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-                >
-                  Conversations
-                </Link>
-
-                <Link
-                  href="/user-dashboard?view=settings"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-                >
-                  Account Studio
-                </Link>
-
-                <button
-                  onClick={handleSignOut}
-                  className="rounded-lg px-3 py-2.5 text-left font-bold text-red hover:bg-red/5"
-                >
-                  🚪 Sign out
-                </button>
-              </>
-            )}
-
-            {!user && (
-              <>
-                <div
-                  className={`my-1 border-t ${isDark ? "border-white/10" : "border-line"
-                    }`}
-                />
-
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-                >
-                  Log in
-                </Link>
-
-                <Link
-                  href="/register"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-semibold hover:bg-white/10"
-                >
-                  Create user account
-                </Link>
-
-                <Link
-                  href="/business-signup"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 font-bold text-gold hover:bg-white/10"
-                >
-                  Partner sign up
-                </Link>
-              </>
-            )}
-          </div>
+              {user.role === "super_admin" ? (
+                <>
+                  <Link
+                    href="/super-admin"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-bold text-sm text-gold flex items-center justify-between"
+                  >
+                    <span>Admin Console ⚡</span>
+                    <span className="text-xs">→</span>
+                  </Link>
+                  <Link
+                    href="/super-admin/approvals"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
+                  >
+                    <span>Pending Approvals</span>
+                    <span className="text-xs text-gold">→</span>
+                  </Link>
+                  <Link
+                    href="/super-admin/users"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
+                  >
+                    <span>User Management</span>
+                    <span className="text-xs text-gold">→</span>
+                  </Link>
+                  <Link
+                    href="/super-admin/settings"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
+                  >
+                    <span>Platform Settings</span>
+                    <span className="text-xs text-gold">→</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-bold text-sm flex items-center justify-between"
+                  >
+                    <span>My Dashboard</span>
+                    <span className="text-xs text-gold">→</span>
+                  </Link>
+                  <Link
+                    href="/user-dashboard?view=saved"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
+                  >
+                    <span>Saved spaces ({savedCount})</span>
+                    <span className="text-xs text-gold">→</span>
+                  </Link>
+                  <Link
+                    href="/user-dashboard?view=messages"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
+                  >
+                    <span>Conversations</span>
+                    <span className="text-xs text-gold">→</span>
+                  </Link>
+                  <Link
+                    href="/user-dashboard?view=settings"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-1.5 font-semibold text-sm flex items-center justify-between"
+                  >
+                    <span>Account Studio</span>
+                    <span className="text-xs text-gold">→</span>
+                  </Link>
+                </>
+              )}
+              <hr className={`my-2 ${isDark ? "border-white/15" : "border-line"}`} />
+              <button
+                onClick={handleSignOut}
+                className="text-left py-1.5 font-bold text-sm text-red flex items-center gap-2 border-0 bg-transparent cursor-pointer"
+              >
+                🚪 Sign out
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 font-semibold text-sm">
+              <Link
+                href="/properties?view=map"
+                onClick={() => setMobileOpen(false)}
+                className="py-1"
+              >
+                Map
+              </Link>
+              <Link
+                href="/properties"
+                onClick={() => setMobileOpen(false)}
+                className="py-1"
+              >
+                Properties
+              </Link>
+              <Link
+                href="/guidance"
+                onClick={() => setMobileOpen(false)}
+                className="py-1"
+              >
+                Guidance
+              </Link>
+              <Link
+                href={pathname === "/" ? "#agents" : "/#agents"}
+                onClick={() => setMobileOpen(false)}
+                className="py-1"
+              >
+                For partners
+              </Link>
+              <hr
+                className={`my-1 ${isDark ? "border-white/10" : "border-line"}`}
+              />
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="py-1"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setMobileOpen(false)}
+                className="py-1"
+              >
+                Create user account
+              </Link>
+              <Link
+                href="/business-signup"
+                onClick={() => setMobileOpen(false)}
+                className="py-1 font-bold text-gold"
+              >
+                Partner sign up
+              </Link>
+            </div>
+          )}
         </div>
       )}
-
 
       {/* Toast Notice */}
       {toastMsg && (
