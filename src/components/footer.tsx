@@ -68,7 +68,7 @@ export default function Footer() {
                 <li><Link href="/properties?purpose=Buy" className="hover:text-gold transition-colors">Buy Property</Link></li>
                 <li><Link href="/properties?purpose=Rent" className="hover:text-gold transition-colors">Rent Property</Link></li>
                 <li><Link href="/business-signup" className="hover:text-gold transition-colors">Sell Property</Link></li>
-                <li><Link href="//properties?type=Commercial" className="hover:text-gold transition-colors">Commercial Real Estate</Link></li>
+                <li><Link href="/dashboard/properties" className="hover:text-gold transition-colors">Commercial Real Estate</Link></li>
               </ul>
             </div>
 
