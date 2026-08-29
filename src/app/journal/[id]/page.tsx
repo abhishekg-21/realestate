@@ -80,7 +80,7 @@ export default async function JournalArticlePage({ params }: Props) {  // ← as
       `}</style>
 
             {/* Header */}
-            <header className="wrap nav">
+            <header className="fixed top-0 left-0 right-0 w-full z-[9999]">
                 <Link className="logo" href="/">
                     <span className="mark">
                         <i /><i /><i />
