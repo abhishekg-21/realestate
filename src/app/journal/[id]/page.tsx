@@ -68,6 +68,7 @@ export default async function JournalArticlePage({ params }: Props) {
           background: var(--paper);
           color: var(--ink);
           font-family: 'DM Sans', Arial, sans-serif;
+          overflow-x: hidden;
         }
 
         a {
@@ -75,18 +76,22 @@ export default async function JournalArticlePage({ params }: Props) {
           text-decoration: none;
         }
 
-        /* =========================
-           CONTAINER
-        ========================= */
+        img {
+          max-width: 100%;
+        }
+
+        /* =====================================================
+           MAIN CONTAINER
+        ===================================================== */
 
         .wrap {
           width: min(1160px, calc(100% - 48px));
           margin: 0 auto;
         }
 
-        /* =========================
+        /* =====================================================
            FIXED HEADER
-        ========================= */
+        ===================================================== */
 
         .site-header {
           position: fixed;
@@ -96,33 +101,41 @@ export default async function JournalArticlePage({ params }: Props) {
           width: 100%;
           height: 80px;
           z-index: 9999;
-          background: rgba(248, 247, 243, 0.97);
+
+          background: rgba(248, 247, 243, 0.96);
           border-bottom: 1px solid var(--line);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+
+          box-shadow: 0 2px 14px rgba(7, 24, 45, 0.04);
         }
 
         .nav {
           height: 80px;
+
           display: flex;
           align-items: center;
           gap: 25px;
         }
 
-        /* =========================
+        /* =====================================================
            LOGO
-        ========================= */
+        ===================================================== */
 
         .logo {
           display: flex;
           align-items: center;
+
           font-size: 18px;
           font-weight: 700;
           letter-spacing: 1px;
           white-space: nowrap;
+
+          flex-shrink: 0;
         }
 
-        .logo span {
+        .logo > span:last-child {
           font-weight: 400;
           color: #6b7a86;
         }
@@ -131,6 +144,7 @@ export default async function JournalArticlePage({ params }: Props) {
           display: inline-flex;
           gap: 2px;
           align-items: flex-end;
+
           height: 21px;
           margin-right: 8px;
         }
@@ -153,349 +167,811 @@ export default async function JournalArticlePage({ params }: Props) {
           height: 14px;
         }
 
-        /* =========================
-           NAVIGATION LINKS
-        ========================= */
+        /* =====================================================
+           NAVIGATION
+        ===================================================== */
 
         .links {
           display: flex;
           align-items: center;
+
           gap: 24px;
+
           border-left: 1px solid var(--line);
           padding-left: 24px;
+
           font-size: 13px;
           font-weight: 600;
           color: #5c6c78;
         }
 
         .links a {
-          transition: color 0.2s ease;
+          transition:
+            color 0.2s ease,
+            opacity 0.2s ease;
         }
 
         .links a:hover {
           color: var(--ink);
         }
 
-        /* =========================
-           BACK TO JOURNAL
-        ========================= */
+        /* =====================================================
+           BACK BUTTON
+        ===================================================== */
 
         .back {
           margin-left: auto;
+
           border-bottom: 1px solid var(--ink);
+
           font-size: 12px;
           font-weight: 700;
+
           padding-bottom: 4px;
+
           white-space: nowrap;
-          transition: opacity 0.2s ease;
+
+          transition:
+            opacity 0.2s ease,
+            color 0.2s ease;
         }
 
         .back:hover {
           opacity: 0.65;
         }
 
-        /* =========================
-           MAIN CONTENT
-           IMPORTANT:
-           Header = 80px
-        ========================= */
+        /* =====================================================
+           MAIN
+           Fixed header = 80px
+        ===================================================== */
 
         main {
           padding-top: 80px;
+          min-height: 100vh;
         }
 
-        /* =========================
+        /* =====================================================
            ARTICLE HEADER
-        ========================= */
+        ===================================================== */
 
         .article-head {
-          max-width: 820px;
-          margin: 43px auto 35px;
+          width: min(820px, calc(100% - 48px));
+
+          margin: 0 auto;
+
+          padding-top: 58px;
+          padding-bottom: 40px;
         }
 
         .tag {
+          display: inline-block;
+
           font-size: 10px;
           text-transform: uppercase;
           letter-spacing: 1.5px;
           font-weight: 700;
+
           color: #a46b1d;
         }
 
         .article-head h1 {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(42px, 5.5vw, 68px);
+          font-family: 'Playfair Display', Georgia, serif;
+
+          font-size: clamp(
+            42px,
+            5.5vw,
+            68px
+          );
+
           line-height: 1.06;
           font-weight: 500;
+
           letter-spacing: -2.5px;
-          margin: 15px 0;
+
+          margin: 15px 0 18px;
+
+          color: var(--ink);
+
+          overflow-wrap: break-word;
         }
 
         .intro {
           font-size: 18px;
           line-height: 1.65;
+
           color: #546571;
+
           max-width: 730px;
+
+          margin: 0;
         }
 
         .meta {
           font-size: 11px;
+          line-height: 1.5;
+
           color: #81909a;
-          margin-top: 21px;
+
+          margin: 21px 0 0;
         }
 
-        /* =========================
+        /* =====================================================
            HERO IMAGE
-        ========================= */
+        ===================================================== */
 
         .hero-image {
-          width: min(1160px, 100%);
-          height: min(55vw, 570px);
+          width: min(1160px, calc(100% - 48px));
+
+          height: clamp(
+            320px,
+            48vw,
+            570px
+          );
+
           margin: 0 auto;
+
           background-size: cover;
           background-position: center;
+
+          border-radius: 2px;
         }
 
-        /* =========================
-           ARTICLE BODY
-        ========================= */
+        /* =====================================================
+           ARTICLE CONTENT
+        ===================================================== */
 
         .article {
+          width: min(1000px, calc(100% - 48px));
+
           display: grid;
-          grid-template-columns: minmax(0, 720px) 205px;
+
+          grid-template-columns:
+            minmax(0, 720px)
+            205px;
+
           justify-content: space-between;
-          gap: 50px;
-          max-width: 1000px;
-          margin: 52px auto 80px;
+
+          gap: clamp(30px, 5vw, 60px);
+
+          margin: 60px auto 90px;
+        }
+
+        .content {
+          min-width: 0;
+        }
+
+        .content section {
+          min-width: 0;
         }
 
         .content h2 {
-          font-family: 'Playfair Display', serif;
-          font-size: 30px;
+          font-family: 'Playfair Display', Georgia, serif;
+
+          font-size: clamp(
+            27px,
+            3vw,
+            30px
+          );
+
+          line-height: 1.2;
+
           font-weight: 500;
+
           letter-spacing: -1px;
-          margin: 0 0 12px;
+
+          margin: 0 0 13px;
         }
 
         .content p {
           font-size: 16px;
+
           color: #43545f;
+
           line-height: 1.85;
-          margin: 0 0 35px;
+
+          margin: 0 0 36px;
+
+          overflow-wrap: break-word;
         }
 
-        /* =========================
+        /* =====================================================
            SIDEBAR
-           Starts BELOW fixed header
-        ========================= */
+        ===================================================== */
 
         .aside {
           height: max-content;
+
           position: sticky;
-          top: 100px;
+
+          top: 105px;
+
           border-top: 2px solid var(--gold);
+
           padding-top: 14px;
         }
 
         .aside b {
+          display: block;
+
           font-size: 12px;
+          line-height: 1.4;
         }
 
         .aside ul {
           padding: 0;
-          list-style: none;
           margin: 12px 0;
+
+          list-style: none;
         }
 
         .aside li {
-          font-size: 12px;
-          color: #5e6e79;
-          line-height: 1.55;
-          margin: 10px 0;
-          padding-left: 15px;
           position: relative;
+
+          font-size: 12px;
+          line-height: 1.55;
+
+          color: #5e6e79;
+
+          margin: 10px 0;
+
+          padding-left: 15px;
         }
 
-        .aside li:before {
+        .aside li::before {
           content: '•';
+
           position: absolute;
+
           left: 0;
+          top: 0;
+
           color: var(--gold);
         }
 
-        /* =========================
+        /* =====================================================
            CTA
-        ========================= */
+        ===================================================== */
 
         .cta {
-          margin-top: 50px;
+          margin-top: 55px;
+
           background: var(--navy);
-          color: #fff;
-          padding: 27px;
+          color: white;
+
+          padding: 32px;
+
+          border-radius: 2px;
         }
 
         .cta h2 {
-          font-size: 29px;
-          color: #fff;
+          color: white;
+
+          font-size: clamp(
+            26px,
+            3vw,
+            30px
+          );
+
+          margin: 0 0 12px;
         }
 
         .cta p {
           color: #d0dae4;
+
           font-size: 13px;
-          margin-bottom: 19px;
+          line-height: 1.7;
+
+          margin: 0 0 20px;
         }
 
         .cta a {
           display: inline-block;
-          background: #fff;
+
+          background: white;
           color: var(--ink);
-          padding: 11px 14px;
+
+          padding: 11px 15px;
+
           font-size: 12px;
           font-weight: 700;
-          transition: opacity 0.2s ease;
+
+          transition:
+            background 0.2s ease,
+            color 0.2s ease;
         }
 
         .cta a:hover {
-          opacity: 0.85;
+          background: #f1f1ef;
         }
 
-        /* =========================
+        /* =====================================================
            FOOTER
-        ========================= */
+        ===================================================== */
 
         .footer {
           background: #041222;
-          color: #fff;
-          padding: 28px 0;
+
+          color: #a8b7c3;
+
+          padding: 30px 0;
+
           font-size: 11px;
         }
 
         .footer .wrap {
           display: flex;
+
+          align-items: center;
           justify-content: space-between;
-          color: #a8b7c3;
+
+          gap: 20px;
         }
 
-        /* =========================
-           TABLET / MOBILE
-        ========================= */
+        .footer a {
+          transition: color 0.2s ease;
+        }
+
+        .footer a:hover {
+          color: white;
+        }
+
+        /* =====================================================
+           LARGE DESKTOP
+        ===================================================== */
+
+        @media (min-width: 1400px) {
+          .wrap {
+            width: min(1200px, calc(100% - 80px));
+          }
+
+          .hero-image {
+            width: min(1200px, calc(100% - 80px));
+          }
+
+          .article-head {
+            width: min(850px, calc(100% - 80px));
+          }
+
+          .article {
+            width: min(1050px, calc(100% - 80px));
+          }
+        }
+
+        /* =====================================================
+           TABLET
+        ===================================================== */
+
+        @media (max-width: 1024px) {
+          .wrap {
+            width: calc(100% - 40px);
+          }
+
+          .site-header {
+            height: 74px;
+          }
+
+          .nav {
+            height: 74px;
+            gap: 20px;
+          }
+
+          .links {
+            gap: 18px;
+            padding-left: 18px;
+          }
+
+          main {
+            padding-top: 74px;
+          }
+
+          .article-head {
+            width: calc(100% - 56px);
+
+            padding-top: 48px;
+            padding-bottom: 35px;
+          }
+
+          .article-head h1 {
+            font-size: clamp(
+              42px,
+              6vw,
+              58px
+            );
+          }
+
+          .hero-image {
+            width: calc(100% - 40px);
+            height: 430px;
+          }
+
+          .article {
+            width: calc(100% - 56px);
+
+            grid-template-columns:
+              minmax(0, 1fr)
+              190px;
+
+            gap: 35px;
+
+            margin-top: 50px;
+          }
+
+          .content p {
+            font-size: 15.5px;
+          }
+        }
+
+        /* =====================================================
+           SMALL TABLET / LARGE MOBILE
+        ===================================================== */
+
+        @media (max-width: 820px) {
+          .links {
+            display: none;
+          }
+
+          .article {
+            grid-template-columns: 1fr;
+          }
+
+          .aside {
+            position: static;
+
+            order: -1;
+
+            margin-bottom: 25px;
+
+            padding: 16px 18px;
+
+            border-top: 2px solid var(--gold);
+
+            background: rgba(255, 255, 255, 0.55);
+          }
+
+          .aside ul {
+            display: grid;
+
+            grid-template-columns:
+              repeat(2, minmax(0, 1fr));
+
+            gap: 0 25px;
+          }
+
+          .aside li {
+            margin: 7px 0;
+          }
+        }
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
 
         @media (max-width: 760px) {
           .wrap {
-            width: min(calc(100% - 32px), 1160px);
+            width: calc(100% - 32px);
           }
 
           /* Fixed mobile header */
+
           .site-header {
             height: 67px;
           }
 
           .nav {
             height: 67px;
+            gap: 10px;
           }
 
-          /* Content starts below mobile header */
+          .logo {
+            font-size: 16px;
+            letter-spacing: 0.7px;
+          }
+
+          .mark {
+            height: 19px;
+            margin-right: 6px;
+          }
+
+          .mark i {
+            width: 3px;
+          }
+
+          .mark i:nth-child(1) {
+            height: 9px;
+          }
+
+          .mark i:nth-child(2) {
+            height: 16px;
+          }
+
+          .mark i:nth-child(3) {
+            height: 12px;
+          }
+
+          /* Header space */
+
           main {
             padding-top: 67px;
           }
 
-          /* Hide desktop navigation */
-          .links {
-            display: none;
-          }
+          /* Back link */
 
           .back {
-            margin-left: auto;
-            font-size: 11px;
+            font-size: 10px;
+            padding-bottom: 3px;
           }
 
           /* Article heading */
+
           .article-head {
-            margin: 30px auto;
+            width: calc(100% - 32px);
+
+            padding-top: 35px;
+            padding-bottom: 30px;
+          }
+
+          .tag {
+            font-size: 9px;
+            letter-spacing: 1.3px;
           }
 
           .article-head h1 {
-            font-size: 43px;
-            letter-spacing: -1.8px;
+            font-size: clamp(
+              36px,
+              10vw,
+              46px
+            );
+
+            line-height: 1.08;
+
+            letter-spacing: -1.7px;
+
+            margin: 12px 0 16px;
           }
 
           .intro {
             font-size: 16px;
+
+            line-height: 1.65;
+          }
+
+          .meta {
+            font-size: 10px;
+
+            margin-top: 17px;
           }
 
           /* Hero */
+
           .hero-image {
+            width: calc(100% - 32px);
+
             height: 300px;
+
+            border-radius: 2px;
           }
 
           /* Article */
+
           .article {
+            width: calc(100% - 32px);
+
             display: block;
-            margin: 35px auto 55px;
+
+            margin: 40px auto 60px;
           }
 
-          /* Sidebar becomes normal block */
+          /* Sidebar */
+
           .aside {
-            position: static;
-            margin: 0 0 32px;
+            margin-bottom: 35px;
+
+            padding: 14px;
+          }
+
+          .aside ul {
+            display: block;
+
+            margin-bottom: 0;
+          }
+
+          .aside li {
+            font-size: 11px;
+
+            margin: 9px 0;
+          }
+
+          /* Content */
+
+          .content h2 {
+            font-size: 27px;
+
+            letter-spacing: -0.7px;
+
+            margin-bottom: 10px;
           }
 
           .content p {
             font-size: 15px;
+
+            line-height: 1.8;
+
+            margin-bottom: 30px;
           }
 
-          .content h2 {
-            font-size: 28px;
+          /* CTA */
+
+          .cta {
+            margin-top: 42px;
+
+            padding: 24px 20px;
+          }
+
+          .cta h2 {
+            font-size: 26px;
+
+            letter-spacing: -0.5px;
+          }
+
+          .cta p {
+            font-size: 13px;
+
+            line-height: 1.65;
+          }
+
+          .cta a {
+            padding: 11px 13px;
+
+            font-size: 11px;
           }
 
           /* Footer */
+
+          .footer {
+            padding: 25px 0;
+          }
+
           .footer .wrap {
             flex-direction: column;
+
+            align-items: flex-start;
+
             gap: 10px;
           }
         }
 
-        /* =========================
+        /* =====================================================
            SMALL PHONES
-        ========================= */
+        ===================================================== */
 
         @media (max-width: 480px) {
           .wrap {
             width: calc(100% - 28px);
           }
 
-          .logo {
-            font-size: 16px;
+          .site-header {
+            height: 62px;
           }
 
-          .mark {
-            margin-right: 6px;
+          .nav {
+            height: 62px;
+          }
+
+          main {
+            padding-top: 62px;
+          }
+
+          .logo {
+            font-size: 15px;
           }
 
           .back {
-            font-size: 10px;
+            font-size: 9px;
+          }
+
+          .article-head {
+            width: calc(100% - 28px);
+
+            padding-top: 30px;
+            padding-bottom: 26px;
           }
 
           .article-head h1 {
-            font-size: 38px;
+            font-size: 36px;
+
+            letter-spacing: -1.5px;
+          }
+
+          .intro {
+            font-size: 15px;
           }
 
           .hero-image {
-            height: 250px;
+            width: calc(100% - 28px);
+
+            height: 245px;
+          }
+
+          .article {
+            width: calc(100% - 28px);
+
+            margin-top: 34px;
+          }
+
+          .content h2 {
+            font-size: 25px;
+          }
+
+          .content p {
+            font-size: 14.5px;
+
+            line-height: 1.78;
+          }
+
+          .aside {
+            padding: 13px;
           }
 
           .cta {
-            padding: 22px;
+            padding: 21px 18px;
           }
 
           .cta h2 {
-            font-size: 26px;
+            font-size: 24px;
+          }
+        }
+
+        /* =====================================================
+           VERY SMALL PHONES
+        ===================================================== */
+
+        @media (max-width: 360px) {
+          .wrap {
+            width: calc(100% - 24px);
+          }
+
+          .site-header {
+            height: 58px;
+          }
+
+          .nav {
+            height: 58px;
+          }
+
+          main {
+            padding-top: 58px;
+          }
+
+          .logo {
+            font-size: 14px;
+          }
+
+          .back {
+            font-size: 8px;
+          }
+
+          .article-head {
+            width: calc(100% - 24px);
+          }
+
+          .article-head h1 {
+            font-size: 33px;
+          }
+
+          .hero-image {
+            width: calc(100% - 24px);
+            height: 220px;
+          }
+
+          .article {
+            width: calc(100% - 24px);
           }
         }
       `}</style>
 
-            {/* =========================
+            {/* =====================================================
           FIXED HEADER
-      ========================= */}
+      ===================================================== */}
 
             <header className="site-header">
                 <div className="wrap nav">
@@ -529,12 +1005,15 @@ export default async function JournalArticlePage({ params }: Props) {
                 </div>
             </header>
 
-            {/* =========================
+            {/* =====================================================
           MAIN
-      ========================= */}
+      ===================================================== */}
 
             <main>
-                {/* Article Header */}
+                {/* =================================================
+            ARTICLE HEADER
+        ================================================= */}
+
                 <header className="article-head">
                     <span className="tag">
                         {article.category}
@@ -553,7 +1032,10 @@ export default async function JournalArticlePage({ params }: Props) {
                     </p>
                 </header>
 
-                {/* Hero Image */}
+                {/* =================================================
+            HERO IMAGE
+        ================================================= */}
+
                 <div
                     className="hero-image"
                     style={{
@@ -561,7 +1043,10 @@ export default async function JournalArticlePage({ params }: Props) {
                     }}
                 />
 
-                {/* Article Body */}
+                {/* =================================================
+            ARTICLE BODY
+        ================================================= */}
+
                 <article className="article">
                     <section className="content">
                         {article.sections.map(([heading, text]) => (
@@ -576,7 +1061,10 @@ export default async function JournalArticlePage({ params }: Props) {
                             </section>
                         ))}
 
-                        {/* CTA */}
+                        {/* =============================================
+                CTA
+            ============================================= */}
+
                         <div className="cta">
                             <h2>
                                 Find a place that fits.
@@ -593,7 +1081,10 @@ export default async function JournalArticlePage({ params }: Props) {
                         </div>
                     </section>
 
-                    {/* Sidebar */}
+                    {/* =================================================
+              SIDEBAR
+          ================================================= */}
+
                     <aside className="aside">
                         <b>
                             In this article
@@ -610,9 +1101,9 @@ export default async function JournalArticlePage({ params }: Props) {
                 </article>
             </main>
 
-            {/* =========================
+            {/* =====================================================
           FOOTER
-      ========================= */}
+      ===================================================== */}
 
             <footer className="footer">
                 <div className="wrap">
