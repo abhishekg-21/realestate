@@ -173,8 +173,8 @@ export default function Home() {
                   type="button"
                   onClick={() => setActiveTab(tab)}
                   className={`shrink-0 rounded-[20px] border px-4 py-2 text-[12px] font-semibold transition-colors ${activeTab === tab
-                      ? "border-navy bg-navy text-white shadow-sm"
-                      : "border-[#cbd3d7] bg-white text-ink hover:bg-slate-100"
+                    ? "border-navy bg-navy text-white shadow-sm"
+                    : "border-[#cbd3d7] bg-white text-ink hover:bg-slate-100"
                     }`}
                 >
                   {tab}
@@ -451,10 +451,13 @@ export default function Home() {
         gap reduced on mobile to fit all items without wrapping.
       */}
       <div className="fixed bottom-3 left-1/2 z-40 hidden min-[360px]:flex max-w-[calc(100vw-16px)] -translate-x-1/2 items-center gap-2 overflow-x-auto rounded-full border border-slate-700/60 bg-[#0f172a]/95 px-3 py-2 text-[10px] font-semibold text-white shadow-2xl backdrop-blur-md [scrollbar-width:none] sm:bottom-6 sm:gap-4 sm:px-5 sm:text-[13px] [&::-webkit-scrollbar]:hidden">
-        <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-amber-400">
+        <Link
+          href="/properties"
+          className="flex shrink-0 items-center gap-1 whitespace-nowrap text-amber-400 hover:text-amber-300 transition-colors"
+        >
           <span className="h-2 w-2 shrink-0 animate-ping rounded-full bg-emerald-400" />
-          <span>📌 {properties.length} Listings</span>
-        </span>
+          <span>📌 {properties.length} Active Listings</span>
+        </Link>
 
         <span className="h-4 w-px shrink-0 bg-slate-700" />
 
