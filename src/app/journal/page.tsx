@@ -1,86 +1,42 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
 import Link from "next/link";
 import { PN_JOURNAL } from "@/lib/blog-data";
 
-interface Props {
-    params: { id: string };
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const article = PN_JOURNAL[params.id];
-    if (!article) return { title: "Journal | PropertiesNexus" };
-    return { title: `${article.title} | PropertiesNexus` };
-}
-
-export async function generateStaticParams() {
-    return Object.keys(PN_JOURNAL).map((id) => ({ id }));
-}
-
-export default function JournalArticlePage({ params }: Props) {
-    const article = PN_JOURNAL[params.id];
-    if (!article) notFound();
-
+export default function JournalPage() {
     return (
         <>
             <style>{`
-        :root{--navy:#07182d;--ink:#172633;--muted:#6a7984;--gold:#c88b2e;--paper:#f8f7f3;--line:#dde3e5}
-        *{box-sizing:border-box}
-        body{margin:0;background:var(--paper);color:var(--ink);font-family:'DM Sans',Arial,sans-serif}
-        a{color:inherit;text-decoration:none}
-        .wrap{width:min(1160px,calc(100% - 48px));margin:auto}
-        .nav{height:80px;display:flex;align-items:center;gap:25px}
-        .logo{display:flex;align-items:center;font-size:18px;font-weight:700;letter-spacing:1px}
-        .logo span{font-weight:400;color:#6b7a86}
-        .mark{display:inline-flex;gap:2px;align-items:end;height:21px;margin-right:8px}
-        .mark i{display:block;width:4px;background:var(--gold)}
-        .mark i:nth-child(1){height:10px}
-        .mark i:nth-child(2){height:18px}
-        .mark i:nth-child(3){height:14px}
-        .links{display:flex;gap:24px;border-left:1px solid var(--line);padding-left:24px;font-size:13px;font-weight:600;color:#5c6c78}
-        .back{margin-left:auto;border-bottom:1px solid var(--ink);font-size:12px;font-weight:700;padding-bottom:4px}
-        .article-head{max-width:820px;margin:43px auto 35px}
-        .tag{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;color:#a46b1d}
-        .article-head h1{font-family:'Playfair Display',serif;font-size:clamp(42px,5.5vw,68px);line-height:1.06;font-weight:500;letter-spacing:-2.5px;margin:15px 0}
-        .intro{font-size:18px;line-height:1.65;color:#546571;max-width:730px}
-        .meta{font-size:11px;color:#81909a;margin-top:21px}
-        .hero-image{width:min(1160px,100%);height:min(55vw,570px);margin:auto;background-size:cover;background-position:center}
-        .article{display:grid;grid-template-columns:minmax(0,720px) 205px;justify-content:space-between;gap:50px;max-width:1000px;margin:52px auto 80px}
-        .content h2{font-family:'Playfair Display',serif;font-size:30px;font-weight:500;letter-spacing:-1px;margin:0 0 12px}
-        .content p{font-size:16px;color:#43545f;line-height:1.85;margin:0 0 35px}
-        .aside{height:max-content;position:sticky;top:20px;border-top:2px solid var(--gold);padding-top:14px}
-        .aside b{font-size:12px}
-        .aside ul{padding:0;list-style:none;margin:12px 0}
-        .aside li{font-size:12px;color:#5e6e79;line-height:1.55;margin:10px 0;padding-left:15px;position:relative}
-        .aside li:before{content:'•';position:absolute;left:0;color:var(--gold)}
-        .cta{margin-top:50px;background:var(--navy);color:#fff;padding:27px}
-        .cta h2{font-size:29px;color:#fff}
-        .cta p{color:#d0dae4;font-size:13px;margin-bottom:19px}
-        .cta a{display:inline-block;background:#fff;color:var(--ink);padding:11px 14px;font-size:12px;font-weight:700}
-        .footer{background:#041222;color:#fff;padding:28px 0;font-size:11px}
-        .footer .wrap{display:flex;justify-content:space-between;color:#a8b7c3}
-        @media(max-width:760px){
-          .wrap{width:min(calc(100% - 32px),1160px)}
-          .nav{height:67px}
-          .links{display:none}
-          .back{margin-left:auto}
-          .article-head{margin:30px auto}
-          .article-head h1{font-size:43px}
-          .intro{font-size:16px}
-          .hero-image{height:300px}
-          .article{display:block;margin:35px auto 55px}
-          .aside{position:static;margin:0 0 32px}
-          .content p{font-size:15px}
-          .content h2{font-size:28px}
-        }
+        body { margin: 0; background: #f8f7f3; font-family: 'DM Sans', Arial, sans-serif; }
+        .wrap { width: min(1160px, calc(100% - 48px)); margin: auto; }
+        .nav { height: 80px; display: flex; align-items: center; gap: 25px; }
+        .logo { display: flex; align-items: center; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+        .logo span { font-weight: 400; color: #6b7a86; }
+        .mark { display: inline-flex; gap: 2px; align-items: end; height: 21px; margin-right: 8px; }
+        .mark i { display: block; width: 4px; background: #c88b2e; }
+        .mark i:nth-child(1) { height: 10px; }
+        .mark i:nth-child(2) { height: 18px; }
+        .mark i:nth-child(3) { height: 14px; }
+        .links { display: flex; gap: 24px; border-left: 1px solid #dde3e5; padding-left: 24px; font-size: 13px; font-weight: 600; color: #5c6c78; }
+        a { color: inherit; text-decoration: none; }
+        .hero { padding: 60px 0 40px; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 60px); font-weight: 500; letter-spacing: -2px; margin: 0 0 12px; }
+        .hero p { font-size: 17px; color: #546571; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px; padding: 40px 0 80px; }
+        .card { border: 1px solid #dde3e5; border-radius: 4px; overflow: hidden; transition: box-shadow 0.2s; }
+        .card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.09); }
+        .card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .card-body { padding: 20px; }
+        .tag { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: #a46b1d; }
+        .card-body h2 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 500; margin: 8px 0; line-height: 1.3; }
+        .card-body p { font-size: 14px; color: #546571; line-height: 1.7; margin: 0 0 16px; }
+        .card-meta { font-size: 11px; color: #81909a; }
+        .footer { background: #041222; color: #a8b7c3; padding: 28px 0; font-size: 11px; }
+        .footer .wrap { display: flex; justify-content: space-between; }
       `}</style>
 
             {/* Header */}
             <header className="wrap nav">
                 <Link className="logo" href="/">
-                    <span className="mark">
-                        <i /><i /><i />
-                    </span>
+                    <span className="mark"><i /><i /><i /></span>
                     Properties<span>Nexus</span>
                 </Link>
                 <nav className="links">
@@ -88,59 +44,35 @@ export default function JournalArticlePage({ params }: Props) {
                     <Link href="/#areas">Locations</Link>
                     <Link href="/journal">Journal</Link>
                 </nav>
-                <Link className="back" href="/journal">← Back to Journal</Link>
             </header>
 
             <main>
-                {/* Article header */}
-                <header className="article-head">
-                    <span className="tag">{article.category}</span>
-                    <h1>{article.title}</h1>
-                    <p className="intro">{article.intro}</p>
-                    <p className="meta">{article.read} · {article.location}</p>
-                </header>
+                <div className="wrap">
+                    <div className="hero">
+                        <h1>The PropertiesNexus Journal</h1>
+                        <p>Insights, guides, and stories from across India's property landscape.</p>
+                    </div>
 
-                {/* Hero image */}
-                <div
-                    className="hero-image"
-                    style={{ backgroundImage: `url('${article.image}')` }}
-                />
-
-                {/* Article body */}
-                <article className="article">
-                    <section className="content">
-                        {article.sections.map(([heading, text]) => (
-                            <section key={heading}>
-                                <h2>{heading}</h2>
-                                <p>{text}</p>
-                            </section>
+                    <div className="grid">
+                        {Object.entries(PN_JOURNAL).map(([id, article]) => (
+                            <Link href={`/journal/${id}`} key={id} className="card">
+                                <img src={article.image} alt={article.title} />
+                                <div className="card-body">
+                                    <span className="tag">{article.category}</span>
+                                    <h2>{article.title}</h2>
+                                    <p>{article.intro}</p>
+                                    <span className="card-meta">{article.read} · {article.location}</span>
+                                </div>
+                            </Link>
                         ))}
-
-                        {/* CTA */}
-                        <div className="cta">
-                            <h2>Find a place that fits.</h2>
-                            <p>Explore thoughtfully selected homes and spaces across India with PropertiesNexus.</p>
-                            <Link href="/properties">Explore properties →</Link>
-                        </div>
-                    </section>
-
-                    {/* Sidebar */}
-                    <aside className="aside">
-                        <b>In this article</b>
-                        <ul>
-                            {article.takeaways.map((item) => (
-                                <li key={item}>{item}</li>
-                            ))}
-                        </ul>
-                    </aside>
-                </article>
+                    </div>
+                </div>
             </main>
 
-            {/* Footer */}
             <footer className="footer">
                 <div className="wrap">
                     <span>© 2026 PropertiesNexus. All rights reserved.</span>
-                    <Link href="/journal">Explore more journal stories →</Link>
+                    <Link href="/properties">Explore properties →</Link>
                 </div>
             </footer>
         </>
