@@ -11,9 +11,9 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "Browse Properties", href: "/properties" },
     { label: "My Listed Properties", href: "/dashboard/properties" },
     { label: "Saved Properties", href: "/dashboard/saved-properties" },
-    { label: "My Enquiries", href: "/user-dashboard?view=enquiries" },
+    { label: "My Enquiries", href: "/dashboard/enquiries" },
     { label: "Notification", href: "/dashboard/notifications" },
-    { label: "Account Settings", href: "/user-dashboard?view=settings" },
+    { label: "Account Settings", href: "/dashboard/settings" },
   ],
   agent: [
     { label: "My Dashboard", href: "/dashboard" },
