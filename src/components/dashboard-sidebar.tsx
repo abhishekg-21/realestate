@@ -12,7 +12,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "My Listed Properties", href: "/dashboard/properties" },
     { label: "Saved Properties", href: "/dashboard/saved-properties" },
     { label: "My Enquiries", href: "/user-dashboard?view=enquiries" },
-    { label: "Price Alerts", href: "/user-dashboard?view=alerts" },
+    { label: "Notification", href: "/dashboard/notifications" },
     { label: "Account Settings", href: "/user-dashboard?view=settings" },
   ],
   agent: [
@@ -20,7 +20,9 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "Add Listing", href: "/dashboard/add-property", dot: "green" },
     { label: "My Listings", href: "/dashboard/properties" },
     { label: "Leads & Enquiries", href: "/dashboard/leads" },
-    { label: "Earnings & Billing", href: "/dashboard/billing" },
+    { label: "Notification", href: "/dashboard/notifications" },
+
+    // { label: "Earnings & Billing", href: "/dashboard/billing" },
     { label: "Account Settings", href: "/user-dashboard?view=settings" },
   ],
   builder: [
@@ -29,6 +31,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "My Projects", href: "/dashboard/properties" },
     { label: "Lead Reports", href: "/dashboard/leads" },
     { label: "Billing & Packages", href: "/dashboard/billing" },
+    { label: "Notification", href: "/dashboard/notifications" },
     { label: "Account Settings", href: "/user-dashboard?view=settings" },
   ],
   lister: [
@@ -37,6 +40,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "My Submissions", href: "/dashboard/properties" },
     { label: "Enquiries", href: "/dashboard/leads" },
     { label: "Billing", href: "/dashboard/billing" },
+    { label: "Notification", href: "/dashboard/notifications" },
     { label: "Account Settings", href: "/user-dashboard?view=settings" },
   ],
   super_admin: [
