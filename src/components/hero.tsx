@@ -68,7 +68,7 @@ export default function Hero() {
             <form
               onSubmit={handleSearch}
               className="
-    w-[70%]
+    w-[80%]
     max-w-[1000px]
     grid
     grid-cols-[1.55fr_0.72fr_0.74fr_110px]
