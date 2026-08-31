@@ -231,20 +231,65 @@ function isCleanStaticProperty(prop: Property): boolean {
 /**
  * Fetches a single property by ID from Supabase (checking approved submissions & properties table)
  */
+
+async function transformSupabasePropertyWithProfile(
+  row: any,
+  supabase: ReturnType<typeof createClient>
+): Promise<Property> {
+  const base = transformSupabaseProperty(row);
+  const profile = row.profiles;
+
+  if (!profile) return base;
+
+  // Build avatar public URL from storage path
+  let avatarUrl: string | undefined = undefined;
+  if (profile.avatar_url) {
+    const { data: urlData } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(profile.avatar_url);
+    avatarUrl = urlData.publicUrl;
+  }
+
+  // Map role to display label
+  const roleLabel =
+    profile.role === "agent" ? "Real Estate Agent" :
+      profile.role === "builder" ? "Builder / Developer" :
+        profile.role === "lister" ? "Property Lister" :
+          profile.role === "admin" ? "PropertiesNexus Admin" :
+            "Verified Owner";
+
+  return {
+    ...base,
+    providerName: profile.full_name || base.providerName,
+    providerPhone: profile.phone || base.providerPhone,
+    providerAvatar: avatarUrl,   // ✅ real avatar from profiles table
+    providerRole: roleLabel,
+  };
+}
+
 export async function fetchPropertyById(id: string): Promise<Property | null> {
   if (!id) return null;
   try {
     const supabase = createClient();
 
-    // 1. Check in property_submissions table
+    // 1. Check in property_submissions table — also fetch owner profile
     const { data: sub } = await supabase
       .from("property_submissions")
-      .select("*, property_submission_media(*)")
+      .select(`
+        *,
+        property_submission_media(*),
+        profiles!property_submissions_owner_id_fkey (
+          full_name,
+          phone,
+          avatar_url,
+          role
+        )
+      `)
       .eq("id", id)
       .maybeSingle();
 
     if (sub) {
-      return transformSupabaseProperty(sub);
+      return transformSupabasePropertyWithProfile(sub, supabase);
     }
 
     // 2. Check in properties table
@@ -254,17 +299,13 @@ export async function fetchPropertyById(id: string): Promise<Property | null> {
       .eq("id", id)
       .maybeSingle();
 
-    if (prop) {
-      return transformSupabaseProperty(prop);
-    }
+    if (prop) return transformSupabaseProperty(prop);
 
-    // 3. Fallback to static properties
-    const staticMatch = STATIC_PROPERTIES.find((p) => p.id === id);
-    return staticMatch || null;
+    // 3. Fallback to static
+    return STATIC_PROPERTIES.find((p) => p.id === id) || null;
   } catch (e) {
     console.error("Error in fetchPropertyById:", e);
-    const staticMatch = STATIC_PROPERTIES.find((p) => p.id === id);
-    return staticMatch || null;
+    return STATIC_PROPERTIES.find((p) => p.id === id) || null;
   }
 }
 
@@ -277,11 +318,29 @@ export async function fetchAllProperties(): Promise<Property[]> {
     const liveProperties: Property[] = [];
 
     // 1. Fetch approved property submissions from Supabase
+    // Replace the approved submissions fetch block:
     const { data: approvedSubmissions, error: subError } = await supabase
       .from("property_submissions")
-      .select("*, property_submission_media(*)")
+      .select(`
+    *,
+    property_submission_media(*),
+    profiles!property_submissions_owner_id_fkey (
+      full_name,
+      phone,
+      avatar_url,
+      role
+    )
+  `)
       .eq("status", "approved")
       .order("created_at", { ascending: false });
+
+    // And in the forEach, use the new helper:
+    if (!subError && approvedSubmissions && approvedSubmissions.length > 0) {
+      for (const sub of approvedSubmissions) {
+        const prop = await transformSupabasePropertyWithProfile(sub, supabase);
+        liveProperties.push(prop);
+      }
+    }
 
     if (subError) {
       console.warn("Could not fetch approved submissions with joined media, trying standalone query:", subError.message);
@@ -299,7 +358,7 @@ export async function fetchAllProperties(): Promise<Property[]> {
             .select("*")
             .eq("submission_id", sub.id)
             .order("sort_order", { ascending: true });
-          
+
           liveProperties.push(transformSupabaseProperty({
             ...sub,
             property_submission_media: subMedia || []

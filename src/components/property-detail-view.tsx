@@ -1,3 +1,4 @@
+//  src/components/property-detail-view.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -72,6 +73,14 @@ export default function PropertyDetailView({ id }: { id?: string }) {
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Add near the top of the component, after existing useState declarations
+  const [ownerProfile, setOwnerProfile] = useState<{
+    full_name: string | null;
+    phone: string | null;
+    avatar_url: string | null;
+    role: string | null;
+  } | null>(null);
+
   useEffect(() => {
     if (property) {
       setIsSaved(isPropertySaved(property.id));
@@ -87,6 +96,28 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setIsLoggedIn(!!user);
+
+      // ✅ Fetch owner profile if property has owner_id
+      const ownerId = (property as any)?.owner_id;
+      if (ownerId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, phone, avatar_url, role")
+          .eq("id", ownerId)
+          .single();
+
+        if (profile) {
+          // Build public avatar URL from storage path
+          let avatarUrl: string | null = null;
+          if (profile.avatar_url) {
+            const { data: urlData } = supabase.storage
+              .from("avatars")
+              .getPublicUrl(profile.avatar_url);
+            avatarUrl = urlData.publicUrl;
+          }
+          setOwnerProfile({ ...profile, avatar_url: avatarUrl });
+        }
+      }
     };
     checkUser();
 
@@ -205,8 +236,8 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             aria-label={`Save ${property.title}`}
             title={isSaved ? "Remove from saved" : "Save property"}
             className={`absolute z-20 right-3 top-3 border-0 rounded-full w-9 h-9 cursor-pointer flex items-center justify-center shadow-md transition-all duration-150 ${isSaved
-                ? "bg-white text-red-500 scale-105"
-                : "bg-white/90 text-slate-400 hover:text-red-400 hover:bg-white hover:scale-110"
+              ? "bg-white text-red-500 scale-105"
+              : "bg-white/90 text-slate-400 hover:text-red-400 hover:bg-white hover:scale-110"
               }`}
           >
             <svg
@@ -454,19 +485,26 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             {/* Provider Info Header */}
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
               <img
-                src={(property as any).providerAvatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80"}
-                alt={(property as any).providerName || "PropertiesNexus User"}
+                src={
+                  ownerProfile?.avatar_url ||
+                  (property as any).providerAvatar ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(ownerProfile?.full_name || "PN")}&background=07182d&color=fff&size=120`
+                }
+                alt={ownerProfile?.full_name || (property as any).providerName || "Agent"}
                 className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0"
               />
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-bold text-[16px] text-slate-900 m-0">
-                    {(property as any).providerName || "PropertiesNexus User"}
+                    {ownerProfile?.full_name || (property as any).providerName || "PropertiesNexus User"}
                   </h3>
                   <span className="text-blue-500 font-bold text-sm" title="Verified Agency">✔</span>
                 </div>
                 <p className="text-[12px] text-slate-500 m-0 mt-0.5">
-                  {(property as any).providerRole || "Property Owner"}
+                  {ownerProfile?.role === "agent" ? "Real Estate Agent" :
+                    ownerProfile?.role === "builder" ? "Builder / Developer" :
+                      ownerProfile?.role === "lister" ? "Property Lister" :
+                        (property as any).providerRole || "Property Owner"}
                 </p>
               </div>
             </div>
@@ -484,13 +522,18 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             </div>
 
             {/* Provider Phone */}
-            {(property as any).providerPhone && (
+            {(ownerProfile?.phone || (property as any).providerPhone) && (
               <div className="mb-4 pb-4 border-b border-slate-100 flex items-center gap-2">
                 <span className="text-xl">📞</span>
                 <div>
-                  <span className="block text-[11px] text-slate-500 font-bold uppercase tracking-wider">Contact Number</span>
-                  <a href={`tel:${(property as any).providerPhone}`} className="text-[14px] font-bold text-slate-900 hover:text-[#d49a38] transition-colors">
-                    {(property as any).providerPhone}
+                  <span className="block text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                    Contact Number
+                  </span>
+                  <a
+                    href={`tel:${ownerProfile?.phone || (property as any).providerPhone}`}
+                    className="text-[14px] font-bold text-slate-900 hover:text-[#d49a38] transition-colors"
+                  >
+                    {ownerProfile?.phone || (property as any).providerPhone}
                   </a>
                 </div>
               </div>
@@ -548,10 +591,11 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               )}
             </form>
 
-            {(property as any).providerPhone ? (
+            {/* WhatsApp */}
+            {(ownerProfile?.phone || (property as any).providerPhone) ? (
               <a
                 className="block text-center mt-4 text-[12px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
-                href={`https://wa.me/${(property as any).providerPhone.replace(/[^0-9]/g, '')}`}
+                href={`https://wa.me/${(ownerProfile?.phone || (property as any).providerPhone || "").replace(/[^0-9]/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -587,7 +631,8 @@ export default function PropertyDetailView({ id }: { id?: string }) {
           </div>
         </div>
       </section>
-      {/* Lightbox / Media Viewer */}
+
+      {/* Lightbox */}
       {modalOpen && (
         <div className="fixed inset-0 bg-[rgba(2,15,30,0.92)] z-50 flex items-center justify-center p-[20px] backdrop-blur-sm">
           <div className="relative max-w-[1000px] w-full text-center">
