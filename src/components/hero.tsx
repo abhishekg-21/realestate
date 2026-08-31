@@ -194,8 +194,9 @@ export default function Hero() {
       max-lg:rounded-[13px]
     "
               >
-                <span className="lg:inline hidden">Search</span>
-                <span className="lg:hidden text-[23px]">⌕</span>
+                <span className="max-[850px]:inline hidden">Search</span>
+                <span className="hidden max-[850px]:inline text-[23px]">⌕</span>
+
               </button>
             </form>
 
