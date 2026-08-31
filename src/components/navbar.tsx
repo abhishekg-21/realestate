@@ -217,7 +217,7 @@ export default function Navbar({ variant }: NavbarProps) {
 
                 {/* Notifications Bell */}
                 <button
-                  onClick={() => router.push("/dashboard?view=alerts")}
+                  onClick={() => router.push("/user-dashboard?view=alerts")}
                   className={`h-[36px] w-[36px] rounded-full flex items-center justify-center relative transition-colors cursor-pointer ${isDark
                     ? "border border-white/30 bg-white/10 text-white hover:bg-white/20"
                     : "border border-line bg-white text-[#50606d] hover:bg-gray-50"
