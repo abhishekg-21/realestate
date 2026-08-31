@@ -69,7 +69,7 @@ export default function Hero() {
               onSubmit={handleSearch}
               className="
     w-[70%]
-    max-w-[785px]
+    max-w-[900px]
     grid
     grid-cols-[1.55fr_0.72fr_0.74fr_110px]
     bg-white
