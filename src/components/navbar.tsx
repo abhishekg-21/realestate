@@ -146,8 +146,8 @@ export default function Navbar({ variant }: NavbarProps) {
     <>
       <header
         className={`fixed top-0 left-0 right-0 w-full z-[9999] ${isDark
-            ? "border-b border-white/20 text-white bg-navy/90 backdrop-blur-md"
-            : "border-b border-line text-ink bg-white/90 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
+          ? "border-b border-white/20 text-white bg-navy/90 backdrop-blur-md"
+          : "border-b border-line text-ink bg-white/90 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
           }`}
       >
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto h-[83px] max-md:h-[67px] flex items-center gap-6">
@@ -173,8 +173,8 @@ export default function Navbar({ variant }: NavbarProps) {
           {/* Desktop nav links */}
           <nav
             className={`hidden md:flex items-center gap-[29px] border-l pl-6 text-[13px] font-semibold ${isDark
-                ? "border-white/25 text-white/90"
-                : "border-line text-[#596875]"
+              ? "border-white/25 text-white/90"
+              : "border-line text-[#596875]"
               }`}
           >
             <Link href="/properties?view=map" className="hover:opacity-100 transition-opacity">
@@ -201,8 +201,8 @@ export default function Navbar({ variant }: NavbarProps) {
                 <Link
                   href="/dashboard"
                   className={`hidden sm:inline-block px-3.5 py-2 rounded-[24px] transition-colors font-bold text-[13px] ${isDark
-                      ? "bg-white/15 text-white hover:bg-white/25 border border-white/20"
-                      : "bg-[#f3f5f7] text-[#1c2b39] hover:bg-[#e8eaed] border border-line"
+                    ? "bg-white/15 text-white hover:bg-white/25 border border-white/20"
+                    : "bg-[#f3f5f7] text-[#1c2b39] hover:bg-[#e8eaed] border border-line"
                     }`}
                 >
                   My Dashboard
@@ -217,10 +217,10 @@ export default function Navbar({ variant }: NavbarProps) {
 
                 {/* Notifications Bell */}
                 <button
-                  onClick={() => router.push("/user-dashboard?view=alerts")}
+                  onClick={() => router.push("/dashboard/saved")}
                   className={`h-[36px] w-[36px] rounded-full flex items-center justify-center relative transition-colors cursor-pointer ${isDark
-                      ? "border border-white/30 bg-white/10 text-white hover:bg-white/20"
-                      : "border border-line bg-white text-[#50606d] hover:bg-gray-50"
+                    ? "border border-white/30 bg-white/10 text-white hover:bg-white/20"
+                    : "border border-line bg-white text-[#50606d] hover:bg-gray-50"
                     }`}
                   title="Active alerts & updates"
                 >
@@ -235,8 +235,8 @@ export default function Navbar({ variant }: NavbarProps) {
                   <button
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                     className={`flex items-center gap-[8px] p-[4px_11px_4px_5px] rounded-[22px] border transition-all cursor-pointer ${isDark
-                        ? "border-white/35 bg-white/12 text-white hover:bg-white/20"
-                        : "border-line bg-white text-ink hover:bg-gray-50 shadow-sm"
+                      ? "border-white/35 bg-white/12 text-white hover:bg-white/20"
+                      : "border-line bg-white text-ink hover:bg-gray-50 shadow-sm"
                       }`}
                   >
                     <span className="h-[28px] w-[28px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[13px] shrink-0 shadow-sm">
@@ -334,8 +334,8 @@ export default function Navbar({ variant }: NavbarProps) {
                 <Link
                   href="/login"
                   className={`whitespace-nowrap px-4 py-2 max-md:py-1.5 max-md:px-3 rounded-full border transition-colors ${isDark
-                      ? "border-white/40 text-white hover:bg-white/10"
-                      : "border-line text-ink hover:bg-gray-50"
+                    ? "border-white/40 text-white hover:bg-white/10"
+                    : "border-line text-ink hover:bg-gray-50"
                     }`}
                 >
                   Log in
@@ -375,8 +375,8 @@ export default function Navbar({ variant }: NavbarProps) {
           {/* Drawer */}
           <div
             className={`md:hidden fixed top-[67px] left-0 right-0 bottom-0 z-[9999] overflow-y-auto p-6 shadow-2xl border-b ${isDark
-                ? "bg-[#07182d] text-white border-white/20"
-                : "bg-white text-ink border-line"
+              ? "bg-[#07182d] text-white border-white/20"
+              : "bg-white text-ink border-line"
               }`}
           >
             {user ? (
@@ -384,8 +384,8 @@ export default function Navbar({ variant }: NavbarProps) {
                 {/* Mobile User Header */}
                 <div
                   className={`flex items-center gap-3 p-3 rounded-lg mb-2 ${isDark
-                      ? "bg-white/10 border border-white/15"
-                      : "bg-[#f5f7f8] border border-line"
+                    ? "bg-white/10 border border-white/15"
+                    : "bg-[#f5f7f8] border border-line"
                     }`}
                 >
                   <span className="h-[38px] w-[38px] rounded-full bg-gradient-to-br from-[#d7a343] to-[#a76b1d] text-white flex items-center justify-center font-serif text-[16px] shrink-0">
@@ -488,8 +488,8 @@ export default function Navbar({ variant }: NavbarProps) {
                     href="/login"
                     onClick={() => setMobileOpen(false)}
                     className={`w-full text-center py-3 rounded-xl border font-bold text-[13px] transition-colors ${isDark
-                        ? "border-white/30 text-white hover:bg-white/10"
-                        : "border-line text-ink hover:bg-gray-50"
+                      ? "border-white/30 text-white hover:bg-white/10"
+                      : "border-line text-ink hover:bg-gray-50"
                       }`}
                   >
                     Log in
