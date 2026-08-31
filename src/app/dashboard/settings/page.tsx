@@ -24,14 +24,32 @@ export default function AccountSettingsPage() {
     };
 
     useEffect(() => {
-        const loadState = () => {
+        const loadState = async () => {
             const u = getCachedUser();
             if (u) {
                 setNameInput(u.name || "");
                 setEmailInput(u.email || "");
                 if (u.avatar?.startsWith("data:image")) setAvatarInput(u.avatar);
             }
+
+            // ← Fetch phone & location from Supabase directly
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("full_name, phone, location")
+                    .eq("id", user.id)
+                    .single();
+
+                if (profile) {
+                    if (profile.full_name) setNameInput(profile.full_name);
+                    if (profile.phone) setPhoneInput(profile.phone);
+                    if (profile.location) setLocationInput(profile.location);
+                }
+            }
         };
+
         loadState();
         window.addEventListener(AUTH_CHANGE_EVENT, loadState);
         return () => window.removeEventListener(AUTH_CHANGE_EVENT, loadState);
@@ -56,7 +74,11 @@ export default function AccountSettingsPage() {
             if (user) {
                 await supabase
                     .from("profiles")
-                    .update({ full_name: nameInput.trim(), phone: phoneInput.trim() })
+                    .update({
+                        full_name: nameInput.trim(),
+                        phone: phoneInput.trim(),
+                        location: locationInput.trim(),   // ← add this
+                    })
                     .eq("id", user.id);
             }
             setCachedUser({
