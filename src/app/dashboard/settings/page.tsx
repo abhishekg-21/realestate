@@ -32,21 +32,22 @@ export default function AccountSettingsPage() {
                 if (u.avatar?.startsWith("data:image")) setAvatarInput(u.avatar);
             }
 
-            // ← Fetch phone & location from Supabase directly
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase
-                    .from("profiles")
-                    .select("full_name, phone, location")
-                    .eq("id", user.id)
-                    .single();
 
-                if (profile) {
-                    if (profile.full_name) setNameInput(profile.full_name);
-                    if (profile.phone) setPhoneInput(profile.phone);
-                    if (profile.location) setLocationInput(profile.location);
-                }
+            if (!user) return; // ← null check fixes TS18047
+
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("full_name, phone, location, avatar_url") // ← single query with all fields
+                .eq("id", user.id)
+                .single();
+
+            if (profile) {
+                if (profile.full_name) setNameInput(profile.full_name);
+                if (profile.phone) setPhoneInput(profile.phone);
+                if (profile.location) setLocationInput(profile.location);
+                if (profile.avatar_url) setAvatarInput(profile.avatar_url);
             }
         };
 
@@ -95,14 +96,58 @@ export default function AccountSettingsPage() {
         );
     };
 
-    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // Show preview immediately
         const reader = new FileReader();
         reader.onload = (ev) => {
             if (ev.target?.result) setAvatarInput(ev.target.result as string);
         };
         reader.readAsDataURL(file);
+
+        // Upload to Supabase Storage
+        try {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const fileExt = file.name.split(".").pop();
+            const filePath = `${user.id}/avatar.${fileExt}`; // overwrite old avatar
+
+            const { error: uploadError } = await supabase.storage
+                .from("avatars")
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadError) {
+                showToast("Image upload failed: " + uploadError.message);
+                return;
+            }
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from("avatars")
+                .getPublicUrl(filePath);
+
+            const publicUrl = urlData.publicUrl;
+
+            // Save URL to profiles table
+            await supabase
+                .from("profiles")
+                .update({ avatar_url: publicUrl })
+                .eq("id", user.id);
+
+            // Update local cache
+            setCachedUser({
+                ...getCachedUser()!,
+                avatar: publicUrl,
+            });
+
+            showToast("Profile picture updated.");
+        } catch {
+            showToast("Something went wrong uploading your image.");
+        }
     };
 
     const handleSave = async () => {
