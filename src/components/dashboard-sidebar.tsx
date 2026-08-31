@@ -23,7 +23,7 @@ const ROLE_NAV: Record<string, { label: string; href: string; dot?: string }[]> 
     { label: "Notification", href: "/dashboard/notifications" },
 
     // { label: "Earnings & Billing", href: "/dashboard/billing" },
-    { label: "Account Settings", href: "/user-dashboard?view=settings" },
+    { label: "Account Settings", href: "/dashboard/settings" },
   ],
   builder: [
     { label: "Project Overview", href: "/dashboard" },
