@@ -64,17 +64,21 @@ export default function Hero() {
               India&apos;s neighbourhoods worth knowing.
             </p>
 
-            {/* ── SEARCH FORM ── */}
             <form
               onSubmit={handleSearch}
               className="
-    w-full max-w-[785px]
+    w-full
+    lg:w-[min(785px,70%)]
+    max-w-[785px]
     grid
     grid-cols-[1.55fr_0.72fr_0.74fr_110px]
     bg-white
     p-[7px]
     rounded-[18px]
     shadow-[0_15px_35px_rgba(0,0,0,0.22)]
+
+    max-lg:grid-cols-[1fr_54px]
+    max-lg:rounded-[14px]
   "
             >
               {/* Location */}
@@ -84,6 +88,8 @@ export default function Hero() {
       px-[15px]
       border-r border-[#e4e6e8]
       text-[#718090]
+
+      max-lg:border-r
     "
               >
                 <svg
@@ -108,7 +114,6 @@ export default function Hero() {
         text-[#405166]
         bg-transparent
         text-[13px]
-        placeholder:text-[#718090]
       "
                 />
               </label>
@@ -120,6 +125,8 @@ export default function Hero() {
       px-[15px]
       border-r border-[#e4e6e8]
       text-[#718090]
+
+      max-lg:hidden
     "
               >
                 <select
@@ -132,7 +139,6 @@ export default function Hero() {
         text-[#405166]
         bg-transparent
         text-[13px]
-        cursor-pointer
       "
                 >
                   <option>Buy or rent</option>
@@ -148,6 +154,8 @@ export default function Hero() {
       px-[15px]
       border-r border-[#e4e6e8]
       text-[#718090]
+
+      max-lg:hidden
     "
               >
                 <select
@@ -160,7 +168,6 @@ export default function Hero() {
         text-[#405166]
         bg-transparent
         text-[13px]
-        cursor-pointer
       "
                 >
                   <option>Any type</option>
@@ -170,7 +177,7 @@ export default function Hero() {
                 </select>
               </label>
 
-              {/* Search */}
+              {/* Search button */}
               <button
                 type="submit"
                 className="
@@ -182,10 +189,13 @@ export default function Hero() {
       font-bold
       text-[13px]
       cursor-pointer
-      transition-colors
+
+      max-lg:text-[0px]
+      max-lg:rounded-[13px]
     "
               >
-                Search
+                <span className="lg:inline hidden">Search</span>
+                <span className="lg:hidden text-[23px]">⌕</span>
               </button>
             </form>
 
