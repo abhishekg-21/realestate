@@ -287,7 +287,7 @@ export default function Navbar({ variant }: NavbarProps) {
                               <span className="w-[6px] h-[6px] rounded-full bg-gold shrink-0" />
                               My Dashboard
                             </Link>
-                            <Link href="/user-dashboard?view=saved" onClick={() => setProfileMenuOpen(false)} className="flex items-center justify-between p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
+                            <Link href="/dashboard/saved" onClick={() => setProfileMenuOpen(false)} className="flex items-center justify-between p-[9px_12px] rounded-[7px] hover:bg-gray-50 hover:text-navy transition-colors">
                               <span className="flex items-center gap-[10px]">
                                 <span className="w-[6px] h-[6px] rounded-full bg-[#e86a58] shrink-0" />
                                 Saved spaces
