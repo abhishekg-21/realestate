@@ -55,6 +55,46 @@ export default function AccountSettingsPage() {
         return () => window.removeEventListener(AUTH_CHANGE_EVENT, loadState);
     }, []);
 
+    const [locationLoading, setLocationLoading] = useState(false);
+
+    const detectLocation = async () => {
+        if (!navigator.geolocation) {
+            showToast("Geolocation is not supported by your browser.");
+            return;
+        }
+        setLocationLoading(true);
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                try {
+                    const { latitude, longitude } = pos.coords;
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+                    );
+                    const data = await res.json();
+                    const city =
+                        data.address?.city ||
+                        data.address?.town ||
+                        data.address?.village ||
+                        data.address?.county ||
+                        "";
+                    const state = data.address?.state || "";
+                    const country = data.address?.country || "";
+                    const formatted = [city, state, country].filter(Boolean).join(", ");
+                    setLocationInput(formatted);
+                    showToast("Location detected successfully.");
+                } catch {
+                    showToast("Could not fetch location details.");
+                } finally {
+                    setLocationLoading(false);
+                }
+            },
+            () => {
+                showToast("Location access denied. Please allow it in your browser.");
+                setLocationLoading(false);
+            }
+        );
+    };
+
     const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -185,13 +225,31 @@ export default function AccountSettingsPage() {
                                 </label>
                                 <label className="block">
                                     <span className="block text-[11px] font-bold text-ink mb-[7px]">Location</span>
-                                    <input
-                                        type="text"
-                                        value={locationInput}
-                                        onChange={(e) => setLocationInput(e.target.value)}
-                                        placeholder="City, India"
-                                        className="border border-line rounded-[7px] w-full p-[10px] text-[12px] bg-white text-ink outline-0 focus:border-[#d49a38] transition-colors"
-                                    />
+                                    <div className="flex gap-[8px]">
+                                        <input
+                                            type="text"
+                                            value={locationInput}
+                                            onChange={(e) => setLocationInput(e.target.value)}
+                                            placeholder="City, India"
+                                            className="border border-line rounded-[7px] flex-1 p-[10px] text-[12px] bg-white text-ink outline-0 focus:border-[#d49a38] transition-colors"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={detectLocation}
+                                            disabled={locationLoading}
+                                            title="Detect my location"
+                                            className="border border-line rounded-[7px] px-[10px] text-[14px] bg-white hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                                        >
+                                            {locationLoading ? (
+                                                <span className="inline-block w-[14px] h-[14px] border-2 border-[#d49a38] border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                "📍"
+                                            )}
+                                        </button>
+                                    </div>
+                                    <span className="block text-[10px] text-muted mt-[5px]">
+                                        Type manually or tap 📍 to detect automatically.
+                                    </span>
                                 </label>
                                 <div className="col-span-full mt-1">
                                     <button
