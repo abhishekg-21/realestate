@@ -79,6 +79,9 @@ export default function PropertyDetailView({ id }: { id?: string }) {
     phone: string | null;
     avatar_url: string | null;
     role: string | null;
+    location: string | null;
+    created_at: string | null;
+    listings_count: number;
   } | null>(null);
 
   useEffect(() => {
@@ -100,11 +103,19 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       // ✅ Fetch owner profile if property has owner_id
       const ownerId = property?.owner_id || (property as any)?.owner_id;
       if (ownerId) {
+        // 1. Query profile table for real user data
         const { data: profile } = await supabase
           .from("profiles")
-          .select("full_name, phone, avatar_url, role")
+          .select("full_name, phone, avatar_url, role, location, created_at")
           .eq("id", ownerId)
           .maybeSingle();
+
+        // 2. Query active listings count for this owner
+        const { count: listingsCount } = await supabase
+          .from("property_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("owner_id", ownerId)
+          .eq("status", "approved");
 
         if (profile) {
           let avatarUrl: string | null = null;
@@ -119,7 +130,11 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               avatarUrl = urlData.publicUrl;
             }
           }
-          setOwnerProfile({ ...profile, avatar_url: avatarUrl });
+          setOwnerProfile({
+            ...profile,
+            avatar_url: avatarUrl,
+            listings_count: listingsCount ?? 1,
+          });
         }
       }
     };
@@ -520,12 +535,22 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             {/* Provider Stats */}
             <div className="grid grid-cols-2 gap-2 text-[12px] text-slate-600 mb-4 pb-4 border-b border-slate-100">
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="block font-bold text-slate-900 text-[14px]">40+ listings</span>
-                <span className="text-[11px] text-slate-500">Active Properties</span>
+                <span className="block font-bold text-slate-900 text-[14px]">
+                  {ownerProfile?.listings_count
+                    ? `${ownerProfile.listings_count} ${ownerProfile.listings_count === 1 ? "Listing" : "Listings"}`
+                    : "1 Listing"}
+                </span>
+                <span className="text-[11px] text-slate-500">Active Listings</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="block font-bold text-slate-900 text-[14px]">7+ yrs</span>
-                <span className="text-[11px] text-slate-500">Market Experience</span>
+                <span className="block font-bold text-slate-900 text-[14px] truncate">
+                  {ownerProfile?.created_at
+                    ? `Since ${new Date(ownerProfile.created_at).getFullYear()}`
+                    : (ownerProfile?.location || property.city)}
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  {ownerProfile?.created_at ? "Member Since" : "Location"}
+                </span>
               </div>
             </div>
 
@@ -548,7 +573,11 @@ export default function PropertyDetailView({ id }: { id?: string }) {
             )}
 
             <p className="text-[12px] text-slate-600 leading-relaxed mb-4">
-              Hello, we are representatives of verified real estate agency services in {property.city}. We specialize in luxury residential and commercial properties.
+              {ownerProfile?.role === "agent"
+                ? `Hello, I am ${ownerProfile.full_name || property.providerName || "a verified agent"}, representing properties in ${property.city}. Feel free to contact me for scheduling a visit or any questions.`
+                : ownerProfile?.role === "builder"
+                ? `Hello, I am ${ownerProfile.full_name || property.providerName || "representing the developer"}, for this project in ${property.city}. Reach out for floor plans and official documentation.`
+                : `Hello, I am ${ownerProfile?.full_name || property.providerName || "the owner"} of this property in ${property.city}. Contact me directly for viewings or further details.`}
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
