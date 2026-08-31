@@ -67,75 +67,128 @@ export default function Hero() {
             {/* ── SEARCH FORM ── */}
             <form
               onSubmit={handleSearch}
-              className="w-full max-w-[820px] bg-white rounded-[16px] shadow-[0_15px_35px_rgba(0,0,0,0.22)] overflow-hidden"
+              className="
+    w-full max-w-[785px]
+    grid
+    grid-cols-[1.55fr_0.72fr_0.74fr_110px]
+    bg-white
+    p-[7px]
+    rounded-[18px]
+    shadow-[0_15px_35px_rgba(0,0,0,0.22)]
+  "
             >
-              {/*
-                Desktop (lg+): single row — location | purpose | type | button
-                Tablet (sm–lg): two rows — location full-width / selects + button
-                Mobile: stack all vertically
-              */}
-              <div className="flex flex-col sm:grid sm:grid-cols-[1fr_auto] lg:flex lg:flex-row lg:items-stretch">
-
-                {/* Location input — always visible, full width on mobile/tablet top row */}
-                <label className="flex items-center gap-2 px-4 py-3.5 sm:px-5 text-[#718090] border-b sm:border-b-0 lg:border-r border-[#e4e6e8] flex-1 min-w-0">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="w-4 h-4 shrink-0"
-                  >
-                    <circle cx="11" cy="11" r="6" />
-                    <path d="m20 20-4-4" />
-                  </svg>
-                  <input
-                    value={place}
-                    onChange={(e) => setPlace(e.target.value)}
-                    placeholder="City, locality or landmark"
-                    className="w-full border-0 outline-0 text-[#405166] bg-transparent text-[13px] sm:text-[14px] placeholder:text-[#a0adb8]"
-                  />
-                </label>
-
-                {/* Selects row on tablet, inline on desktop */}
-                <div className="flex items-stretch border-b sm:border-b-0 sm:border-r lg:border-r-0 border-[#e4e6e8] sm:col-start-1 sm:col-span-1 lg:contents">
-
-                  {/* Purpose select */}
-                  <label className="flex items-center px-4 py-3 sm:px-5 text-[#718090] border-r border-[#e4e6e8] flex-1 lg:flex-none lg:w-[145px] lg:border-r lg:border-[#e4e6e8]">
-                    <select
-                      value={purpose}
-                      onChange={(e) => setPurpose(e.target.value)}
-                      className="w-full border-0 outline-0 text-[#405166] bg-transparent text-[13px] cursor-pointer"
-                    >
-                      <option>Buy or rent</option>
-                      <option>Buy</option>
-                      <option>Rent</option>
-                    </select>
-                  </label>
-
-                  {/* Type select */}
-                  <label className="flex items-center px-4 py-3 sm:px-5 text-[#718090] flex-1 lg:flex-none lg:w-[145px] lg:border-r lg:border-[#e4e6e8]">
-                    <select
-                      value={type}
-                      onChange={(e) => setType(e.target.value)}
-                      className="w-full border-0 outline-0 text-[#405166] bg-transparent text-[13px] cursor-pointer"
-                    >
-                      <option>Any type</option>
-                      <option>Apartment</option>
-                      <option>Villa</option>
-                      <option>Office</option>
-                    </select>
-                  </label>
-                </div>
-
-                {/* Search button */}
-                <button
-                  type="submit"
-                  className="bg-[#ca8b29] hover:bg-gold text-white font-bold text-[13px] sm:text-[14px] transition-colors cursor-pointer border-0 px-6 py-3.5 sm:py-3 sm:col-start-2 sm:row-span-2 lg:px-8 lg:py-0 flex items-center justify-center whitespace-nowrap"
+              {/* Location */}
+              <label
+                className="
+      flex items-center gap-2
+      px-[15px]
+      border-r border-[#e4e6e8]
+      text-[#718090]
+    "
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="w-[18px] h-[18px] shrink-0"
                 >
-                  Search
-                </button>
-              </div>
+                  <circle cx="11" cy="11" r="6" />
+                  <path d="m20 20-4-4" />
+                </svg>
+
+                <input
+                  value={place}
+                  onChange={(e) => setPlace(e.target.value)}
+                  placeholder="Search a city, locality or landmark"
+                  className="
+        w-full
+        border-0
+        outline-0
+        text-[#405166]
+        bg-transparent
+        text-[13px]
+        placeholder:text-[#718090]
+      "
+                />
+              </label>
+
+              {/* Buy / Rent */}
+              <label
+                className="
+      flex items-center
+      px-[15px]
+      border-r border-[#e4e6e8]
+      text-[#718090]
+    "
+              >
+                <select
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  className="
+        w-full
+        border-0
+        outline-0
+        text-[#405166]
+        bg-transparent
+        text-[13px]
+        cursor-pointer
+      "
+                >
+                  <option>Buy or rent</option>
+                  <option>Buy</option>
+                  <option>Rent</option>
+                </select>
+              </label>
+
+              {/* Property Type */}
+              <label
+                className="
+      flex items-center
+      px-[15px]
+      border-r border-[#e4e6e8]
+      text-[#718090]
+    "
+              >
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="
+        w-full
+        border-0
+        outline-0
+        text-[#405166]
+        bg-transparent
+        text-[13px]
+        cursor-pointer
+      "
+                >
+                  <option>Any type</option>
+                  <option>Apartment</option>
+                  <option>Villa</option>
+                  <option>Office</option>
+                </select>
+              </label>
+
+              {/* Search */}
+              <button
+                type="submit"
+                className="
+      border-0
+      bg-[#ca8b29]
+      hover:bg-[#b87b20]
+      text-white
+      rounded-[13px]
+      font-bold
+      text-[13px]
+      cursor-pointer
+      transition-colors
+    "
+              >
+                Search
+              </button>
             </form>
+
 
             {/* Popular links */}
             <div className="hidden sm:flex gap-4 mt-3 text-[11px] text-[#c7d2df] flex-wrap">
