@@ -424,7 +424,7 @@ export default function Navbar({ variant }: NavbarProps) {
                       <span>My Dashboard</span>
                       <span className="text-xs text-gold">→</span>
                     </Link>
-                    <Link href="/user-dashboard?view=saved" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
+                    <Link href="/dashboard/saved-properties" onClick={() => setMobileOpen(false)} className="py-2 font-semibold text-sm flex items-center justify-between">
                       <span>Saved spaces ({savedCount})</span>
                       <span className="text-xs text-gold">→</span>
                     </Link>
