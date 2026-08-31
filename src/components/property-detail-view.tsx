@@ -98,22 +98,26 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       setIsLoggedIn(!!user);
 
       // ✅ Fetch owner profile if property has owner_id
-      const ownerId = (property as any)?.owner_id;
+      const ownerId = property?.owner_id || (property as any)?.owner_id;
       if (ownerId) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name, phone, avatar_url, role")
           .eq("id", ownerId)
-          .single();
+          .maybeSingle();
 
         if (profile) {
-          // Build public avatar URL from storage path
           let avatarUrl: string | null = null;
           if (profile.avatar_url) {
-            const { data: urlData } = supabase.storage
-              .from("avatars")
-              .getPublicUrl(profile.avatar_url);
-            avatarUrl = urlData.publicUrl;
+            const rawUrl = profile.avatar_url.trim();
+            if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://") || rawUrl.startsWith("data:")) {
+              avatarUrl = rawUrl;
+            } else {
+              const { data: urlData } = supabase.storage
+                .from("avatars")
+                .getPublicUrl(rawUrl);
+              avatarUrl = urlData.publicUrl;
+            }
           }
           setOwnerProfile({ ...profile, avatar_url: avatarUrl });
         }
@@ -487,16 +491,19 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               <img
                 src={
                   ownerProfile?.avatar_url ||
-                  (property as any).providerAvatar ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(ownerProfile?.full_name || "PN")}&background=07182d&color=fff&size=120`
+                  property?.providerAvatar ||
+                  (property as any)?.providerAvatar ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    ownerProfile?.full_name || property?.providerName || (property as any)?.providerName || "PN"
+                  )}&background=07182d&color=fff&size=120`
                 }
-                alt={ownerProfile?.full_name || (property as any).providerName || "Agent"}
+                alt={ownerProfile?.full_name || property?.providerName || (property as any)?.providerName || "Agent"}
                 className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0"
               />
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-bold text-[16px] text-slate-900 m-0">
-                    {ownerProfile?.full_name || (property as any).providerName || "PropertiesNexus User"}
+                    {ownerProfile?.full_name || property?.providerName || (property as any)?.providerName || "PropertiesNexus User"}
                   </h3>
                   <span className="text-blue-500 font-bold text-sm" title="Verified Agency">✔</span>
                 </div>
@@ -504,7 +511,8 @@ export default function PropertyDetailView({ id }: { id?: string }) {
                   {ownerProfile?.role === "agent" ? "Real Estate Agent" :
                     ownerProfile?.role === "builder" ? "Builder / Developer" :
                       ownerProfile?.role === "lister" ? "Property Lister" :
-                        (property as any).providerRole || "Property Owner"}
+                        ownerProfile?.role === "admin" ? "PropertiesNexus Admin" :
+                          property?.providerRole || (property as any)?.providerRole || "Property Owner"}
                 </p>
               </div>
             </div>

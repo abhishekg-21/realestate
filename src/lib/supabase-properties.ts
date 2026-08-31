@@ -189,6 +189,8 @@ export function transformSupabaseProperty(row: any): Property {
     providerName: row.contact_name || undefined,
     providerPhone: row.contact_phone || undefined,
     providerRole: "Verified Owner",
+    providerAvatar: row.providerAvatar || undefined,
+    owner_id: row.owner_id || row.user_id || undefined,
   };
 }
 
@@ -229,9 +231,33 @@ function isCleanStaticProperty(prop: Property): boolean {
 }
 
 /**
+ * Helper to resolve avatar URL
+ */
+function resolveAvatarUrl(
+  pathOrUrl?: string | null,
+  supabase?: ReturnType<typeof createClient>
+): string | undefined {
+  if (!pathOrUrl) return undefined;
+  const trimmed = pathOrUrl.trim();
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:")
+  ) {
+    return trimmed;
+  }
+  if (supabase) {
+    const { data } = supabase.storage.from("avatars").getPublicUrl(trimmed);
+    return data.publicUrl;
+  }
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ebfijmvsqywngxdhgndo.supabase.co";
+  return `${supabaseUrl}/storage/v1/object/public/avatars/${trimmed}`;
+}
+
+/**
  * Fetches a single property by ID from Supabase (checking approved submissions & properties table)
  */
-
 async function transformSupabasePropertyWithProfile(
   row: any,
   supabase: ReturnType<typeof createClient>
@@ -241,29 +267,27 @@ async function transformSupabasePropertyWithProfile(
 
   if (!profile) return base;
 
-  // Build avatar public URL from storage path
-  let avatarUrl: string | undefined = undefined;
-  if (profile.avatar_url) {
-    const { data: urlData } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(profile.avatar_url);
-    avatarUrl = urlData.publicUrl;
-  }
+  const avatarUrl = resolveAvatarUrl(profile.avatar_url, supabase);
 
   // Map role to display label
   const roleLabel =
-    profile.role === "agent" ? "Real Estate Agent" :
-      profile.role === "builder" ? "Builder / Developer" :
-        profile.role === "lister" ? "Property Lister" :
-          profile.role === "admin" ? "PropertiesNexus Admin" :
-            "Verified Owner";
+    profile.role === "agent"
+      ? "Real Estate Agent"
+      : profile.role === "builder"
+      ? "Builder / Developer"
+      : profile.role === "lister"
+      ? "Property Lister"
+      : profile.role === "admin"
+      ? "PropertiesNexus Admin"
+      : "Verified Owner";
 
   return {
     ...base,
     providerName: profile.full_name || base.providerName,
     providerPhone: profile.phone || base.providerPhone,
-    providerAvatar: avatarUrl,   // ✅ real avatar from profiles table
+    providerAvatar: avatarUrl || base.providerAvatar,
     providerRole: roleLabel,
+    owner_id: row.owner_id || row.user_id || base.owner_id,
   };
 }
 
@@ -275,21 +299,21 @@ export async function fetchPropertyById(id: string): Promise<Property | null> {
     // 1. Check in property_submissions table — also fetch owner profile
     const { data: sub } = await supabase
       .from("property_submissions")
-      .select(`
-        *,
-        property_submission_media(*),
-        profiles!property_submissions_owner_id_fkey (
-          full_name,
-          phone,
-          avatar_url,
-          role
-        )
-      `)
+      .select("*, property_submission_media(*)")
       .eq("id", id)
       .maybeSingle();
 
     if (sub) {
-      return transformSupabasePropertyWithProfile(sub, supabase);
+      let profile = null;
+      if (sub.owner_id) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("full_name, phone, avatar_url, role")
+          .eq("id", sub.owner_id)
+          .maybeSingle();
+        profile = p;
+      }
+      return transformSupabasePropertyWithProfile({ ...sub, profiles: profile }, supabase);
     }
 
     // 2. Check in properties table
@@ -299,7 +323,19 @@ export async function fetchPropertyById(id: string): Promise<Property | null> {
       .eq("id", id)
       .maybeSingle();
 
-    if (prop) return transformSupabaseProperty(prop);
+    if (prop) {
+      let profile = null;
+      const ownerId = prop.owner_id || prop.user_id;
+      if (ownerId) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("full_name, phone, avatar_url, role")
+          .eq("id", ownerId)
+          .maybeSingle();
+        profile = p;
+      }
+      return transformSupabasePropertyWithProfile({ ...prop, profiles: profile }, supabase);
+    }
 
     // 3. Fallback to static
     return STATIC_PROPERTIES.find((p) => p.id === id) || null;
@@ -318,31 +354,40 @@ export async function fetchAllProperties(): Promise<Property[]> {
     const liveProperties: Property[] = [];
 
     // 1. Fetch approved property submissions from Supabase
-    // Replace the approved submissions fetch block:
     const { data: approvedSubmissions, error: subError } = await supabase
       .from("property_submissions")
-      .select(`
-    *,
-    property_submission_media(*),
-    profiles!property_submissions_owner_id_fkey (
-      full_name,
-      phone,
-      avatar_url,
-      role
-    )
-  `)
+      .select("*, property_submission_media(*)")
       .eq("status", "approved")
       .order("created_at", { ascending: false });
 
-    // And in the forEach, use the new helper:
     if (!subError && approvedSubmissions && approvedSubmissions.length > 0) {
+      const ownerIds = Array.from(
+        new Set(approvedSubmissions.map((s) => s.owner_id).filter(Boolean))
+      );
+
+      let profilesMap: Record<string, any> = {};
+      if (ownerIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, full_name, phone, avatar_url, role")
+          .in("id", ownerIds);
+
+        if (profilesData) {
+          profilesData.forEach((p) => {
+            profilesMap[p.id] = p;
+          });
+        }
+      }
+
       for (const sub of approvedSubmissions) {
-        const prop = await transformSupabasePropertyWithProfile(sub, supabase);
+        const profile = sub.owner_id ? profilesMap[sub.owner_id] : null;
+        const prop = await transformSupabasePropertyWithProfile(
+          { ...sub, profiles: profile },
+          supabase
+        );
         liveProperties.push(prop);
       }
-    }
-
-    if (subError) {
+    } else if (subError) {
       console.warn("Could not fetch approved submissions with joined media, trying standalone query:", subError.message);
       // Fallback if relation join failed
       const { data: standaloneSubs } = await supabase
@@ -359,16 +404,14 @@ export async function fetchAllProperties(): Promise<Property[]> {
             .eq("submission_id", sub.id)
             .order("sort_order", { ascending: true });
 
-          liveProperties.push(transformSupabaseProperty({
-            ...sub,
-            property_submission_media: subMedia || []
-          }));
+          liveProperties.push(
+            transformSupabaseProperty({
+              ...sub,
+              property_submission_media: subMedia || [],
+            })
+          );
         }
       }
-    } else if (approvedSubmissions && approvedSubmissions.length > 0) {
-      approvedSubmissions.forEach((sub) => {
-        liveProperties.push(transformSupabaseProperty(sub));
-      });
     }
 
     // 2. Fetch published properties (if properties table exists)

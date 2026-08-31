@@ -108,3 +108,10 @@ USING (bucket_id = 'avatars');
 CREATE POLICY "Users update their own avatar"
 ON storage.objects FOR UPDATE TO authenticated
 USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+
+
+CREATE POLICY "Anyone can read basic profile info"
+ON public.profiles FOR SELECT
+TO authenticated, anon
+USING (true);
