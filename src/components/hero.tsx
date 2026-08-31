@@ -64,11 +64,11 @@ export default function Hero() {
               India&apos;s neighbourhoods worth knowing.
             </p>
 
+            {/* ── SEARCH FORM ── */}
             <form
               onSubmit={handleSearch}
               className="
-    w-full
-    lg:w-[min(785px,70%)]
+    w-[70%]
     max-w-[785px]
     grid
     grid-cols-[1.55fr_0.72fr_0.74fr_110px]
@@ -77,19 +77,23 @@ export default function Hero() {
     rounded-[18px]
     shadow-[0_15px_35px_rgba(0,0,0,0.22)]
 
-    max-lg:grid-cols-[1fr_54px]
-    max-lg:rounded-[14px]
+    max-[850px]:w-full
+    max-[850px]:grid-cols-[1fr_54px]
+    max-[850px]:rounded-[14px]
   "
             >
               {/* Location */}
               <label
                 className="
-      flex items-center gap-2
+      flex
+      items-center
+      gap-2
       px-[15px]
-      border-r border-[#e4e6e8]
+      border-r
+      border-[#e4e6e8]
       text-[#718090]
 
-      max-lg:border-r
+      max-[850px]:border-r
     "
               >
                 <svg
@@ -114,19 +118,22 @@ export default function Hero() {
         text-[#405166]
         bg-transparent
         text-[13px]
+        placeholder:text-[#718090]
       "
                 />
               </label>
 
-              {/* Buy / Rent */}
+              {/* Buy or rent */}
               <label
                 className="
-      flex items-center
+      flex
+      items-center
       px-[15px]
-      border-r border-[#e4e6e8]
+      border-r
+      border-[#e4e6e8]
       text-[#718090]
 
-      max-lg:hidden
+      max-[850px]:hidden
     "
               >
                 <select
@@ -139,6 +146,7 @@ export default function Hero() {
         text-[#405166]
         bg-transparent
         text-[13px]
+        cursor-pointer
       "
                 >
                   <option>Buy or rent</option>
@@ -147,15 +155,17 @@ export default function Hero() {
                 </select>
               </label>
 
-              {/* Property Type */}
+              {/* Property type */}
               <label
                 className="
-      flex items-center
+      flex
+      items-center
       px-[15px]
-      border-r border-[#e4e6e8]
+      border-r
+      border-[#e4e6e8]
       text-[#718090]
 
-      max-lg:hidden
+      max-[850px]:hidden
     "
               >
                 <select
@@ -168,6 +178,7 @@ export default function Hero() {
         text-[#405166]
         bg-transparent
         text-[13px]
+        cursor-pointer
       "
                 >
                   <option>Any type</option>
@@ -189,14 +200,21 @@ export default function Hero() {
       font-bold
       text-[13px]
       cursor-pointer
+      transition-colors
+      flex
+      items-center
+      justify-center
 
-      max-lg:text-[0px]
-      max-lg:rounded-[13px]
+      max-[850px]:text-[0px]
     "
               >
-                <span className="max-[850px]:inline hidden">Search</span>
-                <span className="hidden max-[850px]:inline text-[23px]">⌕</span>
+                <span className="inline max-[850px]:hidden">
+                  Search
+                </span>
 
+                <span className="hidden max-[850px]:inline text-[23px] leading-none">
+                  ⌕
+                </span>
               </button>
             </form>
 
