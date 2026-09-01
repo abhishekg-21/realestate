@@ -576,8 +576,8 @@ export default function PropertyDetailView({ id }: { id?: string }) {
               {ownerProfile?.role === "agent"
                 ? `Hello, I am ${ownerProfile.full_name || property.providerName || "a verified agent"}, representing properties in ${property.city}. Feel free to contact me for scheduling a visit or any questions.`
                 : ownerProfile?.role === "builder"
-                ? `Hello, I am ${ownerProfile.full_name || property.providerName || "representing the developer"}, for this project in ${property.city}. Reach out for floor plans and official documentation.`
-                : `Hello, I am ${ownerProfile?.full_name || property.providerName || "the owner"} of this property in ${property.city}. Contact me directly for viewings or further details.`}
+                  ? `Hello, I am ${ownerProfile.full_name || property.providerName || "representing the developer"}, for this project in ${property.city}. Reach out for floor plans and official documentation.`
+                  : `Hello, I am ${ownerProfile?.full_name || property.providerName || "the owner"} of this property in ${property.city}. Contact me directly for viewings or further details.`}
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -653,7 +653,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       </main>
 
       {/* Recommended Properties Section */}
-      <section className="bg-slate-50 py-16 border-t border-slate-200">
+      <section className="bg-slate-50 py-10 border-t border-slate-200">
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto">
           <h2 className="font-serif text-[28px] font-medium text-slate-900 mb-8">
             Recommended Properties
