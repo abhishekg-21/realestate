@@ -52,6 +52,14 @@ function UserDashboardContent() {
   const [avatarInput, setAvatarInput] = useState("");
   const [profileLoading, setProfileLoading] = useState(true);
 
+  // Dynamic Dashboard Stats
+  const [memberSince, setMemberSince] = useState<Date | null>(null);
+  const [accountStatus, setAccountStatus] = useState("Active");
+  const [accountVerification, setAccountVerification] = useState("Verified account");
+  const [liveListingsCount, setLiveListingsCount] = useState(0);
+  const [draftListingsCount, setDraftListingsCount] = useState(0);
+
+
   const [alerts, setAlerts] = useState<AlertItem[]>([
     {
       name: "3-bedroom homes in Mumbai",
@@ -132,7 +140,7 @@ function UserDashboardContent() {
         const { data: profile } = await supabase
           .from("profiles")
           .select(
-            "full_name, phone, agency_name, bio, verification_status, logo_url",
+            "full_name, phone, agency_name, bio, verification_status, logo_url, created_at, role",
           )
           .eq("id", user.id)
           .single();
@@ -165,6 +173,39 @@ function UserDashboardContent() {
           avatar: cached?.avatar || "",
           location: cached?.location || "",
         });
+
+        // Set dynamic stats
+        if (profile?.created_at) {
+          setMemberSince(new Date(profile.created_at));
+        } else if (user.created_at) {
+          setMemberSince(new Date(user.created_at));
+        }
+
+        if (profile?.verification_status === "verified") {
+          setAccountStatus("Active");
+          setAccountVerification("Verified account");
+        } else {
+          setAccountStatus("Pending");
+          setAccountVerification(
+            profile?.verification_status
+              ? profile.verification_status.charAt(0).toUpperCase() +
+                profile.verification_status.slice(1) + " account"
+              : "Unverified account"
+          );
+        }
+
+        // Fetch properties for counts
+        const { data: submissions } = await supabase
+          .from("property_submissions")
+          .select("status")
+          .eq("owner_id", user.id);
+
+        if (submissions) {
+          const live = submissions.filter((s) => s.status === "approved").length;
+          const draft = submissions.length - live;
+          setLiveListingsCount(live);
+          setDraftListingsCount(draft);
+        }
       }
 
       setProfileLoading(false);
@@ -409,10 +450,12 @@ function UserDashboardContent() {
                   Member since
                 </p>
                 <b className="block font-serif text-[20px] font-medium text-ink">
-                  {new Date().toLocaleString("en-IN", {
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {memberSince
+                    ? memberSince.toLocaleString("en-IN", {
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : "Loading..."}
                 </b>
                 <small className="block mt-[4px] text-[#85929a] text-[10px]">
                   PropertiesNexus account
@@ -426,10 +469,10 @@ function UserDashboardContent() {
                   Account status
                 </p>
                 <b className="block font-serif text-[25px] font-medium text-ink">
-                  Active
+                  {accountStatus}
                 </b>
                 <small className="block mt-[4px] text-[#85929a] text-[10px]">
-                  Verified account
+                  {accountVerification}
                 </small>
               </article>
               <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
@@ -440,11 +483,11 @@ function UserDashboardContent() {
                   Properties listed
                 </p>
                 <b className="block font-serif text-[25px] font-medium text-ink">
-                  {listings.length}
+                  {liveListingsCount + draftListingsCount}
                 </b>
                 <small className="block mt-[4px] text-[#85929a] text-[10px]">
-                  {listings.length
-                    ? `${listings.filter((l) => l.status === "Live").length} live · ${listings.filter((l) => l.status !== "Live").length} draft`
+                  {liveListingsCount + draftListingsCount > 0
+                    ? `${liveListingsCount} live · ${draftListingsCount} draft`
                     : "No active listings"}
                 </small>
               </article>
