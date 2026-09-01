@@ -278,7 +278,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto grid grid-cols-[1.7fr_1fr] max-md:grid-cols-1 gap-[15px] mb-[40px]">
         <div
           onClick={() => openLightbox(0)}
-          className="h-[460px] max-md:h-[280px] rounded-[14px] cursor-pointer hover:opacity-95 transition-opacity pt-[10px] overflow-hidden relative bg-[#0e1f33] shadow-md"
+          className="h-[460px] max-md:h-[280px] rounded-[14px] cursor-pointer hover:opacity-95 transition-opacity pt-[100px] overflow-hidden relative bg-[#0e1f33] shadow-md"
         >
           {isVideoUrl(images[0]) ? (
             <>
