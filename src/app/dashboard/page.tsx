@@ -481,7 +481,7 @@ function UserDashboardContent() {
             </div>
 
             <div className="grid grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-[14px]">
-              <article className="bg-white border border-line p-[17px] min-h-[125px] rounded flex flex-col justify-between">
+              <article className="bg-white border border-line p-[17px] min-h-[125px] rounded-[24px] flex flex-col justify-between">
                 <span className="h-[30px] w-[30px] rounded-full bg-[#edf3f2] text-[#477366] flex items-center justify-center text-[14px] font-bold">
                   ♥
                 </span>
@@ -494,7 +494,7 @@ function UserDashboardContent() {
                   </span>
                 </div>
               </article>
-              <article className="bg-white border border-line p-[17px] min-h-[125px] rounded flex flex-col justify-between">
+              <article className="bg-white border border-line p-[17px] min-h-[125px] rounded-[24px] flex flex-col justify-between">
                 <span className="h-[30px] w-[30px] rounded-full bg-[#edf3f2] text-[#477366] flex items-center justify-center text-[14px] font-bold">
                   💬
                 </span>
@@ -507,7 +507,7 @@ function UserDashboardContent() {
                   </span>
                 </div>
               </article>
-              <article className="bg-white border border-line p-[17px] min-h-[125px] rounded flex flex-col justify-between max-md:col-span-2 max-sm:col-span-1">
+              <article className="bg-white border border-line p-[17px] min-h-[125px] rounded-[24px] flex flex-col justify-between max-md:col-span-2 max-sm:col-span-1">
                 <span className="h-[30px] w-[30px] rounded-full bg-[#edf3f2] text-[#477366] flex items-center justify-center text-[14px] font-bold">
                   🔍
                 </span>
