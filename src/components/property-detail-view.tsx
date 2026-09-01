@@ -275,10 +275,10 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       </section>
 
       {/* Photo & Video Gallery Grid */}
-      <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] pt-20mx-auto grid grid-cols-[1.7fr_1fr] max-md:grid-cols-1 gap-[15px] mb-[50px]">
+      <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto grid grid-cols-[1.7fr_1fr] max-md:grid-cols-1 gap-[15px] mb-[40px]">
         <div
           onClick={() => openLightbox(0)}
-          className="h-[460px] max-md:h-[280px] rounded-[14px] cursor-pointer hover:opacity-95 transition-opacity overflow-hidden relative bg-[#0e1f33] shadow-md"
+          className="h-[460px] max-md:h-[280px] rounded-[14px] cursor-pointer hover:opacity-95 transition-opacity pt-[10px] overflow-hidden relative bg-[#0e1f33] shadow-md"
         >
           {isVideoUrl(images[0]) ? (
             <>
@@ -653,7 +653,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       </main>
 
       {/* Recommended Properties Section */}
-      <section className="bg-slate-50 py-10 border-t border-slate-200">
+      <section className="bg-slate-50 py-16 border-t border-slate-200">
         <div className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto">
           <h2 className="font-serif text-[28px] font-medium text-slate-900 mb-8">
             Recommended Properties
