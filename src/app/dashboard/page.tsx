@@ -452,6 +452,7 @@ function UserDashboardContent() {
                 <b className="block font-serif text-[20px] font-medium text-ink">
                   {memberSince
                     ? memberSince.toLocaleString("en-IN", {
+                        day: "numeric",
                         month: "long",
                         year: "numeric",
                       })
