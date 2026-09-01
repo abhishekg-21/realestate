@@ -387,7 +387,7 @@ function UserDashboardContent() {
               </span>
             </div>
             <div className="grid grid-cols-4 max-md:grid-cols-2 gap-[14px] max-sm:gap-[9px] mb-[25px]">
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+              <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
                 <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#eaf1ff] text-[#2c68d9] text-[14px]">
                   ◷
                 </span>
@@ -401,7 +401,7 @@ function UserDashboardContent() {
                   Current signed-in session
                 </small>
               </article>
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+              <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
                 <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e] text-[14px]">
                   ◌
                 </span>
@@ -418,7 +418,7 @@ function UserDashboardContent() {
                   PropertiesNexus account
                 </small>
               </article>
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+              <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
                 <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#e2faed] text-[#078b58] text-[14px]">
                   ✓
                 </span>
@@ -432,7 +432,7 @@ function UserDashboardContent() {
                   Verified account
                 </small>
               </article>
-              <article className="bg-white border border-line min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
+              <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
                 <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#fff2df] text-[#aa701d] text-[14px]">
                   ▦
                 </span>
