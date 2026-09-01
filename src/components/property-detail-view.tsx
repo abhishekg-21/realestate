@@ -228,7 +228,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-paper text-ink font-sans">
+    <div className="min-h-screen bg-paper pb-20 text-ink font-sans">
       <Navbar variant="light" />
 
       {/* Head Bar */}
