@@ -228,7 +228,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-paper pb-20 text-ink font-sans">
+    <div className="min-h-screen bg-paper text-ink font-sans">
       <Navbar variant="light" />
 
       {/* Head Bar */}
@@ -275,7 +275,7 @@ export default function PropertyDetailView({ id }: { id?: string }) {
       </section>
 
       {/* Photo & Video Gallery Grid */}
-      <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] mx-auto grid grid-cols-[1.7fr_1fr] max-md:grid-cols-1 gap-[15px] mb-[50px]">
+      <section className="max-w-[1216px] w-[calc(100%-48px)] max-md:w-[calc(100%-32px)] pt-20mx-auto grid grid-cols-[1.7fr_1fr] max-md:grid-cols-1 gap-[15px] mb-[50px]">
         <div
           onClick={() => openLightbox(0)}
           className="h-[460px] max-md:h-[280px] rounded-[14px] cursor-pointer hover:opacity-95 transition-opacity overflow-hidden relative bg-[#0e1f33] shadow-md"
