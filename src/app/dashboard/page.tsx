@@ -189,7 +189,7 @@ function UserDashboardContent() {
           setAccountVerification(
             profile?.verification_status
               ? profile.verification_status.charAt(0).toUpperCase() +
-                profile.verification_status.slice(1) + " account"
+              profile.verification_status.slice(1) + " account"
               : "Unverified account"
           );
         }
@@ -429,9 +429,23 @@ function UserDashboardContent() {
             </div>
             <div className="grid grid-cols-4 max-md:grid-cols-2 gap-[14px] max-sm:gap-[9px] mb-[25px]">
               <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#eaf1ff] text-[#2c68d9] text-[14px]">
-                  ◷
+                <span className="h-[32px] w-[32px] shrink-0 grid place-items-center rounded-full bg-[#eaf1ff] text-[#2c68d9] shadow-[inset_0_0_0_1px_rgba(44,104,217,0.08)]">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-[17px] w-[17px]"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="8.5" />
+                    <path d="M12 7.5v5l3.2 2" />
+                  </svg>
                 </span>
+
                 <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
                   Property sessions
                 </p>
@@ -452,10 +466,10 @@ function UserDashboardContent() {
                 <b className="block font-serif text-[20px] font-medium text-ink">
                   {memberSince
                     ? memberSince.toLocaleString("en-IN", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })
                     : "Loading..."}
                 </b>
                 <small className="block mt-[4px] text-[#85929a] text-[10px]">
