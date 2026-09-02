@@ -560,9 +560,16 @@ function UserDashboardContent() {
                 </div>
               </article>
               <article className="bg-white border border-line p-[17px] min-h-[125px] rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] flex flex-col justify-between">
-                <span className="h-[30px] w-[30px] rounded-full bg-[#edf3f2] text-[#477366] flex items-center justify-center text-[14px] font-bold">
-                  💬
-                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  className="w-[18px] h-[18px] fill-[#477366] stroke-[#477366]"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 3c-4.97 0-9 3.185-9 7.115c0 2.557 1.522 4.82 3.889 6.205l-.834 3.68l3.892-2.075c.67.127 1.35.195 2.053.195c4.97 0 9-3.185 9-7.005S16.97 3 12 3z" />
+                </svg>
                 <div>
                   <b className="block font-serif text-[25px] font-medium my-[13px] mb-[2px] text-ink">
                     {messages.length}
