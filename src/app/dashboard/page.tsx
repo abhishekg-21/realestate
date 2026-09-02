@@ -573,10 +573,11 @@ function UserDashboardContent() {
                 </div>
               </article>
               <article className="bg-white border border-line p-[17px] min-h-[125px] rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] flex flex-col justify-between max-md:col-span-2 max-sm:col-span-1">
-                <span className="h-[30px] w-[30px] rounded-full bg-[#edf3f2] text-[#477366] flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-[15px] h-[15px] fill-none stroke-[#477366]" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.35-4.35" />
+                <span className="h-[30px] w-[30px] rounded-full bg-[#edf3f2] flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-[15px] h-[15px]" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" fill="#477366" stroke="#2d5c52" strokeWidth={1.5} />
+                    <path d="M21 21l-4.35-4.35" stroke="#2d5c52" strokeWidth={2.5} />
+                    <circle cx="11" cy="11" r="4" fill="#6aab9c" opacity="0.5" />
                   </svg>
                 </span>
                 <div>
