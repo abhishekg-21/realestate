@@ -540,9 +540,16 @@ function UserDashboardContent() {
 
             <div className="grid grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-[14px]">
               <article className="bg-white border border-line p-[17px] min-h-[125px] rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.06)]flex flex-col justify-between">
-                <span className="h-[30px] w-[30px] rounded-full bg-[#edf3f2] text-[#477366] flex items-center justify-center text-[14px] font-bold">
-                  ♥
-                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  className="w-[18px] h-[18px] fill-red-500 stroke-red-500"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
                 <div>
                   <b className="block font-serif text-[25px] font-medium my-[13px] mb-[2px] text-ink">
                     {savedIds.length}
