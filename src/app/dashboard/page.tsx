@@ -457,7 +457,7 @@ function UserDashboardContent() {
                 </small>
               </article>
               <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[32px] w-[32px] shrink-0 grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e] shadow-[inset_0_0_0_1px_rgba(104,117,126,0.06)]">
+                <span className="h-[32px] w-[32px] shrink-0 grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e]">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -466,9 +466,14 @@ function UserDashboardContent() {
                     aria-hidden="true"
                   >
                     <path
-                      d="M12 5v14M5 12h14"
+                      d="M12 3.5l1.35 5.15L18.5 10l-5.15 1.35L12 16.5l-1.35-5.15L5.5 10l5.15-1.35L12 3.5Z"
+                      fill="currentColor"
+                      opacity="0.9"
+                    />
+                    <path
+                      d="M18.5 15.5v5M16 18h5"
                       stroke="currentColor"
-                      strokeWidth="1.8"
+                      strokeWidth="1.5"
                       strokeLinecap="round"
                     />
                   </svg>
