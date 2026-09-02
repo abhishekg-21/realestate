@@ -2,7 +2,7 @@ import { Users, Mail, Phone, Calendar } from "lucide-react";
 
 export default function LeadsDashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="mb-8">
         <h1 className="text-3xl font-serif font-bold text-navy">
           Leads & Enquiries
