@@ -561,7 +561,7 @@ function UserDashboardContent() {
               </article>
               <article className="bg-white border border-line p-[17px] min-h-[125px] rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] flex flex-col justify-between">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-[#477366] stroke-[#477366]" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" />
                 </svg>
                 <div>
                   <b className="block font-serif text-[25px] font-medium my-[13px] mb-[2px] text-ink">
