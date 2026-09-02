@@ -457,20 +457,20 @@ function UserDashboardContent() {
                 </small>
               </article>
               <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[32px] w-[32px] shrink-0 grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e] shadow-[inset_0_0_0_1px_rgba(104,117,126,0.07)]">
+                <span className="h-[32px] w-[32px] shrink-0 grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e] shadow-[inset_0_0_0_1px_rgba(104,117,126,0.06)]">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
                     className="h-[17px] w-[17px]"
                     aria-hidden="true"
                   >
-                    <circle cx="12" cy="12" r="8.5" />
-                    <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
+                    <path
+                      d="M12 5v14M5 12h14"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </span>
 
