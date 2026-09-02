@@ -462,20 +462,16 @@ function UserDashboardContent() {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     className="h-[17px] w-[17px]"
                     aria-hidden="true"
                   >
-                    <path
-                      d="M12 3.5l1.35 5.15L18.5 10l-5.15 1.35L12 16.5l-1.35-5.15L5.5 10l5.15-1.35L12 3.5Z"
-                      fill="currentColor"
-                      opacity="0.9"
-                    />
-                    <path
-                      d="M18.5 15.5v5M16 18h5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
+                    <path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5" />
+                    <path d="M12 7v5l3 1.8" />
+                    <path d="M17.5 5.5h3v3" />
                   </svg>
                 </span>
 
