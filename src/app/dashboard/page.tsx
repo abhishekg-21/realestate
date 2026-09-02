@@ -457,24 +457,9 @@ function UserDashboardContent() {
                 </small>
               </article>
               <article className="bg-white border border-line rounded-[20px] shadow-[0_4px_10px_rgba(0,0,0,0.06)] min-h-[146px] p-[17px] max-sm:min-h-[130px] max-sm:p-[13px]">
-                <span className="h-[32px] w-[32px] shrink-0 grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-[17px] w-[17px]"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5" />
-                    <path d="M12 7v5l3 1.8" />
-                    <path d="M17.5 5.5h3v3" />
-                  </svg>
+                <span className="h-[31px] w-[31px] grid place-items-center rounded-full bg-[#f1f2f0] text-[#68757e] text-[15px]">
+                  <i className="ti ti-calendar-event" aria-hidden="true" />
                 </span>
-
                 <p className="text-[11px] text-[#71808a] mt-[14px] mb-[5px]">
                   Member since
                 </p>

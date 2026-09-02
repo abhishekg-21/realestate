@@ -1,3 +1,4 @@
+//  src/app/dashboard/layout.tsx
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import DashboardSidebar from "@/components/dashboard-sidebar";
@@ -33,6 +34,10 @@ export default async function DashboardLayout({
 
   return (
     <div className="grid grid-cols-[255px_1fr] max-md:grid-cols-1 min-h-screen bg-paper font-sans">
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+      />
       <DashboardSidebar userEmail={userEmail} role={role} fullName={fullName} />
       <div className="min-w-0 overflow-x-hidden flex flex-col">{children}</div>
     </div>
