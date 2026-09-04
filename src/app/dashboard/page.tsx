@@ -520,7 +520,7 @@ function UserDashboardContent() {
                 together in one thoughtful place.
               </p>
               <button
-                onClick={() => switchView("saved")}
+                onClick={() => router.push("/properties")}
                 className="border-0 rounded-[7px] bg-navy hover:bg-navy2 !text-white p-[11px_14px] text-[12px] font-bold cursor-pointer transition-colors"
               >
                 Continue your search

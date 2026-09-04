@@ -56,8 +56,8 @@ export default function Footer() {
               <h3 className="font-serif text-[18px] font-medium mb-6 text-white">Company</h3>
               <ul className="space-y-4 text-[14px] text-[#adbac7]">
                 <li><Link href="/" className="hover:text-gold transition-colors">About Us</Link></li>
-                <li><Link href="/careers" className="hover:text-gold transition-colors">Careers</Link></li>
-                <li><Link href="/press" className="hover:text-gold transition-colors">Press & Media</Link></li>
+                {/* <li><Link href="/careers" className="hover:text-gold transition-colors">Careers</Link></li> */}
+                <li><Link href="/properties" className="hover:text-gold transition-colors">Press & Media</Link></li>
                 <li><Link href="/journal" className="hover:text-gold transition-colors">Real Estate Blogs</Link></li>
               </ul>
             </div>
@@ -67,7 +67,7 @@ export default function Footer() {
               <ul className="space-y-4 text-[14px] text-[#adbac7]">
                 <li><Link href="/properties?purpose=Buy" className="hover:text-gold transition-colors">Buy Property</Link></li>
                 <li><Link href="/properties?purpose=Rent" className="hover:text-gold transition-colors">Rent Property</Link></li>
-                <li><Link href="/properties" className="hover:text-gold transition-colors">Sell Property</Link></li>
+                <li><Link href="/dashboard/add-property" className="hover:text-gold transition-colors">Sell Property</Link></li>
                 <li><Link href="/properties" className="hover:text-gold transition-colors">Commercial Real Estate</Link></li>
               </ul>
             </div>
